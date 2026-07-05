@@ -1,11 +1,11 @@
-# Build a mobile-first web app for **My Project Grou
+# MPG Site Records
 
 Built with [10x](https://10x.app). Edit this README freely — 10x
 will not overwrite it once you've made changes.
 
 ## Run it
 
-Open `ios/BuildAMobileFirstWebAppForMyProjectGrou.xcodeproj` in Xcode (16.0+, iOS 26 SDK) and
+Open `ios/MPGSiteRecords.xcodeproj` in Xcode (16.0+, iOS 26 SDK) and
 press ⌘R to build and run.
 
 ## Project layout
@@ -20,7 +20,7 @@ press ⌘R to build and run.
 
 ## Bundle
 
-`app.10x.build-a-mobile-first-web-app-for-my-project-grou`
+`app.10x.mpg-site-records`
 
 
 

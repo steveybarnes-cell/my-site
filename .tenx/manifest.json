@@ -1,12 +1,12 @@
 {
-  "bundleIdentifier" : "app.10x.build-a-mobile-first-web-app-for-my-project-grou",
+  "bundleIdentifier" : "app.10x.mpg-site-records",
   "createdWith" : "10x",
-  "icon" : "ios\/BuildAMobileFirstWebAppForMyProjectGrou\/Assets.xcassets\/AppIcon.appiconset",
-  "name" : "Build a mobile-first web app for **My Project Grou",
+  "icon" : "ios\/MPGSiteRecords\/Assets.xcassets\/AppIcon.appiconset",
+  "name" : "MPG Site Records",
   "projectType" : "ios",
   "schemaVersion" : 1,
-  "scheme" : "BuildAMobileFirstWebAppForMyProjectGrou",
-  "workspaceRoot" : "ios\/BuildAMobileFirstWebAppForMyProjectGrou",
+  "scheme" : "MPGSiteRecords",
+  "workspaceRoot" : "ios\/MPGSiteRecords",
   "xcodeGenSpec" : "ios\/project.yml",
-  "xcodeProject" : "ios\/BuildAMobileFirstWebAppForMyProjectGrou.xcodeproj"
+  "xcodeProject" : "ios\/MPGSiteRecords.xcodeproj"
 }
