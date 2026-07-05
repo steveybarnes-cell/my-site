@@ -7,7 +7,7 @@ struct AdminRootView: View {
     Group {
       TabView {
         Tab("Dashboard", systemImage: "square.grid.2x2.fill") {
-          AdminDashboardView()
+          DashboardView()
         }
         Tab("Invoices", systemImage: "doc.text.fill") {
           AdminSubmissionsView()

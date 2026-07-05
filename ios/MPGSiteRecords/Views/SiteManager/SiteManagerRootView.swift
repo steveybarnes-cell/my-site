@@ -9,6 +9,9 @@ struct SiteManagerRootView: View {
         Tab("My Sites", systemImage: "mappin.and.ellipse") {
           SiteManagerSitesView()
         }
+        Tab("Dashboard", systemImage: "square.grid.2x2.fill") {
+          DashboardView()
+        }
         Tab("Records", systemImage: "list.clipboard.fill") {
           SiteManagerRecordsView()
         }
