@@ -12,6 +12,9 @@ struct AdminRootView: View {
         Tab("Invoices", systemImage: "doc.text.fill") {
           AdminSubmissionsView()
         }
+        Tab("Attendance", systemImage: "location.fill.viewfinder") {
+          AttendanceView()
+        }
         Tab("Files", systemImage: "folder.fill") {
           FilesView()
         }
