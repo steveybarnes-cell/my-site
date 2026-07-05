@@ -24,6 +24,7 @@ struct DashboardView: View {
               tradesmanSection
               allocationTrackerSection
               missingEvidenceSection
+              siteFilesSection
               paymentRunSection
               sourceNote
             }
@@ -294,6 +295,68 @@ struct DashboardView: View {
       }
     }
     .mpgCard()
+  }
+
+  // MARK: - Site files health
+
+  private var siteFilesSection: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      SectionHeader(title: "Site Files Hub")
+      LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+        MetricTile(
+          value: "\(store.filesThisWeek)", label: "Files this week", symbol: "folder.badge.plus")
+        MetricTile(
+          value: "\(store.filesAwaitingApproval().count)", label: "Awaiting approval",
+          symbol: "clock.badge", tint: Brand.amber)
+        MetricTile(
+          value: "\(store.sitesMissingDrawings().count)", label: "Sites with no drawings",
+          symbol: "ruler", tint: Brand.red)
+        MetricTile(
+          value: "\(store.sitesMissingHealthSafety().count)", label: "Sites missing H&S",
+          symbol: "cross.case", tint: Brand.red)
+      }
+      fileHealthRow(
+        "Variation work without photos", store.variationsMissingPhotos().count,
+        "photo.badge.exclamationmark")
+      fileHealthRow(
+        "Material claims without receipts", store.missingReceiptMaterials().count,
+        "doc.text.magnifyingglass")
+
+      if !store.recentSiteFiles().isEmpty {
+        Divider().overlay(Brand.hairline)
+        Text("RECENTLY UPLOADED").font(.caption2.weight(.bold)).foregroundStyle(Brand.olive)
+          .tracking(0.6)
+        ForEach(store.recentSiteFiles(5)) { f in
+          HStack(spacing: 10) {
+            Image(systemName: f.category.symbol).foregroundStyle(Brand.olive).frame(width: 22)
+            VStack(alignment: .leading, spacing: 1) {
+              Text(f.title).font(.caption.weight(.semibold)).foregroundStyle(Brand.ink).lineLimit(1)
+              Text("\(store.site(f.siteId)?.name ?? "") · \(f.uploadedByName)")
+                .font(.caption2).foregroundStyle(Brand.inkSoft).lineLimit(1)
+            }
+            Spacer()
+            Image(systemName: f.approval.symbol).font(.caption2).foregroundStyle(f.approval.color)
+          }
+          .padding(.vertical, 3)
+        }
+      }
+    }
+    .mpgCard()
+  }
+
+  private func fileHealthRow(_ label: String, _ count: Int, _ symbol: String) -> some View {
+    HStack(spacing: 10) {
+      Image(systemName: symbol).foregroundStyle(count > 0 ? Brand.red : Brand.inkSoft)
+        .frame(width: 22)
+      Text(label).font(.subheadline).foregroundStyle(Brand.ink)
+      Spacer()
+      Text("\(count)")
+        .font(.subheadline.bold())
+        .foregroundStyle(count > 0 ? Brand.red : Brand.paidGreen)
+        .padding(.horizontal, 10).padding(.vertical, 3)
+        .background((count > 0 ? Brand.red : Brand.paidGreen).opacity(0.12), in: Capsule())
+    }
+    .padding(.vertical, 4)
   }
 
   private var sourceNote: some View {

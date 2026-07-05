@@ -18,6 +18,7 @@ final class AppStore {
   var comments: [QueryComment] = []
   var notifications: [AppNotification] = []
   var clockRecords: [ClockRecord] = []
+  var siteFiles: [SiteFile] = []
 
   /// Whether the company Xero organisation is connected (modelled — real flow is Xero OAuth).
   var xeroConnected: Bool = false

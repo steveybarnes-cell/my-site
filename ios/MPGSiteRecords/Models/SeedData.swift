@@ -250,5 +250,67 @@ extension AppStore {
         clockOutTime: at(1, 16, 34), clockOutFix: fix(51.4563, -2.5900, 10, site: marlborough),
         clockOutStatus: .valid, claimedHours: 8),
     ]
+
+    // Site files
+    func file(
+      _ site: Site, _ title: String, _ cat: FileCategory, _ origin: FileOrigin,
+      _ type: String, by: AppUser, days: Int, notes: String = "",
+      url: String = "", vis: FileVisibility = .everyone, approval: FileApproval = .awaiting,
+      tags: [String] = [], handover: Bool = false, tradesman: AppUser? = nil
+    ) -> SiteFile {
+      let week = FileStorage.weekEndingSunday(for: daysAgo(days))
+      let folder =
+        [
+          FileStorage.rootFolder, "Site Files", site.name, cat.rawValue,
+          "WE " + week.formatted(.dateTime.day().month(.twoDigits).year()),
+        ].joined(separator: " / ")
+      return SiteFile(
+        id: UUID(), siteId: site.id, title: title, category: cat, origin: origin,
+        fileType: type, uploadedById: by.id, uploadedByName: by.name, uploadedAt: daysAgo(days),
+        tradesmanId: tradesman?.id, notes: notes,
+        driveURL: url.isEmpty
+          ? "https://drive.google.com/file/d/drv_\(UUID().uuidString.prefix(16))/view" : url,
+        driveFolderPath: folder, visibility: vis, approval: approval, tags: tags,
+        inHandoverPack: handover)
+    }
+
+    siteFiles = [
+      file(
+        marlborough, "Ground Floor Plan Rev C", .drawings, .driveLink, "Drive link",
+        by: steve, days: 12, notes: "Latest issued architect drawing.", approval: .approved,
+        tags: ["rev-c", "architect"]),
+      file(
+        marlborough, "Structural Calcs — Steel Beam", .structural, .upload, "PDF",
+        by: jenny, days: 11, approval: .approved, tags: ["steel", "engineer"], handover: true),
+      file(
+        marlborough, "RAMS — Decorating Works", .rams, .upload, "PDF",
+        by: jenny, days: 9, notes: "Signed by contractor.", approval: .approved, handover: true),
+      file(
+        marlborough, "Screwfix Receipt — Emulsion", .materialsReceipt, .upload, "JPG",
+        by: brandon, days: 3, notes: "Trade white x4, filler.", approval: .awaiting,
+        tags: ["screwfix"], tradesman: brandon),
+      file(
+        marlborough, "Snagging — Room 2 Before", .beforePhotos, .upload, "JPG",
+        by: brandon, days: 2, approval: .approved, tradesman: brandon),
+      file(
+        marlborough, "Building Control Completion", .buildingControl, .upload, "PDF",
+        by: steve, days: 1, approval: .approved, handover: true),
+      file(
+        clifton, "Client Instruction — Kitchen Change", .clientInstruction, .driveLink,
+        "Drive link", by: paulSM, days: 6, notes: "Email export from client.", approval: .approved),
+      file(
+        clifton, "Variation — Extra Radiator", .variationEvidence, .upload, "JPG",
+        by: mike, days: 4, notes: "Photo of installed radiator.", approval: .awaiting,
+        tags: ["variation"], tradesman: mike),
+      file(
+        clifton, "Travis Perkins Invoice", .supplierInvoice, .upload, "PDF",
+        by: mike, days: 4, approval: .awaiting, tradesman: mike),
+      file(
+        clifton, "Electrical Certificate", .warranty, .upload, "PDF",
+        by: steve, days: 2, approval: .approved, handover: true),
+      file(
+        redcliffe, "Programme v2", .programme, .driveLink, "Drive link",
+        by: jenny, days: 8, approval: .approved),
+    ]
   }
 }

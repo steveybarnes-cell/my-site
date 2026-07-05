@@ -2,13 +2,13 @@
 - [x] AppStore with realistic sample data + role auth
 - [x] Role-based login + root routing
 - [x] Tradesman / Admin / Site Manager flows
-- [x] Notifications + warnings, existing Files tab, company dashboard, Xero/Hub sync (modelled), receipt capture
+- [x] Notifications + warnings, Files tab, company dashboard, Xero/Hub sync (modelled), receipt capture
 - [x] Official MY PROJECT GROUP vector logo on login screen
-- [ ] Site Files Hub: extend SiteFile model (full metadata + relations + 23 categories + folder groups)
-- [ ] Site-first Hub screen (sites list → site hub → category → files) replacing flat Files tab
-- [ ] Add file: upload path + Add Google Drive link path (modelled Drive folder convention + auto-rename)
-- [ ] Site Files Register (modelled Sheets row projection) + linking to work records
-- [ ] Approval labels, role permissions, missing-evidence prompts, cross-field search
-- [ ] Handover pack builder + file-list/PDF index export
-- [ ] Admin dashboard file-health widgets
+- [x] Site Files Hub: SiteFile model (23 categories + 7 folder groups + visibility/approval/register)
+- [x] Site-first Hub screen (sites list → site hub → category → files) replacing flat Files tab
+- [x] Add file: upload path + Add Google Drive link path (modelled Drive folder convention)
+- [x] Site Files Register (modelled Sheets row projection) + relations
+- [x] Approval labels, role permissions, missing-evidence prompts, cross-field search
+- [x] Handover pack builder + text index export (ShareLink)
+- [x] Admin dashboard file-health widgets
 - [ ] Phase 2: real Google Drive/Sheets sync (Google OAuth + backend), real auth, PDF export
