@@ -1,1 +1,41 @@
-No App Store description generated yet.
+MPG Site Records replaces messy WhatsApp threads, loose photos and one-off PDFs with one standard company system for construction subcontractors and the office that pays them.
+
+Built for tradesmen working on real sites, the app keeps the whole week in order. See the work you have been allocated, complete daily site records, capture before, during and after photos, log materials and receipts, clock in and out with GPS geofencing, and submit your weekly timesheet and invoice when the job is done.
+
+For the office, admins and site managers get a single dashboard to review submissions, chase missing receipts, query hours, approve work and pay on time.
+
+FOR TRADESMEN
+
+Today's Work shows every allocated job with address, hours, trade and what is required on site.
+
+Job Details keeps the brief, times, site manager and notes from the office together, with quick actions to take a photo, add materials or submit a daily record.
+
+Daily Site Records capture start time, finish time, breaks, work carried out and any delays, with the day's total hours calculated for you.
+
+Photos are timestamped and linked to the job automatically, sorted as before, during or after works.
+
+Materials and receipts are filed against the right job so nothing goes missing before invoicing.
+
+Weekly invoices show net due, hours and CIS deductions, with clear draft and paid status and the Monday submission deadline in view.
+
+Your profile holds trade and business details plus compliance information such as UTR, NI number, CIS status and VAT.
+
+FOR ADMINS AND SITE MANAGERS
+
+The Office Dashboard shows invoices to review, active tradesmen, active sites and total outstanding at a glance.
+
+Clear alerts flag materials purchases missing a receipt and invoices submitted after the deadline, so problems are caught before payment.
+
+Sites and the tradesmen working them stay organised in one place, ready to review, query, approve and pay.
+
+WHY TEAMS USE IT
+
+One standard system for every job, instead of scattered messages and files.
+
+Honest daily records and GPS clock-ins that hold up when it matters.
+
+Photos and receipts filed by job, ready at invoice time.
+
+Faster review and payment for the office.
+
+MPG Site Records is built for My Project Group Ltd and the subcontractors who work with them.
