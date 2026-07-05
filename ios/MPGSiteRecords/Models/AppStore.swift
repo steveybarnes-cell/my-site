@@ -210,6 +210,32 @@ final class AppStore {
       linkedRegister: p.type.linkedRegister)
   }
 
+  // MARK: - Xero / Hub sync (modelled)
+
+  /// File types that can be pushed to Xero / the company hub as an expense record.
+  func canSyncToXero(_ p: SitePhoto) -> Bool {
+    p.type == .receipt || p.type == .supplierInvoice
+  }
+
+  /// Simulates sending a receipt to Google Drive/Sheets hub + Xero.
+  /// Marks it pending, then resolves to synced with a Xero reference. Replace the async
+  /// body with a real Xero Files/Bills API call once Xero OAuth + a backend are connected.
+  func sendToXero(_ photoId: UUID) {
+    guard let i = photos.firstIndex(where: { $0.id == photoId }), canSyncToXero(photos[i]) else {
+      return
+    }
+    photos[i].syncStatus = .pending
+    let capturedId = photoId
+    Task { @MainActor in
+      try? await Task.sleep(for: .seconds(1.4))
+      guard let j = self.photos.firstIndex(where: { $0.id == capturedId }) else { return }
+      self.photos[j].syncStatus = .synced
+      self.photos[j].syncedAt = Date()
+      self.photos[j].xeroReference =
+        "XERO-" + String(capturedId.uuidString.prefix(6)).uppercased()
+    }
+  }
+
   func addQuery(submissionId: UUID, toUserId: UUID, message: String, fromAdmin: Bool) {
     let name = currentUser?.name ?? "Office"
     comments.append(

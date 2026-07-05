@@ -108,11 +108,13 @@ struct FileDetailView: View {
   let file: SitePhoto
 
   var body: some View {
-    let row = store.sheetRow(for: file)
+    let live = store.photos.first(where: { $0.id == file.id }) ?? file
+    let row = store.sheetRow(for: live)
     ScrollView {
       VStack(spacing: 16) {
         thumbnail
         driveCard
+        if store.canSyncToXero(live) { xeroCard(live) }
         sheetCard(row)
       }
       .padding(16)
@@ -120,6 +122,52 @@ struct FileDetailView: View {
     .background(MPGBackground())
     .navigationTitle("File Details")
     .navigationBarTitleDisplayMode(.inline)
+  }
+
+  private func xeroCard(_ live: SitePhoto) -> some View {
+    VStack(alignment: .leading, spacing: 12) {
+      SectionHeader(title: "Xero / Company Hub")
+      HStack(spacing: 10) {
+        Image(systemName: live.syncStatus.symbol)
+          .font(.title3).foregroundStyle(syncTint(live.syncStatus))
+          .symbolEffect(.pulse, isActive: live.syncStatus == .pending)
+        VStack(alignment: .leading, spacing: 2) {
+          Text(live.syncStatus.rawValue)
+            .font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
+          Text("Pushes this receipt to Google Drive/Sheets and creates an expense in Xero.")
+            .font(.caption).foregroundStyle(Brand.inkSoft)
+        }
+        Spacer()
+      }
+      if live.syncStatus == .synced {
+        Divider().overlay(Brand.hairline)
+        InfoRow(label: "Xero reference", value: live.xeroReference, symbol: "number")
+        if let at = live.syncedAt {
+          InfoRow(
+            label: "Synced", value: at.formatted(date: .abbreviated, time: .shortened),
+            symbol: "checkmark.circle")
+        }
+      }
+      if live.syncStatus != .synced {
+        PrimaryButton(
+          title: live.syncStatus == .pending ? "Sending…" : "Send to Xero / Hub",
+          symbol: "arrow.up.forward.app"
+        ) {
+          store.sendToXero(live.id)
+        }
+        .disabled(live.syncStatus == .pending)
+      }
+    }
+    .mpgCard()
+  }
+
+  private func syncTint(_ s: SyncStatus) -> Color {
+    switch s {
+    case .notSynced: return Brand.inkSoft
+    case .pending: return Brand.amber
+    case .synced: return Brand.paidGreen
+    case .failed: return Brand.red
+    }
   }
 
   private var thumbnail: some View {

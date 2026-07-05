@@ -274,6 +274,25 @@ enum CaptureSource: String, Codable, CaseIterable, Identifiable {
   var symbol: String { self == .camera ? "camera.fill" : "photo.on.rectangle" }
 }
 
+/// Status of pushing a receipt/expense into the company hub (Google Drive/Sheets) + Xero.
+/// Modelled locally; a real backend (Google OAuth + Xero OAuth) swaps in behind `AppStore.sync…`.
+enum SyncStatus: String, Codable, CaseIterable, Identifiable {
+  case notSynced = "Not synced"
+  case pending = "Pending sync"
+  case synced = "Synced"
+  case failed = "Sync failed"
+  var id: String { rawValue }
+
+  var symbol: String {
+    switch self {
+    case .notSynced: return "arrow.up.circle"
+    case .pending: return "arrow.triangle.2.circlepath"
+    case .synced: return "checkmark.seal.fill"
+    case .failed: return "exclamationmark.triangle.fill"
+    }
+  }
+}
+
 struct SitePhoto: Identifiable, Hashable {
   let id: UUID
   var userId: UUID
@@ -287,6 +306,11 @@ struct SitePhoto: Identifiable, Hashable {
   // Capture + storage metadata
   var source: CaptureSource = .camera
   var fileExtension: String = "jpg"
+
+  // Xero / Hub sync projection (populated when the tradesman sends the receipt onward)
+  var syncStatus: SyncStatus = .notSynced
+  var syncedAt: Date? = nil
+  var xeroReference: String = ""  // e.g. Xero bill/transaction id once created
 
   // Optional links used for register cross-referencing + the sheet row
   var dailyRecordId: UUID? = nil
