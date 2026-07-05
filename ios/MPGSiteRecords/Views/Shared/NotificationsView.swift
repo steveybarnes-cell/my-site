@@ -5,37 +5,37 @@ struct NotificationsView: View {
   private var me: AppUser? { store.currentUser }
 
   var body: some View {
-      Group {
-              NavigationStack {
-          ZStack {
-            MPGBackground()
-            ScrollView {
-              VStack(spacing: 12) {
-                let notes = me.map { store.notifications(for: $0.id) } ?? []
-                if notes.isEmpty {
-                  EmptyStateView(
-                    symbol: "bell.slash", title: "No notifications",
-                    message: "Allocations, queries and payment updates will appear here."
-                  ).mpgCard()
-                } else {
-                  ForEach(notes) { n in
-                    NotificationRow(note: n)
-                  }
+    Group {
+      NavigationStack {
+        ZStack {
+          MPGBackground()
+          ScrollView {
+            VStack(spacing: 12) {
+              let notes = me.map { store.notifications(for: $0.id) } ?? []
+              if notes.isEmpty {
+                EmptyStateView(
+                  symbol: "bell.slash", title: "No notifications",
+                  message: "Allocations, queries and payment updates will appear here."
+                ).mpgCard()
+              } else {
+                ForEach(notes) { n in
+                  NotificationRow(note: n)
                 }
               }
-              .padding(16)
             }
+            .padding(16)
           }
-          .navigationTitle("Notifications")
-          .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-              Button("Mark read") { store.markAllNotificationsRead() }
-                .disabled(store.unreadCount == 0)
-            }
+        }
+        .navigationTitle("Notifications")
+        .toolbar {
+          ToolbarItem(placement: .topBarTrailing) {
+            Button("Mark read") { store.markAllNotificationsRead() }
+              .disabled(store.unreadCount == 0)
           }
-              }
+        }
       }
-      .__tenxTrackView("NotificationsView")
+    }
+    .__tenxTrackView("NotificationsView")
   }
 }
 

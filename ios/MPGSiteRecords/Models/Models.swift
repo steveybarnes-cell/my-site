@@ -81,10 +81,55 @@ enum PhotoType: String, Codable, CaseIterable, Identifiable {
   case snagging = "Snagging evidence"
   case delay = "Delay evidence"
   case damage = "Damage/issue evidence"
-  case materials = "Materials"
-  case receipt = "Receipt/supplier invoice"
+  case receipt = "Receipt"
+  case supplierInvoice = "Supplier invoice"
+  case materials = "Materials photo"
   case other = "Other"
   var id: String { rawValue }
+
+  /// SF Symbol stand-in for a real image thumbnail.
+  var symbol: String {
+    switch self {
+    case .before: return "photo"
+    case .during: return "photo.stack"
+    case .completed: return "photo.fill"
+    case .variation: return "photo.badge.checkmark"
+    case .snagging: return "exclamationmark.triangle"
+    case .delay: return "clock.badge.exclamationmark"
+    case .damage: return "hammer"
+    case .receipt: return "doc.text.viewfinder"
+    case .supplierInvoice: return "doc.richtext"
+    case .materials: return "shippingbox"
+    case .other: return "photo"
+    }
+  }
+
+  /// Compact camelCase token used in the auto-generated file name.
+  var fileToken: String {
+    switch self {
+    case .before: return "BeforeWorks"
+    case .during: return "DuringWorks"
+    case .completed: return "CompletedWorks"
+    case .variation: return "VariationEvidence"
+    case .snagging: return "SnaggingEvidence"
+    case .delay: return "DelayEvidence"
+    case .damage: return "DamageEvidence"
+    case .receipt: return "Receipt"
+    case .supplierInvoice: return "SupplierInvoice"
+    case .materials: return "MaterialsPhoto"
+    case .other: return "Other"
+    }
+  }
+
+  /// Which register this file type should be cross-linked to.
+  var linkedRegister: String? {
+    switch self {
+    case .receipt, .supplierInvoice: return "Materials Register"
+    case .variation: return "Variation Register"
+    case .delay: return "Delay Register"
+    default: return nil
+    }
+  }
 }
 
 enum SubmissionStatus: String, Codable, CaseIterable, Identifiable {
@@ -214,6 +259,13 @@ struct MaterialItem: Identifiable, Hashable {
   var total: Double { costExVat + vatAmount }
 }
 
+enum CaptureSource: String, Codable, CaseIterable, Identifiable {
+  case camera = "Camera"
+  case gallery = "Gallery"
+  var id: String { rawValue }
+  var symbol: String { self == .camera ? "camera.fill" : "photo.on.rectangle" }
+}
+
 struct SitePhoto: Identifiable, Hashable {
   let id: UUID
   var userId: UUID
@@ -223,6 +275,22 @@ struct SitePhoto: Identifiable, Hashable {
   var description: String
   var symbol: String  // SF Symbol stand-in for a real image
   var timestamp: Date
+
+  // Capture + storage metadata
+  var source: CaptureSource = .camera
+  var fileExtension: String = "jpg"
+
+  // Optional links used for register cross-referencing + the sheet row
+  var dailyRecordId: UUID? = nil
+  var submissionId: UUID? = nil
+  var materialId: UUID? = nil
+
+  // Google Drive projection (populated by FileStorage at upload time)
+  var driveFileId: String = ""
+  var driveFolderPath: String = ""
+  var driveFileName: String = ""
+  var driveURL: String = ""
+  var weekEnding: Date? = nil
 }
 
 struct WeeklySubmission: Identifiable, Hashable {

@@ -12,6 +12,9 @@ struct TradesmanRootView: View {
         Tab("Records", systemImage: "list.clipboard.fill") {
           TradesmanRecordsView()
         }
+        Tab("Files", systemImage: "folder.fill") {
+          FilesView()
+        }
         Tab("Invoices", systemImage: "sterlingsign.circle.fill") {
           TradesmanSubmissionsView()
         }

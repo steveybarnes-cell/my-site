@@ -106,6 +106,109 @@ final class AppStore {
   func addMaterial(_ m: MaterialItem) { materials.append(m) }
   func addPhoto(_ p: SitePhoto) { photos.append(p) }
 
+  // MARK: - File storage (Google Drive + Sheets projection)
+
+  /// Uploads a captured file: builds the Drive folder path, auto-renames it, links it to the
+  /// correct register, and records the SitePhoto (which also backs the "Photos & Files" sheet row).
+  @discardableResult
+  func uploadFile(
+    type: PhotoType, description: String, source: CaptureSource, ext: String = "jpg",
+    site: Site, allocation: WorkAllocation? = nil, dailyRecordId: UUID? = nil,
+    submissionId: UUID? = nil, materialId: UUID? = nil, date: Date = Date()
+  ) -> SitePhoto {
+    let uploader = currentUser?.name ?? "Unknown"
+    let tradesman = allocation.flatMap { user($0.tradesmanId)?.name } ?? uploader
+
+    let result = FileStorage.upload(
+      type: type, date: date, site: site, tradesman: tradesman, ext: ext,
+      allocation: allocation, dailyRecordId: dailyRecordId, submissionId: submissionId)
+
+    // Auto-link receipts/supplier invoices to the most recent open material if none supplied.
+    var linkedMaterial = materialId
+    if type == .receipt || type == .supplierInvoice, linkedMaterial == nil {
+      linkedMaterial =
+        materials
+        .filter { $0.siteId == site.id && !$0.receiptUploaded }
+        .sorted { $0.date > $1.date }
+        .first?.id
+    }
+    if let mid = linkedMaterial, let i = materials.firstIndex(where: { $0.id == mid }) {
+      materials[i].receiptUploaded = true
+    }
+
+    let photo = SitePhoto(
+      id: UUID(),
+      userId: currentUser?.id ?? allocation?.tradesmanId ?? UUID(),
+      siteId: site.id,
+      allocationId: allocation?.id,
+      type: type,
+      description: description.isEmpty ? type.rawValue : description,
+      symbol: type.symbol,
+      timestamp: Date(),
+      source: source,
+      fileExtension: ext,
+      dailyRecordId: dailyRecordId,
+      submissionId: submissionId,
+      materialId: linkedMaterial,
+      driveFileId: result.driveFileId,
+      driveFolderPath: result.driveFolderPath,
+      driveFileName: result.driveFileName,
+      driveURL: result.driveURL,
+      weekEnding: result.weekEnding)
+
+    photos.append(photo)
+
+    // Notify the office when register-linked evidence lands.
+    if let register = type.linkedRegister, let admin = users.first(where: { $0.role == .admin }) {
+      notify(
+        admin.id, type: "File",
+        message: "\(tradesman) uploaded \(type.rawValue) for \(site.name) — linked to \(register).",
+        symbol: type.symbol)
+    }
+    return photo
+  }
+
+  /// Files visible to the current user, honouring privacy rules:
+  /// tradesman -> own files, site manager -> files on their assigned sites, admin -> all.
+  func visibleFiles() -> [SitePhoto] {
+    guard let me = currentUser else { return [] }
+    let all: [SitePhoto]
+    switch me.role {
+    case .admin:
+      all = photos
+    case .siteManager:
+      let siteIds = Set(sitesManaged(by: me.id).map { $0.id })
+      all = photos.filter { siteIds.contains($0.siteId) }
+    case .tradesman:
+      all = photos.filter { $0.userId == me.id }
+    }
+    return all.sorted { $0.timestamp > $1.timestamp }
+  }
+
+  /// Projects a stored file into a "Photos & Files" sheet row.
+  func sheetRow(for p: SitePhoto) -> FileSheetRow {
+    let allocRef =
+      p.allocationId.map { id in
+        allocations.first { $0.id == id }.map { "ALLO " + $0.taskDescription } ?? "—"
+      } ?? "—"
+    return FileSheetRow(
+      id: p.id,
+      fileId: p.driveFileId,
+      driveURL: p.driveURL,
+      uploadedBy: currentUser?.name ?? user(p.userId)?.name ?? "—",
+      tradesmanName: user(p.userId)?.name ?? "—",
+      site: site(p.siteId)?.name ?? "—",
+      date: p.timestamp,
+      weekEnding: p.weekEnding,
+      linkedAllocation: allocRef,
+      linkedDailyRecord: p.dailyRecordId != nil ? "Linked" : "—",
+      linkedSubmission: p.submissionId != nil ? "Linked" : "—",
+      fileType: p.type.rawValue,
+      notes: p.description,
+      timestamp: p.timestamp,
+      linkedRegister: p.type.linkedRegister)
+  }
+
   func addQuery(submissionId: UUID, toUserId: UUID, message: String, fromAdmin: Bool) {
     let name = currentUser?.name ?? "Office"
     comments.append(

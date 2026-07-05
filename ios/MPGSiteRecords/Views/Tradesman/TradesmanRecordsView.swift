@@ -9,28 +9,28 @@ struct TradesmanRecordsView: View {
   private var me: AppUser? { store.currentUser }
 
   var body: some View {
-      Group {
-              NavigationStack {
-          ZStack {
-            MPGBackground()
-            ScrollView {
-              VStack(spacing: 16) {
-                Picker("View", selection: $tab) {
-                  Text("Site Records").tag(0)
-                  Text("Materials").tag(1)
-                  Text("Photos").tag(2)
-                }
-                .pickerStyle(.segmented)
-          
-                if tab == 0 { recordsList } else if tab == 1 { materialsList } else { photosList }
+    Group {
+      NavigationStack {
+        ZStack {
+          MPGBackground()
+          ScrollView {
+            VStack(spacing: 16) {
+              Picker("View", selection: $tab) {
+                Text("Site Records").tag(0)
+                Text("Materials").tag(1)
+                Text("Photos").tag(2)
               }
-              .padding(16)
+              .pickerStyle(.segmented)
+
+              if tab == 0 { recordsList } else if tab == 1 { materialsList } else { photosList }
             }
+            .padding(16)
           }
-          .navigationTitle("My Records")
-              }
+        }
+        .navigationTitle("My Records")
       }
-      .__tenxTrackView("TradesmanRecordsView")
+    }
+    .__tenxTrackView("TradesmanRecordsView")
   }
 
   @ViewBuilder private var recordsList: some View {

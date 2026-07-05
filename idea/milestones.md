@@ -5,4 +5,5 @@
 - [x] Admin flow (dashboard, sites, variation register, payment run)
 - [x] Site Manager flow (my sites, site records, review)
 - [x] Notifications + warnings (missing receipts, late invoices, deadline, bank-change)
-- [ ] Phase 2: real auth, PDF export, integrations
+- [x] File storage: camera/gallery capture, 11 file types, Drive folder path + auto-rename, Photos & Files sheet row, register linking, role-based Files tab
+- [ ] Phase 2: real Google Drive/Sheets sync (OAuth + backend), real auth, PDF export
