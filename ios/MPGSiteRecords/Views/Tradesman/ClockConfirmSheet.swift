@@ -26,45 +26,45 @@ struct ClockConfirmSheet: View {
   }
 
   private var canSubmit: Bool {
-    guard let _ = fix else { return false }
+    guard fix != nil else { return false }
     if needsReview { return !reason.trimmingCharacters(in: .whitespaces).isEmpty }
     return true
   }
 
   var body: some View {
-      Group {
-              NavigationStack {
-          ZStack {
-            MPGBackground()
-            ScrollView {
-              VStack(spacing: 16) {
-                siteHeader
-                if resolving {
-                  resolvingCard
-                } else if let fix {
-                  resultCard(fix)
-                  if needsReview { reviewCard(fix) }
-                  photoCard
-                }
+    Group {
+      NavigationStack {
+        ZStack {
+          MPGBackground()
+          ScrollView {
+            VStack(spacing: 16) {
+              siteHeader
+              if resolving {
+                resolvingCard
+              } else if let fix {
+                resultCard(fix)
+                if needsReview { reviewCard(fix) }
+                photoCard
               }
-              .padding(16)
             }
+            .padding(16)
           }
-          .navigationTitle(title)
-          .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-              Button("Cancel") { dismiss() }
-            }
-            ToolbarItem(placement: .confirmationAction) {
-              Button(title) { submit() }
-                .fontWeight(.semibold)
-                .disabled(!canSubmit)
-            }
+        }
+        .navigationTitle(title)
+        .toolbar {
+          ToolbarItem(placement: .cancellationAction) {
+            Button("Cancel") { dismiss() }
           }
-          .onAppear(perform: resolve)
-              }
+          ToolbarItem(placement: .confirmationAction) {
+            Button(title) { submit() }
+              .fontWeight(.semibold)
+              .disabled(!canSubmit)
+          }
+        }
+        .onAppear(perform: resolve)
       }
-      .__tenxTrackView("ClockConfirmSheet")
+    }
+    .__tenxTrackView("ClockConfirmSheet")
   }
 
   private var siteHeader: some View {
@@ -89,22 +89,29 @@ struct ClockConfirmSheet: View {
   private func resultCard(_ fix: LocationFix) -> some View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
-        Image(systemName: fix.permissionDenied
-          ? "location.slash.fill" : (fix.insideGeofence ? "checkmark.seal.fill" : "exclamationmark.triangle.fill"))
-          .font(.title2)
-          .foregroundStyle(store.statusFor(fix).color)
+        Image(
+          systemName: fix.permissionDenied
+            ? "location.slash.fill"
+            : (fix.insideGeofence ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
+        )
+        .font(.title2)
+        .foregroundStyle(store.statusFor(fix).color)
         Text(store.statusFor(fix).rawValue)
           .font(.subheadline.weight(.semibold))
           .foregroundStyle(store.statusFor(fix).color)
       }
       Divider().overlay(Brand.hairline)
       if fix.permissionDenied {
-        Text("Location permission is off — this entry will be recorded as a manual clock-in and "
-          + "sent for admin review.")
-          .font(.caption).foregroundStyle(Brand.inkSoft)
+        Text(
+          "Location permission is off — this entry will be recorded as a manual clock-in and "
+            + "sent for admin review."
+        )
+        .font(.caption).foregroundStyle(Brand.inkSoft)
       } else {
-        InfoRow(label: "Distance from site", value: Fmt.metres(fix.distanceFromSite), symbol: "ruler")
-        InfoRow(label: "Geofence radius", value: "\(Int(site.geofenceRadius))m", symbol: "circle.dashed")
+        InfoRow(
+          label: "Distance from site", value: Fmt.metres(fix.distanceFromSite), symbol: "ruler")
+        InfoRow(
+          label: "Geofence radius", value: "\(Int(site.geofenceRadius))m", symbol: "circle.dashed")
         InfoRow(
           label: "GPS accuracy",
           value: fix.accuracy < 0 ? "—" : "±\(Int(fix.accuracy))m", symbol: "scope")
@@ -127,7 +134,8 @@ struct ClockConfirmSheet: View {
         .padding(10)
         .background(Brand.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
         .overlay(
-          RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(Brand.hairline, lineWidth: 1))
+          RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(
+            Brand.hairline, lineWidth: 1))
     }
     .mpgCard()
   }
@@ -144,7 +152,8 @@ struct ClockConfirmSheet: View {
           .padding(10)
           .background(Brand.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
           .overlay(
-            RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(Brand.hairline, lineWidth: 1))
+            RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(
+              Brand.hairline, lineWidth: 1))
         Text("Saved to Drive under Clock In Evidence / \(site.name).")
           .font(.caption2).foregroundStyle(Brand.inkSoft)
       }
@@ -157,7 +166,8 @@ struct ClockConfirmSheet: View {
   private func resolve() {
     resolving = true
     location.requestOneShot { coord, accuracy in
-      let f = LocationFix.compute(coord: location.permissionDenied ? nil : coord,
+      let f = LocationFix.compute(
+        coord: location.permissionDenied ? nil : coord,
         accuracy: accuracy, site: site)
       self.fix = f
       self.resolving = false
@@ -192,7 +202,8 @@ struct ClockRecordRow: View {
       HStack {
         VStack(alignment: .leading, spacing: 2) {
           if showName {
-            Text(record.tradesmanName).font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
+            Text(record.tradesmanName).font(.subheadline.weight(.semibold)).foregroundStyle(
+              Brand.ink)
           }
           Text(record.siteName).font(showName ? .caption : .subheadline.weight(.medium))
             .foregroundStyle(showName ? Brand.inkSoft : Brand.ink)
@@ -213,6 +224,7 @@ struct ClockRecordRow: View {
       }
     }
     .padding(12)
-    .background(Brand.lightGreen.opacity(0.5), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    .background(
+      Brand.lightGreen.opacity(0.5), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
   }
 }

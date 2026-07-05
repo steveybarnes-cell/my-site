@@ -12,42 +12,42 @@ struct DashboardView: View {
   }
 
   var body: some View {
-      Group {
-              NavigationStack {
-          ZStack {
-            MPGBackground()
-            ScrollView {
-              VStack(spacing: 22) {
-                if filter.isActive { activeFilterBar }
-                weekSummarySection
-                siteCostSection
-                tradesmanSection
-                allocationTrackerSection
-                missingEvidenceSection
-                paymentRunSection
-                sourceNote
-              }
-              .padding(16)
+    Group {
+      NavigationStack {
+        ZStack {
+          MPGBackground()
+          ScrollView {
+            VStack(spacing: 22) {
+              if filter.isActive { activeFilterBar }
+              weekSummarySection
+              siteCostSection
+              tradesmanSection
+              allocationTrackerSection
+              missingEvidenceSection
+              paymentRunSection
+              sourceNote
+            }
+            .padding(16)
+          }
+        }
+        .navigationTitle("Company Dashboard")
+        .toolbar {
+          ToolbarItem(placement: .primaryAction) {
+            Button {
+              showFilters = true
+            } label: {
+              Image(
+                systemName: filter.isActive
+                  ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
             }
           }
-          .navigationTitle("Company Dashboard")
-          .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-              Button {
-                showFilters = true
-              } label: {
-                Image(
-                  systemName: filter.isActive
-                    ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-              }
-            }
-          }
-          .sheet(isPresented: $showFilters) {
-            DashboardFilterSheet(filter: $filter, analytics: analytics)
-          }
-              }
+        }
+        .sheet(isPresented: $showFilters) {
+          DashboardFilterSheet(filter: $filter, analytics: analytics)
+        }
       }
-      .__tenxTrackView("DashboardView")
+    }
+    .__tenxTrackView("DashboardView")
   }
 
   // MARK: - Active filter bar

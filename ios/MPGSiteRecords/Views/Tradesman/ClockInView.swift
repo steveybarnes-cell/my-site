@@ -12,7 +12,8 @@ struct ClockInView: View {
   private var todaysSite: Site? {
     guard let me else { return nil }
     if let open = store.openClockRecord(for: me.id) { return store.site(open.siteId) }
-    let alloc = store.todaysAllocations(for: me.id).first { Calendar.current.isDateInToday($0.date) }
+    let alloc =
+      store.todaysAllocations(for: me.id).first { Calendar.current.isDateInToday($0.date) }
       ?? store.todaysAllocations(for: me.id).first
     return alloc.flatMap { store.site($0.siteId) }
   }
@@ -26,44 +27,44 @@ struct ClockInView: View {
   enum ClockEvent { case clockIn, clockOut }
 
   var body: some View {
-      Group {
-              NavigationStack {
-          ZStack {
-            MPGBackground()
-            ScrollView {
-              VStack(spacing: 16) {
-                if let site = todaysSite {
-                  statusCard(site)
-                  actionCard(site)
-                  historyCard
-                  privacyCard
-                } else {
-                  EmptyStateView(
-                    symbol: "mappin.slash", title: "No site to clock into",
-                    message: "You have no allocation today. Clock-in becomes available once you are "
-                      + "assigned to a site."
-                  ).mpgCard()
-                  privacyCard
-                }
+    Group {
+      NavigationStack {
+        ZStack {
+          MPGBackground()
+          ScrollView {
+            VStack(spacing: 16) {
+              if let site = todaysSite {
+                statusCard(site)
+                actionCard(site)
+                historyCard
+                privacyCard
+              } else {
+                EmptyStateView(
+                  symbol: "mappin.slash", title: "No site to clock into",
+                  message: "You have no allocation today. Clock-in becomes available once you are "
+                    + "assigned to a site."
+                ).mpgCard()
+                privacyCard
               }
-              .padding(16)
             }
+            .padding(16)
           }
-          .navigationTitle("Attendance")
-          .sheet(isPresented: $showNotice) {
-            LocationNoticeSheet {
-              location.requestPermission()
-              showNotice = false
-            }
+        }
+        .navigationTitle("Attendance")
+        .sheet(isPresented: $showNotice) {
+          LocationNoticeSheet {
+            location.requestPermission()
+            showNotice = false
           }
-          .sheet(item: $pendingEvent) { event in
-            if let site = todaysSite {
-              ClockConfirmSheet(event: event, site: site)
-            }
+        }
+        .sheet(item: $pendingEvent) { event in
+          if let site = todaysSite {
+            ClockConfirmSheet(event: event, site: site)
           }
-              }
+        }
       }
-      .__tenxTrackView("ClockInView")
+    }
+    .__tenxTrackView("ClockInView")
   }
 
   // MARK: - Status card
@@ -94,7 +95,8 @@ struct ClockInView: View {
       } else {
         InfoRow(
           label: "Geofence radius", value: "\(Int(site.geofenceRadius))m", symbol: "circle.dashed")
-        InfoRow(label: "Shift", value: "\(site.defaultStart)–\(site.defaultFinish)", symbol: "clock")
+        InfoRow(
+          label: "Shift", value: "\(site.defaultStart)–\(site.defaultFinish)", symbol: "clock")
       }
     }
     .mpgCard()
@@ -184,8 +186,9 @@ struct LocationNoticeSheet: View {
             .font(.subheadline).foregroundStyle(Brand.inkSoft)
             .multilineTextAlignment(.center)
           VStack(alignment: .leading, spacing: 10) {
-            noticePoint("Location is only read when you clock in, clock out, upload photos or "
-              + "submit records.")
+            noticePoint(
+              "Location is only read when you clock in, clock out, upload photos or "
+                + "submit records.")
             noticePoint("It is not tracked continuously and never outside work.")
             noticePoint("Used only to verify you are on the allocated site.")
           }

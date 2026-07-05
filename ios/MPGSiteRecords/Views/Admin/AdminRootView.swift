@@ -225,6 +225,8 @@ struct AdminProfileView: View {
             .frame(maxWidth: .infinity).padding(22)
             .background(Brand.charcoal, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
 
+            xeroCard
+
             VStack(alignment: .leading, spacing: 12) {
               SectionHeader(title: "Team")
               ForEach(store.users.filter { $0.role != .admin }) { u in
@@ -252,6 +254,29 @@ struct AdminProfileView: View {
       }
       .navigationTitle("Profile")
     }
+  }
+
+  private var xeroCard: some View {
+    @Bindable var store = store
+    return VStack(alignment: .leading, spacing: 12) {
+      SectionHeader(title: "Integrations")
+      HStack(spacing: 12) {
+        Image(systemName: "sparkles.rectangle.stack")
+          .foregroundStyle(store.xeroConnected ? Brand.paidGreen : Brand.inkSoft)
+          .frame(width: 34, height: 34)
+          .background(Brand.lightGreen, in: RoundedRectangle(cornerRadius: 10))
+        VStack(alignment: .leading, spacing: 2) {
+          Text("Xero / Company Hub").font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
+          Text(store.xeroConnected ? "Connected — receipts can sync" : "Not connected")
+            .font(.caption).foregroundStyle(Brand.inkSoft)
+        }
+        Spacer()
+        Toggle("", isOn: $store.xeroConnected).labelsHidden().tint(Brand.paidGreen)
+      }
+      Text("Modelled connection. Real setup uses Xero OAuth + a backend (Files & Bills API).")
+        .font(.caption2).foregroundStyle(Brand.inkSoft)
+    }
+    .mpgCard()
   }
 }
 

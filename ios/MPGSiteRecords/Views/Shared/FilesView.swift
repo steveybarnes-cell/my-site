@@ -65,6 +65,24 @@ struct FilesView: View {
     }
   }
 
+  private func syncLabel(_ s: SyncStatus) -> String {
+    switch s {
+    case .notSynced: return "Not synced"
+    case .pending: return "Pending sync"
+    case .synced: return "In Xero"
+    case .failed: return "Sync failed"
+    }
+  }
+
+  private func syncColor(_ s: SyncStatus) -> Color {
+    switch s {
+    case .notSynced: return Brand.inkSoft
+    case .pending: return Brand.amber
+    case .synced: return Brand.paidGreen
+    case .failed: return Brand.red
+    }
+  }
+
   private func chip(title: String, active: Bool, action: @escaping () -> Void) -> some View {
     Button(action: action) {
       Text(title)
@@ -92,6 +110,9 @@ struct FilesView: View {
           StatusChip(text: file.type.rawValue, color: Brand.blue)
           if let reg = file.type.linkedRegister {
             StatusChip(text: reg, color: Brand.amber)
+          }
+          if store.canSyncToXero(file), file.syncStatus != .notSynced {
+            StatusChip(text: syncLabel(file.syncStatus), color: syncColor(file.syncStatus))
           }
         }
       }

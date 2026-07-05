@@ -34,9 +34,9 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
 
   var deviceName: String {
     #if canImport(UIKit)
-    return "Mobile device"
+      return "Mobile device"
     #else
-    return "Device"
+      return "Device"
     #endif
   }
 

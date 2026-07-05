@@ -19,6 +19,9 @@ final class AppStore {
   var notifications: [AppNotification] = []
   var clockRecords: [ClockRecord] = []
 
+  /// Whether the company Xero organisation is connected (modelled — real flow is Xero OAuth).
+  var xeroConnected: Bool = false
+
   init() { seed() }
 
   // MARK: - Auth (mock)
@@ -299,7 +302,9 @@ final class AppStore {
 
   /// The open (not yet clocked-out) record for a tradesman today, if any.
   func openClockRecord(for userId: UUID) -> ClockRecord? {
-    clockRecords.first { $0.userId == userId && $0.isOpen && Calendar.current.isDateInToday($0.date) }
+    clockRecords.first {
+      $0.userId == userId && $0.isOpen && Calendar.current.isDateInToday($0.date)
+    }
   }
 
   func clockRecords(for userId: UUID) -> [ClockRecord] {
