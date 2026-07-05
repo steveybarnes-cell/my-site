@@ -67,10 +67,83 @@
       ],
       "accessibilityRecommended" : false,
       "ageRatingHints" : [
-
+        "Cartoon or Fantasy Violence: None",
+        "Realistic Violence: None",
+        "Prolonged Graphic or Sadistic Realistic Violence: None",
+        "Profanity or Crude Humor: None",
+        "Mature\/Suggestive Themes: None",
+        "Horror\/Fear Themes: None",
+        "Sexual Content or Nudity: None",
+        "Graphic Sexual Content and Nudity: None",
+        "Alcohol, Tobacco, or Drug Use or References: None",
+        "Simulated Gambling: None",
+        "Medical\/Treatment Information: None",
+        "Contests: None",
+        "Unrestricted Web Access: No",
+        "Gambling and Contests: No",
+        "AI-Generated Content: None"
       ],
       "appPrivacyEntries" : [
-
+        {
+          "category" : "Contact Info",
+          "dataType" : "Email Address",
+          "linked" : true,
+          "purposes" : [
+            "App Functionality"
+          ],
+          "reason" : "App uses role-based authentication (Admin\/Site Manager\/Tradesman) requiring user accounts.",
+          "tracking" : false
+        },
+        {
+          "category" : "Identifiers",
+          "dataType" : "User ID",
+          "linked" : true,
+          "purposes" : [
+            "App Functionality"
+          ],
+          "reason" : "Role-based account system requires user identification to distinguish Admin, Site Manager, and Tradesman roles.",
+          "tracking" : false
+        },
+        {
+          "category" : "Location",
+          "dataType" : "Precise Location",
+          "linked" : true,
+          "purposes" : [
+            "App Functionality"
+          ],
+          "reason" : "App uses geofenced clock-in\/clock-out functionality via CLLocationManager for site attendance tracking.",
+          "tracking" : false
+        },
+        {
+          "category" : "User Content",
+          "dataType" : "Photos or Videos",
+          "linked" : true,
+          "purposes" : [
+            "App Functionality"
+          ],
+          "reason" : "App accesses photo library via PHPickerViewController for capturing site photos, materials, and receipts.",
+          "tracking" : false
+        },
+        {
+          "category" : "Usage Data",
+          "dataType" : "Product Interaction",
+          "linked" : false,
+          "purposes" : [
+            "Analytics"
+          ],
+          "reason" : "App integrates analytics service to track user interactions and feature usage.",
+          "tracking" : false
+        },
+        {
+          "category" : "Diagnostics",
+          "dataType" : "Crash Data",
+          "linked" : false,
+          "purposes" : [
+            "Analytics"
+          ],
+          "reason" : "Analytics integration typically includes crash reporting for app stability monitoring.",
+          "tracking" : false
+        }
       ],
       "appStoreDescription" : "",
       "categorySuggestions" : [
@@ -121,6 +194,8 @@
 
     ]
   },
+  "lastASCClassificationAt" : "2026-07-05T19:33:38Z",
+  "lastASCClassificationHash" : "6bbe49649c9c6aae3ec829ca73af399e9f7d25c10318b392fbaaa9537e22b7ff",
   "publish" : {
     "isPublished" : false,
     "lastPublishedSlug" : "",
