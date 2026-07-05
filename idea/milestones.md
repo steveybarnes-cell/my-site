@@ -8,4 +8,5 @@
 - [x] File storage: camera/gallery capture, 11 file types, Drive folder path + auto-rename, Photos & Files sheet row, register linking, role-based Files tab
 - [x] Company dashboard: 6 Sheets-style sections + 8 filters, role-scoped
 - [x] Xero / Hub sync (modelled): send-to-Xero flow, Files list sync badges, Admin Xero connection toggle, connection-gated send button
-- [ ] Phase 2: real Google Drive/Sheets sync (OAuth + backend), real Xero OAuth + Files/Bills API, real auth, PDF export
+- [x] Receipt capture on Add Materials: camera/gallery, linked to material, auto-send to Hubdoc/Xero + cost tracker when connected
+- [ ] Phase 2: real Google Drive/Sheets sync (OAuth + backend), real Xero/Hubdoc OAuth + Files/Bills API, real auth, PDF export
