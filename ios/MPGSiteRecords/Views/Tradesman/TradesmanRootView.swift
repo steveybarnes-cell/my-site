@@ -80,13 +80,17 @@ struct TradesmanTodayView: View {
 
   private var greeting: some View {
     let first = (me?.name.split(separator: " ").first).map(String.init) ?? "there"
-    return VStack(alignment: .leading, spacing: 6) {
-      Text("Good morning, \(first)")
-        .font(.title2.bold())
-        .foregroundStyle(.white)
-      Text(Date().formatted(.dateTime.weekday(.wide).day().month(.wide)))
-        .font(.subheadline)
-        .foregroundStyle(.white.opacity(0.75))
+    return VStack(alignment: .leading, spacing: 14) {
+      MPGLogo(height: 34)
+        .frame(maxWidth: .infinity, alignment: .leading)
+      VStack(alignment: .leading, spacing: 6) {
+        Text("Good morning, \(first)")
+          .font(.title2.bold())
+          .foregroundStyle(.white)
+        Text(Date().formatted(.dateTime.weekday(.wide).day().month(.wide)))
+          .font(.subheadline)
+          .foregroundStyle(.white.opacity(0.75))
+      }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(18)
