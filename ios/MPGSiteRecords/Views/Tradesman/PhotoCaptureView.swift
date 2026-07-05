@@ -16,23 +16,26 @@ struct PhotoCaptureView: View {
   ]
 
   var body: some View {
-    NavigationStack {
-      ZStack {
-        MPGBackground()
-        ScrollView {
-          VStack(spacing: 16) {
-            cameraPlaceholder
-            typeSection
-            detailsSection
-            PrimaryButton(title: "Save Photo", symbol: "checkmark") { save() }
+      Group {
+              NavigationStack {
+          ZStack {
+            MPGBackground()
+            ScrollView {
+              VStack(spacing: 16) {
+                cameraPlaceholder
+                typeSection
+                detailsSection
+                PrimaryButton(title: "Save Photo", symbol: "checkmark") { save() }
+              }
+              .padding(16)
+            }
           }
-          .padding(16)
-        }
+          .navigationTitle("Add Photo")
+          .navigationBarTitleDisplayMode(.inline)
+          .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
+              }
       }
-      .navigationTitle("Add Photo")
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
-    }
+      .__tenxTrackView("PhotoCaptureView")
   }
 
   private var cameraPlaceholder: some View {

@@ -6,34 +6,37 @@ struct ProfileView: View {
   private var profile: TradesmanProfile? { me.flatMap { store.profile(for: $0.id) } }
 
   var body: some View {
-    NavigationStack {
-      ZStack {
-        MPGBackground()
-        ScrollView {
-          VStack(spacing: 16) {
-            header
-            if let p = profile {
-              if p.bankChangePending {
-                WarningBanner(
-                  message: "A bank detail change is pending office verification for security.",
-                  symbol: "lock.shield.fill", tint: Brand.amber)
+      Group {
+              NavigationStack {
+          ZStack {
+            MPGBackground()
+            ScrollView {
+              VStack(spacing: 16) {
+                header
+                if let p = profile {
+                  if p.bankChangePending {
+                    WarningBanner(
+                      message: "A bank detail change is pending office verification for security.",
+                      symbol: "lock.shield.fill", tint: Brand.amber)
+                  }
+                  tradeCard(p)
+                  complianceCard(p)
+                  paymentCard(p)
+                }
+                contactCard
+                PrimaryButton(
+                  title: "Log Out", symbol: "rectangle.portrait.and.arrow.right", tint: Brand.charcoal
+                ) {
+                  store.logout()
+                }
               }
-              tradeCard(p)
-              complianceCard(p)
-              paymentCard(p)
-            }
-            contactCard
-            PrimaryButton(
-              title: "Log Out", symbol: "rectangle.portrait.and.arrow.right", tint: Brand.charcoal
-            ) {
-              store.logout()
+              .padding(16)
             }
           }
-          .padding(16)
-        }
+          .navigationTitle("Profile")
+              }
       }
-      .navigationTitle("Profile")
-    }
+      .__tenxTrackView("ProfileView")
   }
 
   private var header: some View {

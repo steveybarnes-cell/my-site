@@ -4,21 +4,24 @@ struct AdminRootView: View {
   @Environment(AppStore.self) private var store
 
   var body: some View {
-    TabView {
-      Tab("Dashboard", systemImage: "square.grid.2x2.fill") {
-        AdminDashboardView()
+      Group {
+              TabView {
+          Tab("Dashboard", systemImage: "square.grid.2x2.fill") {
+            AdminDashboardView()
+          }
+          Tab("Invoices", systemImage: "doc.text.fill") {
+            AdminSubmissionsView()
+          }
+          Tab("Alerts", systemImage: "bell.fill") {
+            NotificationsView()
+          }
+          .badge(store.unreadCount)
+          Tab("Profile", systemImage: "person.crop.circle.fill") {
+            AdminProfileView()
+          }
+              }
       }
-      Tab("Invoices", systemImage: "doc.text.fill") {
-        AdminSubmissionsView()
-      }
-      Tab("Alerts", systemImage: "bell.fill") {
-        NotificationsView()
-      }
-      .badge(store.unreadCount)
-      Tab("Profile", systemImage: "person.crop.circle.fill") {
-        AdminProfileView()
-      }
-    }
+      .__tenxTrackView("AdminRootView")
   }
 }
 

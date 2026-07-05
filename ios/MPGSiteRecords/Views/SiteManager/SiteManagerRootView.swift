@@ -4,21 +4,24 @@ struct SiteManagerRootView: View {
   @Environment(AppStore.self) private var store
 
   var body: some View {
-    TabView {
-      Tab("My Sites", systemImage: "mappin.and.ellipse") {
-        SiteManagerSitesView()
+      Group {
+              TabView {
+          Tab("My Sites", systemImage: "mappin.and.ellipse") {
+            SiteManagerSitesView()
+          }
+          Tab("Records", systemImage: "list.clipboard.fill") {
+            SiteManagerRecordsView()
+          }
+          Tab("Alerts", systemImage: "bell.fill") {
+            NotificationsView()
+          }
+          .badge(store.unreadCount)
+          Tab("Profile", systemImage: "person.crop.circle.fill") {
+            SiteManagerProfileView()
+          }
+              }
       }
-      Tab("Records", systemImage: "list.clipboard.fill") {
-        SiteManagerRecordsView()
-      }
-      Tab("Alerts", systemImage: "bell.fill") {
-        NotificationsView()
-      }
-      .badge(store.unreadCount)
-      Tab("Profile", systemImage: "person.crop.circle.fill") {
-        SiteManagerProfileView()
-      }
-    }
+      .__tenxTrackView("SiteManagerRootView")
   }
 }
 

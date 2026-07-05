@@ -5,33 +5,36 @@ struct TradesmanSubmissionsView: View {
   private var me: AppUser? { store.currentUser }
 
   var body: some View {
-    NavigationStack {
-      ZStack {
-        MPGBackground()
-        ScrollView {
-          VStack(spacing: 16) {
-            deadlineBanner
-            let subs = me.map { store.submissions(for: $0.id) } ?? []
-            if subs.isEmpty {
-              EmptyStateView(
-                symbol: "sterlingsign.circle", title: "No invoices yet",
-                message: "Your weekly invoices and their payment status will appear here."
-              ).mpgCard()
-            } else {
-              ForEach(subs) { sub in
-                NavigationLink(value: sub) {
-                  SubmissionCard(submission: sub)
+      Group {
+              NavigationStack {
+          ZStack {
+            MPGBackground()
+            ScrollView {
+              VStack(spacing: 16) {
+                deadlineBanner
+                let subs = me.map { store.submissions(for: $0.id) } ?? []
+                if subs.isEmpty {
+                  EmptyStateView(
+                    symbol: "sterlingsign.circle", title: "No invoices yet",
+                    message: "Your weekly invoices and their payment status will appear here."
+                  ).mpgCard()
+                } else {
+                  ForEach(subs) { sub in
+                    NavigationLink(value: sub) {
+                      SubmissionCard(submission: sub)
+                    }
+                    .buttonStyle(.plain)
+                  }
                 }
-                .buttonStyle(.plain)
               }
+              .padding(16)
             }
           }
-          .padding(16)
-        }
+          .navigationTitle("My Invoices")
+          .navigationDestination(for: WeeklySubmission.self) { SubmissionDetailView(submission: $0) }
+              }
       }
-      .navigationTitle("My Invoices")
-      .navigationDestination(for: WeeklySubmission.self) { SubmissionDetailView(submission: $0) }
-    }
+      .__tenxTrackView("TradesmanSubmissionsView")
   }
 
   private var deadlineBanner: some View {
