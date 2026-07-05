@@ -7,5 +7,5 @@
 - [x] Notifications + warnings (missing receipts, late invoices, deadline, bank-change)
 - [x] File storage: camera/gallery capture, 11 file types, Drive folder path + auto-rename, Photos & Files sheet row, register linking, role-based Files tab
 - [x] Company dashboard: 6 Sheets-style sections + 8 filters, role-scoped
-- [x] Xero / Hub sync (modelled): send-to-Xero flow, Files list sync badges, Admin Xero connection toggle
+- [x] Xero / Hub sync (modelled): send-to-Xero flow, Files list sync badges, Admin Xero connection toggle, connection-gated send button
 - [ ] Phase 2: real Google Drive/Sheets sync (OAuth + backend), real Xero OAuth + Files/Bills API, real auth, PDF export

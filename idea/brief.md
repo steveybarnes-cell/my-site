@@ -19,7 +19,7 @@ Role-based entry with mock auth (Admin / Site Manager / Tradesman) via demo pick
 ### Xero / Company Hub sync (modelled, backend-ready)
 - `SyncStatus` on each file (Not synced → Pending → Synced/Failed)
 - `AppStore.sendToXero` simulates push, stamps `XERO-…` reference + timestamp; gated to receipts/supplier invoices via `canSyncToXero`
-- File Detail "Xero / Company Hub" card with send button + pending pulse
+- File Detail "Xero / Company Hub" card; send button is gated on `xeroConnected` — when off, shows a "Connect Xero in Admin → Profile → Integrations" prompt instead
 - Files list shows inline sync badges (Pending sync / In Xero / Sync failed)
 - Admin profile Integrations card with `xeroConnected` toggle
 - Phase 2 swap: replace `sendToXero` body with real Xero OAuth + Files/Bills API; toggle becomes real connect action

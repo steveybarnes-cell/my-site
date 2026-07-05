@@ -170,13 +170,26 @@ struct FileDetailView: View {
         }
       }
       if live.syncStatus != .synced {
-        PrimaryButton(
-          title: live.syncStatus == .pending ? "Sending…" : "Send to Xero / Hub",
-          symbol: "arrow.up.forward.app"
-        ) {
-          store.sendToXero(live.id)
+        if store.xeroConnected {
+          PrimaryButton(
+            title: live.syncStatus == .pending ? "Sending…" : "Send to Xero / Hub",
+            symbol: "arrow.up.forward.app"
+          ) {
+            store.sendToXero(live.id)
+          }
+          .disabled(live.syncStatus == .pending)
+        } else {
+          HStack(spacing: 8) {
+            Image(systemName: "link.badge.plus").foregroundStyle(Brand.amber)
+            Text("Connect Xero in Admin → Profile → Integrations to enable sync.")
+              .font(.caption).foregroundStyle(Brand.inkSoft)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .padding(12)
+          .background(
+            Brand.amber.opacity(0.12),
+            in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
-        .disabled(live.syncStatus == .pending)
       }
     }
     .mpgCard()
