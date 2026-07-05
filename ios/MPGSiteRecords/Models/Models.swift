@@ -84,6 +84,7 @@ enum PhotoType: String, Codable, CaseIterable, Identifiable {
   case receipt = "Receipt"
   case supplierInvoice = "Supplier invoice"
   case materials = "Materials photo"
+  case clockIn = "Clock In Evidence"
   case other = "Other"
   var id: String { rawValue }
 
@@ -100,6 +101,7 @@ enum PhotoType: String, Codable, CaseIterable, Identifiable {
     case .receipt: return "doc.text.viewfinder"
     case .supplierInvoice: return "doc.richtext"
     case .materials: return "shippingbox"
+    case .clockIn: return "location.fill.viewfinder"
     case .other: return "photo"
     }
   }
@@ -117,6 +119,7 @@ enum PhotoType: String, Codable, CaseIterable, Identifiable {
     case .receipt: return "Receipt"
     case .supplierInvoice: return "SupplierInvoice"
     case .materials: return "MaterialsPhoto"
+    case .clockIn: return "ClockInEvidence"
     case .other: return "Other"
     }
   }
@@ -200,6 +203,11 @@ struct Site: Identifiable, Hashable {
   var whatsappLink: String
   var defaultStart: String
   var defaultFinish: String
+
+  // Geofence for clock-in/out verification
+  var latitude: Double = 0
+  var longitude: Double = 0
+  var geofenceRadius: Double = 150  // metres, default 150m
 }
 
 struct WorkAllocation: Identifiable, Hashable {

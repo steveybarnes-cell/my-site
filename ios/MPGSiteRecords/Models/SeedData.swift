@@ -1,3 +1,4 @@
+import CoreLocation
 import Foundation
 
 extension AppStore {
@@ -58,17 +59,19 @@ extension AppStore {
       id: UUID(), name: "Marlborough Street", address: "42 Marlborough St, Bristol BS1 3NT",
       client: "Bristol City Developments", siteManagerId: jenny.id, status: .active,
       notes: "Occupied building — mind residents.", whatsappLink: "wa.me/marlborough",
-      defaultStart: "08:00", defaultFinish: "16:30")
+      defaultStart: "08:00", defaultFinish: "16:30",
+      latitude: 51.4562, longitude: -2.5901, geofenceRadius: 150)
     let clifton = Site(
       id: UUID(), name: "Clifton Village", address: "7 The Mall, Clifton BS8 4DP",
       client: "Harbour Living", siteManagerId: paulSM.id, status: .active,
       notes: "Parking is limited, use rear access.", whatsappLink: "wa.me/clifton",
-      defaultStart: "08:00", defaultFinish: "17:00")
+      defaultStart: "08:00", defaultFinish: "17:00",
+      latitude: 51.4550, longitude: -2.6199, geofenceRadius: 120)
     let redcliffe = Site(
       id: UUID(), name: "Redcliffe Wharf", address: "12 Redcliffe Way, Bristol BS1 6NL",
       client: "Waterside Homes", siteManagerId: jenny.id, status: .paused,
       notes: "On hold pending drawings.", whatsappLink: "", defaultStart: "07:30",
-      defaultFinish: "16:00")
+      defaultFinish: "16:00", latitude: 51.4478, longitude: -2.5875, geofenceRadius: 150)
     sites = [marlborough, clifton, redcliffe]
 
     // Allocations
@@ -216,6 +219,36 @@ extension AppStore {
         id: UUID(), userId: dan.id, type: "Photos",
         message: "Photos required for variation work at Clifton Village.", read: false,
         timestamp: daysAgo(1), symbol: "camera.fill"),
+    ]
+
+    // Clock in / attendance records (event-based GPS)
+    func fix(_ lat: Double, _ lng: Double, _ acc: Double, site: Site) -> LocationFix {
+      LocationFix.compute(
+        coord: CLLocationCoordinate2D(latitude: lat, longitude: lng), accuracy: acc, site: site)
+    }
+    func at(_ day: Int, _ h: Int, _ m: Int) -> Date {
+      cal.date(bySettingHour: h, minute: m, second: 0, of: daysAgo(day)) ?? daysAgo(day)
+    }
+
+    clockRecords = [
+      ClockRecord(
+        id: UUID(), userId: mike.id, tradesmanName: mike.name, siteId: clifton.id,
+        siteName: clifton.name, date: Date(), device: "Mobile device",
+        clockInTime: at(0, 8, 2), clockInFix: fix(51.4551, -2.6198, 9, site: clifton),
+        clockInStatus: .valid),
+      ClockRecord(
+        id: UUID(), userId: dan.id, tradesmanName: dan.name, siteId: clifton.id,
+        siteName: clifton.name, date: Date(), device: "Mobile device",
+        clockInTime: at(0, 8, 41), clockInFix: fix(51.4610, -2.6300, 14, site: clifton),
+        clockInStatus: .outsideSite,
+        reasonNote: "Parked in overflow car park across the main road, radius too tight."),
+      ClockRecord(
+        id: UUID(), userId: brandon.id, tradesmanName: brandon.name, siteId: marlborough.id,
+        siteName: marlborough.name, date: daysAgo(1), device: "Mobile device",
+        clockInTime: at(1, 7, 58), clockInFix: fix(51.4562, -2.5901, 8, site: marlborough),
+        clockInStatus: .valid,
+        clockOutTime: at(1, 16, 34), clockOutFix: fix(51.4563, -2.5900, 10, site: marlborough),
+        clockOutStatus: .valid, claimedHours: 8),
     ]
   }
 }

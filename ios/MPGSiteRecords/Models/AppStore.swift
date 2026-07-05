@@ -17,6 +17,7 @@ final class AppStore {
   var submissions: [WeeklySubmission] = []
   var comments: [QueryComment] = []
   var notifications: [AppNotification] = []
+  var clockRecords: [ClockRecord] = []
 
   init() { seed() }
 
@@ -260,5 +261,157 @@ final class AppStore {
 
   func variationRecords() -> [DailyRecord] {
     dailyRecords.filter { $0.category == .variation }.sorted { $0.date > $1.date }
+  }
+
+  // MARK: - Attendance / clock in-out
+
+  static let locationNotice =
+    "My Project Group Ltd uses your phone location only to verify clock-in, clock-out, site "
+    + "attendance, and site evidence. Your location is recorded when you clock in, clock out, "
+    + "upload site photos, or submit site records. The app does not track your personal movement "
+    + "outside work."
+
+  /// The open (not yet clocked-out) record for a tradesman today, if any.
+  func openClockRecord(for userId: UUID) -> ClockRecord? {
+    clockRecords.first { $0.userId == userId && $0.isOpen && Calendar.current.isDateInToday($0.date) }
+  }
+
+  func clockRecords(for userId: UUID) -> [ClockRecord] {
+    clockRecords.filter { $0.userId == userId }.sorted { $0.clockInTime > $1.clockInTime }
+  }
+
+  /// Clock records visible to the current viewer (privacy rules).
+  func visibleClockRecords() -> [ClockRecord] {
+    guard let me = currentUser else { return [] }
+    let all: [ClockRecord]
+    switch me.role {
+    case .admin:
+      all = clockRecords
+    case .siteManager:
+      let siteIds = Set(sitesManaged(by: me.id).map { $0.id })
+      all = clockRecords.filter { siteIds.contains($0.siteId) }
+    case .tradesman:
+      all = clockRecords.filter { $0.userId == me.id }
+    }
+    return all.sorted { $0.clockInTime > $1.clockInTime }
+  }
+
+  private func status(for fix: LocationFix) -> ClockStatus {
+    if fix.permissionDenied { return .permissionDenied }
+    return fix.insideGeofence ? .valid : .outsideSite
+  }
+
+  /// Public status resolver for previewing a fix before committing it.
+  func statusFor(_ fix: LocationFix) -> ClockStatus { status(for: fix) }
+
+  /// Records a clock-in event.
+  @discardableResult
+  func clockIn(
+    site: Site, fix: LocationFix, device: String, reasonNote: String,
+    photoDescription: String? = nil
+  ) -> ClockRecord {
+    let me = currentUser
+    let name = me?.name ?? "Unknown"
+    let st = status(for: fix)
+
+    var photoId: UUID? = nil
+    if let desc = photoDescription {
+      let p = uploadFile(
+        type: .clockIn, description: desc.isEmpty ? "Clock-in photo" : desc, source: .camera,
+        site: site)
+      photoId = p.id
+    }
+
+    let record = ClockRecord(
+      id: UUID(), userId: me?.id ?? UUID(), tradesmanName: name, siteId: site.id,
+      siteName: site.name, date: Date(), device: device,
+      clockInTime: Date(), clockInFix: fix, clockInStatus: st, clockInPhotoId: photoId,
+      reasonNote: reasonNote)
+    clockRecords.append(record)
+
+    notifyAttendance(record: record, event: "clocked in")
+    return record
+  }
+
+  /// Closes an open clock record with a clock-out event.
+  func clockOut(
+    recordId: UUID, site: Site, fix: LocationFix, reasonNote: String,
+    claimedHours: Double = 0, photoDescription: String? = nil
+  ) {
+    guard let i = clockRecords.firstIndex(where: { $0.id == recordId }) else { return }
+    let st = status(for: fix)
+
+    if let desc = photoDescription {
+      let p = uploadFile(
+        type: .clockIn, description: desc.isEmpty ? "Clock-out photo" : desc, source: .camera,
+        site: site)
+      clockRecords[i].clockOutPhotoId = p.id
+    }
+
+    clockRecords[i].clockOutTime = Date()
+    clockRecords[i].clockOutFix = fix
+    clockRecords[i].clockOutStatus = st
+    if claimedHours > 0 { clockRecords[i].claimedHours = claimedHours }
+    if !reasonNote.isEmpty {
+      clockRecords[i].reasonNote =
+        clockRecords[i].reasonNote.isEmpty
+        ? reasonNote : clockRecords[i].reasonNote + "\n" + reasonNote
+    }
+    notifyAttendance(record: clockRecords[i], event: "clocked out")
+  }
+
+  func setClockApproval(_ id: UUID, approved: Bool) {
+    guard let i = clockRecords.firstIndex(where: { $0.id == id }) else { return }
+    clockRecords[i].adminApproved = approved
+  }
+
+  /// Notifies admin + site manager when an attendance event needs review.
+  private func notifyAttendance(record: ClockRecord, event: String) {
+    guard record.overallStatus.needsReview else { return }
+    let reason = record.overallStatus.rawValue
+    if let admin = users.first(where: { $0.role == .admin }) {
+      notify(
+        admin.id, type: "Attendance",
+        message: "\(record.tradesmanName) \(event) at \(record.siteName) — \(reason).",
+        symbol: "location.slash")
+    }
+    if let smId = site(record.siteId)?.siteManagerId {
+      notify(
+        smId, type: "Attendance",
+        message: "\(record.tradesmanName) \(event) at \(record.siteName) — \(reason).",
+        symbol: "location.slash")
+    }
+  }
+
+  /// Projects a clock record into a "Clock In Records" Google Sheet row.
+  func clockInSheetRow(for r: ClockRecord) -> ClockInSheetRow {
+    ClockInSheetRow(
+      id: r.id,
+      userId: String(r.userId.uuidString.prefix(8)),
+      tradesmanName: r.tradesmanName,
+      siteId: String(r.siteId.uuidString.prefix(8)),
+      siteName: r.siteName,
+      date: r.date,
+      clockInTime: r.clockInTime,
+      clockInLatitude: r.clockInFix.latitude,
+      clockInLongitude: r.clockInFix.longitude,
+      clockInAccuracy: r.clockInFix.accuracy,
+      clockInDistance: r.clockInFix.distanceFromSite,
+      clockInInside: r.clockInFix.insideGeofence,
+      clockOutTime: r.clockOutTime,
+      clockOutLatitude: r.clockOutFix?.latitude,
+      clockOutLongitude: r.clockOutFix?.longitude,
+      clockOutAccuracy: r.clockOutFix?.accuracy,
+      clockOutDistance: r.clockOutFix?.distanceFromSite,
+      clockOutInside: r.clockOutFix?.insideGeofence,
+      totalTimeOnSite: r.timeOnSiteString,
+      claimedHours: r.claimedHours,
+      difference: r.hoursDifference,
+      status: r.overallStatus.rawValue,
+      adminApproval: r.adminApproved == nil
+        ? (r.requiresManualApproval ? "Pending" : "N/A")
+        : (r.adminApproved! ? "Approved" : "Rejected"),
+      notes: r.reasonNote,
+      timestamp: r.createdAt)
   }
 }

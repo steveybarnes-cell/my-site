@@ -232,4 +232,21 @@ enum Fmt {
   static func hours(_ h: Double) -> String {
     h.truncatingRemainder(dividingBy: 1) == 0 ? "\(Int(h))h" : String(format: "%.2fh", h)
   }
+  static func time(_ d: Date) -> String {
+    d.formatted(.dateTime.hour().minute())
+  }
+  static func metres(_ m: Double) -> String {
+    m < 0 ? "—" : "\(Int(m.rounded()))m"
+  }
+}
+
+extension ClockStatus {
+  var color: Color {
+    switch self {
+    case .valid: return Brand.paidGreen
+    case .outsideSite: return Brand.red
+    case .permissionDenied: return Brand.amber
+    case .requiresApproval: return Brand.blue
+    }
+  }
 }
