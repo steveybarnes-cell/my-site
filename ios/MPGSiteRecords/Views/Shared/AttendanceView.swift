@@ -182,7 +182,7 @@ struct AttendanceView: View {
             label: "\(rec.tradesmanName) in"))
       }
       if let outFix = rec.clockOutFix,
-        !outFix.permissionDenied, (outFix.latitude != 0 || outFix.longitude != 0)
+        !outFix.permissionDenied, outFix.latitude != 0 || outFix.longitude != 0
       {
         out.append(
           MapFix(
@@ -296,7 +296,8 @@ struct AttendanceReviewSheet: View {
               Divider().overlay(Brand.hairline)
               InfoRow(label: "Site", value: live.siteName, symbol: "building.2")
               InfoRow(label: "Date", value: Fmt.date(live.date), symbol: "calendar")
-              InfoRow(label: "Clock-in", value: Fmt.time(live.clockInTime), symbol: "arrow.down.to.line")
+              InfoRow(
+                label: "Clock-in", value: Fmt.time(live.clockInTime), symbol: "arrow.down.to.line")
               InfoRow(
                 label: "Clock-out", value: live.clockOutTime.map(Fmt.time) ?? "Still open",
                 symbol: "arrow.up.to.line")
@@ -337,11 +338,15 @@ struct AttendanceReviewSheet: View {
                     text: approved ? "Approved" : "Rejected",
                     color: approved ? Brand.paidGreen : Brand.red, filled: true)
                 }
-                PrimaryButton(title: "Approve attendance", symbol: "checkmark.seal.fill", tint: Brand.paidGreen) {
+                PrimaryButton(
+                  title: "Approve attendance", symbol: "checkmark.seal.fill", tint: Brand.paidGreen
+                ) {
                   store.setClockApproval(live.id, approved: true)
                   dismiss()
                 }
-                PrimaryButton(title: "Reject attendance", symbol: "xmark.seal.fill", tint: Brand.red) {
+                PrimaryButton(
+                  title: "Reject attendance", symbol: "xmark.seal.fill", tint: Brand.red
+                ) {
                   store.setClockApproval(live.id, approved: false)
                   dismiss()
                 }

@@ -9,35 +9,35 @@ struct SiteFileDetailView: View {
   private var live: SiteFile { store.siteFiles.first { $0.id == file.id } ?? file }
 
   var body: some View {
-      Group {
-              ScrollView {
-          VStack(spacing: 16) {
-            thumbnail
-            openCard
-            if store.canManageFiles { approvalCard }
-            detailsCard
-            registerCard
-            if store.role == .admin {
-              Button(role: .destructive) {
-                store.deleteSiteFile(file.id)
-                dismiss()
-              } label: {
-                Label("Delete file", systemImage: "trash")
-                  .font(.subheadline.weight(.semibold))
-                  .frame(maxWidth: .infinity)
-                  .padding(.vertical, 12)
-              }
-              .buttonStyle(.plain)
-              .foregroundStyle(Brand.red)
+    Group {
+      ScrollView {
+        VStack(spacing: 16) {
+          thumbnail
+          openCard
+          if store.canManageFiles { approvalCard }
+          detailsCard
+          registerCard
+          if store.role == .admin {
+            Button(role: .destructive) {
+              store.deleteSiteFile(file.id)
+              dismiss()
+            } label: {
+              Label("Delete file", systemImage: "trash")
+                .font(.subheadline.weight(.semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
             }
+            .buttonStyle(.plain)
+            .foregroundStyle(Brand.red)
           }
-          .padding(16)
-              }
-              .background(MPGBackground())
-              .navigationTitle("File Details")
-              .navigationBarTitleDisplayMode(.inline)
+        }
+        .padding(16)
       }
-      .__tenxTrackView("SiteFileDetailView")
+      .background(MPGBackground())
+      .navigationTitle("File Details")
+      .navigationBarTitleDisplayMode(.inline)
+    }
+    .__tenxTrackView("SiteFileDetailView")
   }
 
   private var thumbnail: some View {

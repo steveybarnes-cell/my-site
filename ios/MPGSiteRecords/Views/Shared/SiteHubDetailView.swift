@@ -10,48 +10,48 @@ struct SiteHubDetailView: View {
   private var canUpload: Bool { store.canUpload(to: site) }
 
   var body: some View {
-      Group {
-              ScrollView {
-          VStack(spacing: 16) {
-            headerCard
-            prompts
-            ForEach(FileGroup.allCases) { group in
-              groupCard(group)
-            }
+    Group {
+      ScrollView {
+        VStack(spacing: 16) {
+          headerCard
+          prompts
+          ForEach(FileGroup.allCases) { group in
+            groupCard(group)
           }
-          .padding(16)
-              }
-              .background(MPGBackground())
-              .navigationTitle(site.name)
-              .navigationBarTitleDisplayMode(.inline)
-              .toolbar {
-          ToolbarItem(placement: .topBarTrailing) {
-            Menu {
-              if canUpload {
-                Button {
-                  showAdd = true
-                } label: {
-                  Label("Add file / link", systemImage: "plus")
-                }
-              }
-              Button {
-                showHandover = true
-              } label: {
-                Label("Handover pack", systemImage: "shippingbox")
-              }
-            } label: {
-              Image(systemName: "ellipsis.circle")
-            }
-          }
-              }
-              .sheet(isPresented: $showAdd) {
-          AddSiteFileView(site: site)
-              }
-              .sheet(isPresented: $showHandover) {
-          HandoverPackView(site: site)
-              }
+        }
+        .padding(16)
       }
-      .__tenxTrackView("SiteHubDetailView")
+      .background(MPGBackground())
+      .navigationTitle(site.name)
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .topBarTrailing) {
+          Menu {
+            if canUpload {
+              Button {
+                showAdd = true
+              } label: {
+                Label("Add file / link", systemImage: "plus")
+              }
+            }
+            Button {
+              showHandover = true
+            } label: {
+              Label("Handover pack", systemImage: "shippingbox")
+            }
+          } label: {
+            Image(systemName: "ellipsis.circle")
+          }
+        }
+      }
+      .sheet(isPresented: $showAdd) {
+        AddSiteFileView(site: site)
+      }
+      .sheet(isPresented: $showHandover) {
+        HandoverPackView(site: site)
+      }
+    }
+    .__tenxTrackView("SiteHubDetailView")
   }
 
   private var headerCard: some View {

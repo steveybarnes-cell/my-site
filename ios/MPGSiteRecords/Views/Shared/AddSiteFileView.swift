@@ -28,36 +28,36 @@ struct AddSiteFileView: View {
   }
 
   var body: some View {
-      Group {
-              NavigationStack {
-          ScrollView {
-            VStack(spacing: 16) {
-              methodCard
-              detailsCard
-              if origin == .driveLink { driveCard } else { uploadCard }
-              metaCard
-              PrimaryButton(title: "Add to \(site.name)", symbol: "checkmark.circle.fill") {
-                save()
-              }
-              .opacity(canSave ? 1 : 0.5)
-              .disabled(!canSave)
+    Group {
+      NavigationStack {
+        ScrollView {
+          VStack(spacing: 16) {
+            methodCard
+            detailsCard
+            if origin == .driveLink { driveCard } else { uploadCard }
+            metaCard
+            PrimaryButton(title: "Add to \(site.name)", symbol: "checkmark.circle.fill") {
+              save()
             }
-            .padding(16)
+            .opacity(canSave ? 1 : 0.5)
+            .disabled(!canSave)
           }
-          .background(MPGBackground())
-          .navigationTitle("Add File")
-          .navigationBarTitleDisplayMode(.inline)
-          .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-              Button("Cancel") { dismiss() }
-            }
+          .padding(16)
+        }
+        .background(MPGBackground())
+        .navigationTitle("Add File")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+          ToolbarItem(placement: .topBarLeading) {
+            Button("Cancel") { dismiss() }
           }
-          .onAppear {
-            if let c = presetCategory { category = c }
-          }
-              }
+        }
+        .onAppear {
+          if let c = presetCategory { category = c }
+        }
       }
-      .__tenxTrackView("AddSiteFileView")
+    }
+    .__tenxTrackView("AddSiteFileView")
   }
 
   private var methodCard: some View {

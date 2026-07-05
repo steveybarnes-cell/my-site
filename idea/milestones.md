@@ -11,4 +11,6 @@
 - [x] Approval labels, role permissions, missing-evidence prompts, cross-field search
 - [x] Handover pack builder + text index export (ShareLink)
 - [x] Admin dashboard file-health widgets
+- [x] Geofenced clock-in/out engine (event-based GPS, no continuous tracking)
+- [x] Attendance overview for Admin + Site Manager: MapKit site map with geofence circles, clock-in/out pins, review list + approve/reject
 - [ ] Phase 2: real Google Drive/Sheets sync (Google OAuth + backend), real auth, PDF export
