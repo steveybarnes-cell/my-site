@@ -18,8 +18,10 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
         INFOPLIST_KEY_UIRequiresFullScreen: YES
-        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: 'This app uses your location to show nearby content.'
-        INFOPLIST_KEY_NSPhotoLibraryUsageDescription: 'This app accesses your photo library to read photos.'
+        INFOPLIST_KEY_NSCameraUsageDescription: 'MPG Site Records uses the camera so you can take before, during and completion photos of your work and capture supplier receipts on site. Photos are timestamped and attached to the job.'
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: 'MPG Site Records uses your location only when you clock in or out, or upload site evidence, to confirm you are on or near the allocated site. Your location is never tracked continuously in the background.'
+        INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription: 'MPG Site Records can save site photos you capture back to your photo library.'
+        INFOPLIST_KEY_NSPhotoLibraryUsageDescription: 'MPG Site Records lets you attach existing photos, receipts and supplier invoices from your library to a job or daily record.'
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: 1
         CODE_SIGN_STYLE: Automatic
