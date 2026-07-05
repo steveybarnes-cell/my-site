@@ -34,23 +34,15 @@ struct LoginView: View {
   }
 
   private var header: some View {
-    VStack(spacing: 14) {
-      ZStack {
-        RoundedRectangle(cornerRadius: 20, style: .continuous)
-          .fill(Brand.olive)
-          .frame(width: 76, height: 76)
-        Text("MPG")
-          .font(.system(size: 22, weight: .heavy, design: .rounded))
-          .foregroundStyle(.white)
-      }
-      VStack(spacing: 4) {
-        Text("Site Record & Invoice")
-          .font(.title2.bold())
-          .foregroundStyle(.white)
-        Text("One standard system for every job.")
-          .font(.subheadline)
-          .foregroundStyle(.white.opacity(0.65))
-      }
+    VStack(spacing: 18) {
+      MPGLogo(height: 62)
+        .padding(.top, 6)
+      Text("Site Record & Invoice")
+        .font(.title3.bold())
+        .foregroundStyle(.white)
+      Text("One standard system for every job.")
+        .font(.subheadline)
+        .foregroundStyle(.white.opacity(0.65))
     }
     .padding(.top, 30)
   }

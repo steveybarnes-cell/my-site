@@ -13,6 +13,11 @@ Role-based entry with mock auth (Admin / Site Manager / Tradesman) via demo pick
 - **Site Manager:** My Sites, Site Records review, Files (assigned sites), Notifications, Profile
 - **Cross-cutting:** In-app notifications, warning banners, status workflow, CIS/VAT calc
 
+### Branding
+- `Components/MPGLogo.swift` — faithful vector rendition of the official My Project Group wordmark: green **MY**, white double-peak house/frame mark (stroked `Shape`), white **PROJECT**, green **GROUP**. Scales via a single `height` param.
+- `Brand.logoGreen` (#63B877) matches the bright green in the official logo.
+- Login header uses `MPGLogo` on charcoal (replaced the old placeholder "MPG" square).
+
 ### File Storage (local-first, backend-ready)
 - Capture from camera or gallery; 11 file types; exact Drive folder path + auto-rename; Photos & Files sheet row; register linking; role-based visibility.
 

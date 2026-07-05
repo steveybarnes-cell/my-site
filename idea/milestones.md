@@ -9,4 +9,5 @@
 - [x] Company dashboard: 6 Sheets-style sections + 8 filters, role-scoped
 - [x] Xero / Hub sync (modelled): send-to-Xero flow, Files list sync badges, Admin Xero connection toggle, connection-gated send button
 - [x] Receipt capture on Add Materials: camera/gallery, linked to material, auto-send to Hubdoc/Xero + cost tracker when connected
+- [x] Official MY PROJECT GROUP vector logo on login screen (green MY + white house/frame + white PROJECT + green GROUP)
 - [ ] Phase 2: real Google Drive/Sheets sync (OAuth + backend), real Xero/Hubdoc OAuth + Files/Bills API, real auth, PDF export
