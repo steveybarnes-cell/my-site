@@ -15,6 +15,9 @@ struct SiteManagerRootView: View {
         Tab("Records", systemImage: "list.clipboard.fill") {
           SiteManagerRecordsView()
         }
+        Tab("Attendance", systemImage: "location.fill.viewfinder") {
+          AttendanceView()
+        }
         Tab("Files", systemImage: "folder.fill") {
           FilesView()
         }
