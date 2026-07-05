@@ -1,13 +1,14 @@
 - [x] Brand theme + design system + models
 - [x] AppStore with realistic sample data + role auth
 - [x] Role-based login + root routing
-- [x] Tradesman flow (today, allocations, daily record, photos, materials, invoices, records)
-- [x] Admin flow (dashboard, sites, variation register, payment run)
-- [x] Site Manager flow (my sites, site records, review)
-- [x] Notifications + warnings (missing receipts, late invoices, deadline, bank-change)
-- [x] File storage: camera/gallery capture, 11 file types, Drive folder path + auto-rename, Photos & Files sheet row, register linking, role-based Files tab
-- [x] Company dashboard: 6 Sheets-style sections + 8 filters, role-scoped
-- [x] Xero / Hub sync (modelled): send-to-Xero flow, Files list sync badges, Admin Xero connection toggle, connection-gated send button
-- [x] Receipt capture on Add Materials: camera/gallery, linked to material, auto-send to Hubdoc/Xero + cost tracker when connected
-- [x] Official MY PROJECT GROUP vector logo on login screen (green MY + white house/frame + white PROJECT + green GROUP)
-- [ ] Phase 2: real Google Drive/Sheets sync (OAuth + backend), real Xero/Hubdoc OAuth + Files/Bills API, real auth, PDF export
+- [x] Tradesman / Admin / Site Manager flows
+- [x] Notifications + warnings, existing Files tab, company dashboard, Xero/Hub sync (modelled), receipt capture
+- [x] Official MY PROJECT GROUP vector logo on login screen
+- [ ] Site Files Hub: extend SiteFile model (full metadata + relations + 23 categories + folder groups)
+- [ ] Site-first Hub screen (sites list → site hub → category → files) replacing flat Files tab
+- [ ] Add file: upload path + Add Google Drive link path (modelled Drive folder convention + auto-rename)
+- [ ] Site Files Register (modelled Sheets row projection) + linking to work records
+- [ ] Approval labels, role permissions, missing-evidence prompts, cross-field search
+- [ ] Handover pack builder + file-list/PDF index export
+- [ ] Admin dashboard file-health widgets
+- [ ] Phase 2: real Google Drive/Sheets sync (Google OAuth + backend), real auth, PDF export
