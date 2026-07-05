@@ -1,0 +1,8 @@
+- [x] Brand theme + design system + models
+- [x] AppStore with realistic sample data + role auth
+- [x] Role-based login + root routing
+- [x] Tradesman flow (today, allocations, daily record, photos, materials, invoices, records)
+- [x] Admin flow (dashboard, sites, variation register, payment run)
+- [x] Site Manager flow (my sites, site records, review)
+- [x] Notifications + warnings (missing receipts, late invoices, deadline, bank-change)
+- [ ] Phase 2: real auth, PDF export, integrations

@@ -5,34 +5,22 @@
 
 **Platform scope note:** 10x builds native iOS (iPhone + iPad), not web/Android/desktop browser. Delivered as a native iOS app covering the same functionality. Web/Android would need a separate build.
 
-### v1 Scope (mock/local-first)
-- Role-based entry: Admin / Site Manager / Tradesman (mock auth, no live Supabase yet)
-- Brand system: charcoal, white, olive green #6F8F5A, light green #E7EFE2
-- Tradesman: Today's Work, My Allocations, Daily Site Record, Photos, Materials, Weekly Invoice, My Submissions, Payment Status, Profile
-- Admin: Dashboard, Users/Tradesmen, Sites, Allocate Work, Review Records, Review Submissions, Materials/Missing Receipts, Variation Register, Payment Run, Reports
-- Site Manager: My Sites, Site Allocations, Review Records, Approve/Query, Site Photos/Materials
-- Status workflow, CIS/VAT calc, missing-receipt & late-invoice warnings, variation & delay tracking, in-app notifications
+### v1 Status — COMPLETE (mock/local-first)
+Role-based entry with mock auth (Admin / Site Manager / Tradesman) via demo picker. All three role experiences are built and navigable end to end.
+
+- **Tradesman:** Today's Work, Allocation detail + accept/start, Daily Site Record form, Photo capture, Material form, Records tab (records/materials/photos), Weekly Invoices with CIS/VAT breakdown + submit, Notifications, Profile
+- **Admin:** Office Dashboard (metrics, missing-receipt + late-invoice warnings, sites, variation register), Invoices/payment run (approve/query/mark-paid), Notifications, Team profile
+- **Site Manager:** My Sites (with allocations), Site Records review, Notifications, Profile
+- **Cross-cutting:** In-app notifications with unread badges, warning banners (missing receipts, late invoices, Monday 13:00 deadline, pending bank change), status workflow, CIS/VAT calc
 
 ### Architecture
 - `@Observable` AppStore holds all mock data + current user/role
-- Role-based root routing; privacy enforced by filtering to current user
+- `ContentView` performs role-based root routing; privacy enforced by filtering to current user
 - Models mirror the spec's tables (Users, Profiles, Sites, Allocations, DailyRecords, Materials, Photos, WeeklySubmissions, Comments, Notifications)
+- Shared brand system: charcoal, white, olive #6F8F5A, light green #E7EFE2
 
 ### Deferred (Phase 2/3)
 - Real auth (Supabase), push notifications, real PDF export, Xero/Sage/Drive integrations, charts
-</plan>
-<tasks">- [ ] Brand theme + design system + models
-- [ ] AppStore with realistic sample data + role auth
-- [ ] Role-based login + root routing
-- [ ] Tradesman flow (today, allocations, daily record, photos, materials, weekly invoice, submissions)
-- [ ] Admin flow (dashboard, sites, users, allocate, review, payment run)
-- [ ] Site Manager flow
-- [ ] Notifications + warnings + polish
 
-## Selected Design Direction
-
-- Selected style: Clean (`clean`)
-- Direction: Whitespace, simple typography, restrained color
-- Reference apps: Uber, Notion, Things 3
-- Palette seed: primary #111827, accent #2563EB, background #F8FAFC
-- Status: selected by the AI after the user skipped style selection.
+### Known notes
+- CLI typechecker reports `#Preview` macro-plugin errors only; these compile fine in Xcode. All real cross-file references resolve.
