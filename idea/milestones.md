@@ -5,57 +5,53 @@
 - [x] Notifications + warnings, Files tab, company dashboard, Xero/Hub sync (modelled), receipt capture
 - [x] Site Files Hub (categories, Drive convention, register, handover, dashboard widgets)
 - [x] Geofenced clock-in/out + Attendance overview (map, review, approve/reject)
-- [x] Submission-ready: Info.plist camera/photo library/location usage strings; App Store assets + audit + prefill drafts
-- [ ] Offline work logging: local persistence (SwiftData) so nothing is lost on relaunch
-- [ ] Offline work logging: PendingChange sync queue + connectivity monitor
-- [ ] Offline work logging: route record/material/photo/clock/submission mutations through queue
-- [ ] Offline work logging: auto-drain on reconnect + offline banner / sync badges / retry UI
-- [ ] Phase 2: real Google Drive/Sheets sync, real auth, PDF export (offline queue drains to backend)</parameter>
+- [x] Submission-ready: Info.plist usage strings; App Store assets + audit + prefill drafts
+- [x] Phase 2 backend: Supabase schema + RLS + Storage bucket SQL migrations written
+- [ ] Phase 2 backend: apply migrations to Supabase project (user step)
+- [ ] Phase 2 backend: Supabase client + service layer in app
+- [ ] Phase 2 backend: real auth (Google sign-in + Demo login) + session/role routing
+- [ ] Phase 2 backend: switch AppStore to live Supabase data (loading/empty/error states)
+- [ ] Offline work logging: local persistence + sync queue drains to Supabase once live
+- [ ] Phase 3: real Google Drive/Sheets sync, Xero OAuth, PDF export</parameter>
 <parameter name="plan">## MPG Site Records — App Plan
 
 **Company:** My Project Group Ltd
 **Concept:** A native iOS/iPad app that replaces messy WhatsApp invoices, PDFs and photos with one standard company system for construction subcontractors. Tradesmen log allocated work, take photos, upload receipts, complete daily site records and submit weekly invoices/timesheets. Admin (Steve) and site managers review, approve, query and pay.
 
-**Platform scope note:** 10x builds native iOS (iPhone + iPad), not web/Android/desktop browser. Delivered as a native iOS app covering the same functionality.
+**Platform scope note:** 10x builds native iOS (iPhone + iPad). The PC-accessible "central hub" is delivered via the Phase 2 Supabase backend (Supabase dashboard now; a web admin page later).
 
 ### v1 Status — COMPLETE (mock/local-first)
 Role-based entry with mock auth (Admin / Site Manager / Tradesman). All three role experiences built and navigable end to end. Site Files Hub, geofenced clock-in/out, and Attendance overview shipped.
 
-### Release readiness — IN PROGRESS
-- App Store assets generated (icon, 5 screenshots, description) in `growth/app-store`.
-- Production audit passed (no security blockers; app is local/mock).
-- Prefill drafts generated (privacy policy, terms, support page, review notes, keywords).
-- `Info.plist` added with camera, photo library, and location (when-in-use) usage descriptions so the app is submission-ready and won't crash on real-device permission prompts.
-- **Blocked on user:** paid Apple Developer Program + App Store Connect API key (Code → Release → Credentials), plus business/legal details (support email/URL, legal entity, review contact phone) and confirming the legal drafts.
-- **Recommended first ship:** TestFlight (external testers via link) for the real-world site trial before a public App Store release, since Drive/Sheets/Xero/shared accounts are still modelled.
-
 ---
 
-## NEXT FEATURE — Offline Work Logging (scoping)
+## PHASE 2 — Supabase backend (IN PROGRESS)
 
-**Why:** Tradesmen on site often have no reliable connectivity. Right now every log action assumes data is saved instantly to the in-memory store. On a real backend that means lost daily records, photos, materials, and clock-ins when signal drops. The app must let a tradesman capture everything offline and sync it automatically once back online, with clear status so nothing is silently lost.
+**Goal:** Turn the on-device app into one shared company system so all data lives in the cloud, everyone signs in with their own account, and Steve can open the data from any PC browser.
 
-### What must work offline
-- **Daily site records** — write/edit fully offline.
-- **Materials / receipts** — add offline with captured photo.
-- **Site photos & file uploads** — captured and queued; binary stored locally until upload.
-- **Geofenced clock-in / clock-out** — GPS + timestamp captured offline (highest-integrity data; must never be lost).
-- **Weekly submission drafts** — editable offline, submitted when back online.
+### Done
+- Supabase project connected via Integrations.
+- **Schema written** — `supabase/migrations/0001_mpg_schema.sql`: tables for profiles, tradesman_details, sites, work_allocations, daily_records, materials, site_photos, weekly_submissions, query_comments, notifications, clock_records. Mirrors the app data model field-for-field.
+- **Row Level Security written** — tradesman sees own data; site manager sees managed-site data; admin sees everything. Helper functions `current_role()`, `is_admin()`, `manages_site()`. Auto-create profile trigger on signup (defaults role = Tradesman).
+- **Storage written** — `0002_storage.sql`: private `site-evidence` bucket with path-based access policies (`<site_id>/<user_id>/<file>`).
 
-### Offline architecture (planned)
-- **Local-first persistence:** move mock in-memory arrays onto durable on-device storage (SwiftData). Load `swiftdata` skill before implementing.
-- **Sync queue:** every create/edit while offline becomes a `PendingChange` (type, payload, capturedAt, local media path, sync state: `pending → syncing → synced → failed`).
-- **Connectivity monitor:** `NWPathMonitor` drives an online/offline flag; when online, drain the queue oldest-first.
-- **Conflict / ordering rules:** clock events keep their real captured timestamp; records are last-write-wins per record id.
-- **Media handling:** photos saved to app sandbox immediately; only the upload is deferred.
-- **UI status surfacing:** offline banner, per-item sync badges (queued / synced / failed), a "Pending sync (N)" indicator, and manual "Retry sync".
+### Blocked on user
+- **Apply migrations:** paste `0001` then `0002` into Supabase SQL Editor and Run.
+- **Admin email:** identify Steve's account email so his role can be promoted to Admin (others default to Tradesman).
 
-### Scope honesty
-Real server sync needs the Phase 2 backend (Supabase/Drive). This feature ships the COMPLETE offline capture + local persistence + sync-queue + status UI now, draining against the existing local store (simulated "server"). When the real backend lands, the queue drains to it instead.
+### Remaining app-code steps (after migrations run)
+1. Supabase client config + service layer.
+2. Real auth: Google sign-in + clearly-labelled Demo Sign In for testing; session + role routing replaces the role-picker mock.
+3. Switch AppStore reads/writes to live Supabase data with loading/empty/error states.
+4. Offline sync queue drains to Supabase once live.
 
-### Deferred (Phase 2/3)
-- Real Google Drive upload + Sheets append, real Xero/Hubdoc OAuth, real auth (Supabase), push notifications, PDF handover export, charts. Offline queue drains to this real backend once available.
+### Dependencies
+- Supabase (clientRuntime; SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) — connected.
+- Google sign-in requires a Google Cloud OAuth client added in Supabase Auth later (walk-through when we reach it).
+
+### Deferred (Phase 3)
+- Real Google Drive upload + Sheets append, Xero/Hubdoc OAuth, push notifications, PDF handover export, charts.
 
 ### Design
-Reuse existing MPG system (charcoal + green, `mpgCard()`, `Brand` tokens). Offline status uses amber for pending, green for synced, red for failed — consistent with existing approval labels.</parameter>
+Reuse existing MPG system (charcoal + green, `mpgCard()`, `Brand` tokens). Sync/status uses amber pending, green synced, red failed.</parameter>
 </invoke>
