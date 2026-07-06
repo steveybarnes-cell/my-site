@@ -167,12 +167,27 @@ final class AppStore {
     if status == .paid { submissions[i].paidDate = Date() }
     if let name { submissions[i].approvedBy = name }
     let sub = submissions[i]
+    persist { try await SupabaseData.save(sub, token: $0) }
     notify(
       sub.userId, type: "Invoice",
       message: "Your invoice \(sub.invoiceNumber) is now \(status.rawValue).", symbol: "doc.text")
   }
 
-  func addRecord(_ r: DailyRecord) { dailyRecords.append(r) }
+  func addRecord(_ r: DailyRecord) {
+    dailyRecords.append(r)
+    persist { try await SupabaseData.save(r, token: $0) }
+  }
+
+  /// Adds or upserts a weekly submission (used when a tradesman creates/edits an invoice).
+  func saveSubmission(_ s: WeeklySubmission) {
+    if let i = submissions.firstIndex(where: { $0.id == s.id }) {
+      submissions[i] = s
+    } else {
+      submissions.append(s)
+    }
+    persist { try await SupabaseData.save(s, token: $0) }
+  }
+
   func addMaterial(_ m: MaterialItem) { materials.append(m) }
   func addPhoto(_ p: SitePhoto) { photos.append(p) }
 
