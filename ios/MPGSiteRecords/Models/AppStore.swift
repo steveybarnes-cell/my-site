@@ -195,8 +195,14 @@ final class AppStore {
     persist { try await SupabaseData.save(s, token: $0) }
   }
 
-  func addMaterial(_ m: MaterialItem) { materials.append(m) }
-  func addPhoto(_ p: SitePhoto) { photos.append(p) }
+  func addMaterial(_ m: MaterialItem) {
+    materials.append(m)
+    persist { try await SupabaseData.save(m, token: $0) }
+  }
+  func addPhoto(_ p: SitePhoto) {
+    photos.append(p)
+    persist { try await SupabaseData.save(p, token: $0) }
+  }
 
   // MARK: - File storage (Google Drive + Sheets projection)
 
