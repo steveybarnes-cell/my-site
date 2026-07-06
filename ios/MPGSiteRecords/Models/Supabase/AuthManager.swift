@@ -125,12 +125,13 @@ final class AuthManager {
     }
   }
 
-  /// Persist the session and load the matching profile into `store.currentUser`.
+  /// Persist the session and load the matching profile into `store.currentUser`,
+  /// then switch the store into live Supabase mode and load real data.
   private func adopt(_ session: SupabaseSession) async throws {
     self.session = session
     storeSession(session)
     let user = try await fetchAppUser(for: session)
-    store.login(as: user)
+    await store.startLiveSession(user: user, token: session.accessToken)
     phase = .signedIn
   }
 
