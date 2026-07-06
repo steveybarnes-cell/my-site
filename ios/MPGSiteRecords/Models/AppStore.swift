@@ -337,17 +337,19 @@ final class AppStore {
 
   func addQuery(submissionId: UUID, toUserId: UUID, message: String, fromAdmin: Bool) {
     let name = currentUser?.name ?? "Office"
-    comments.append(
-      QueryComment(
-        id: UUID(), submissionId: submissionId, fromName: name,
-        toUserId: toUserId, message: message, timestamp: Date(), fromAdmin: fromAdmin))
+    let comment = QueryComment(
+      id: UUID(), submissionId: submissionId, fromName: name,
+      toUserId: toUserId, message: message, timestamp: Date(), fromAdmin: fromAdmin)
+    comments.append(comment)
+    persist { try await SupabaseData.save(comment, token: $0) }
   }
 
   func notify(_ userId: UUID, type: String, message: String, symbol: String) {
-    notifications.append(
-      AppNotification(
-        id: UUID(), userId: userId, type: type,
-        message: message, read: false, timestamp: Date(), symbol: symbol))
+    let n = AppNotification(
+      id: UUID(), userId: userId, type: type,
+      message: message, read: false, timestamp: Date(), symbol: symbol)
+    notifications.append(n)
+    persist { try await SupabaseData.save(n, token: $0) }
   }
 
   // Dashboard rollups
