@@ -259,6 +259,7 @@ final class AppStore {
       weekEnding: result.weekEnding)
 
     photos.append(photo)
+    persist { try await SupabaseData.save(photo, token: $0) }
 
     // Notify the office when register-linked evidence lands.
     if let register = type.linkedRegister, let admin = users.first(where: { $0.role == .admin }) {
