@@ -159,6 +159,8 @@ final class AppStore {
     for i in notifications.indices where notifications[i].userId == u.id {
       notifications[i].read = true
     }
+    let uid = u.id
+    persist { try await SupabaseData.markNotificationsRead(userId: uid, token: $0) }
   }
 
   func updateAllocationStatus(_ id: UUID, to status: AllocationStatus) {
