@@ -6,11 +6,12 @@
 - [x] Site Files Hub (categories, Drive convention, register, handover, dashboard widgets)
 - [x] Geofenced clock-in/out + Attendance overview (map, review, approve/reject)
 - [x] Submission-ready: Info.plist usage strings; App Store assets + audit + prefill drafts
-- [x] Phase 2 backend: Supabase schema + RLS + Storage bucket SQL migrations written
-- [ ] Phase 2 backend: apply migrations to Supabase project (user step)
-- [ ] Phase 2 backend: Supabase client + service layer in app
-- [ ] Phase 2 backend: real auth (Google sign-in + Demo login) + session/role routing
-- [ ] Phase 2 backend: switch AppStore to live Supabase data (loading/empty/error states)
+- [x] Phase 2 backend: Supabase schema + RLS + Storage bucket SQL migrations applied
+- [x] Phase 2 backend: Supabase client + session/Keychain + Google OAuth flow
+- [x] Phase 2 backend: real auth (email/password + sign-up + Google) + session restore + role routing
+- [ ] Phase 2 backend: Google Cloud OAuth client configured in Supabase Auth (user step)
+- [ ] Phase 2 backend: promote Steve's profile row to Admin once he signs in (user step)
+- [ ] Phase 2 backend: switch AppStore reads/writes to live Supabase data (loading/empty/error states)
 - [ ] Offline work logging: local persistence + sync queue drains to Supabase once live
 - [ ] Phase 3: real Google Drive/Sheets sync, Xero OAuth, PDF export</parameter>
 <parameter name="plan">## MPG Site Records — App Plan
@@ -21,7 +22,7 @@
 **Platform scope note:** 10x builds native iOS (iPhone + iPad). The PC-accessible "central hub" is delivered via the Phase 2 Supabase backend (Supabase dashboard now; a web admin page later).
 
 ### v1 Status — COMPLETE (mock/local-first)
-Role-based entry with mock auth (Admin / Site Manager / Tradesman). All three role experiences built and navigable end to end. Site Files Hub, geofenced clock-in/out, and Attendance overview shipped.
+All three role experiences built and navigable end to end. Site Files Hub, geofenced clock-in/out, and Attendance overview shipped.
 
 ---
 
@@ -31,23 +32,28 @@ Role-based entry with mock auth (Admin / Site Manager / Tradesman). All three ro
 
 ### Done
 - Supabase project connected via Integrations.
-- **Schema written** — `supabase/migrations/0001_mpg_schema.sql`: tables for profiles, tradesman_details, sites, work_allocations, daily_records, materials, site_photos, weekly_submissions, query_comments, notifications, clock_records. Mirrors the app data model field-for-field.
-- **Row Level Security written** — tradesman sees own data; site manager sees managed-site data; admin sees everything. Helper functions `current_role()`, `is_admin()`, `manages_site()`. Auto-create profile trigger on signup (defaults role = Tradesman).
-- **Storage written** — `0002_storage.sql`: private `site-evidence` bucket with path-based access policies (`<site_id>/<user_id>/<file>`).
+- Schema, RLS + role helpers (`current_role()`, `is_admin()`, `manages_site()`), auto-create-profile trigger, and private `site-evidence` storage bucket — all migrations applied to the live project.
+- Supabase auth/data client (`SupabaseClient`), Codable session + Keychain persistence, Google OAuth flow (`OAuthFlow`).
+- **Real auth wired into the app** (`AuthManager` + `LoginView` + `ContentView` + `App.swift`):
+  - Email/password sign-in and sign-up against Supabase GoTrue.
+  - Google OAuth sign-in via hosted provider + app-scheme callback.
+  - Session persisted in Keychain; restored and refreshed on launch with a branded loading state.
+  - Signed-in user's `profiles` row fetched via PostgREST; real `role` drives root routing.
+  - Sign-out revokes server-side session and clears Keychain.
+  - Demo Sign-in card retained, clearly labelled development-only, for testing any role.
+  - Verified `profiles.role` enum (Admin / Site Manager / Tradesman) matches app `UserRole`.
 
 ### Blocked on user
-- **Apply migrations:** paste `0001` then `0002` into Supabase SQL Editor and Run.
-- **Admin email:** identify Steve's account email so his role can be promoted to Admin (others default to Tradesman).
+- **Google provider config:** add a Google Cloud OAuth client in Supabase Auth → Providers → Google and register redirect scheme `mpgsiterecords://auth-callback`. Until then, email/password or Demo login work.
+- **Admin promotion:** `profiles` is empty. Once Steve signs in with `myprojectgroupltd@gmail.com`, promote that row to Admin (others default to Tradesman via trigger).
 
-### Remaining app-code steps (after migrations run)
-1. Supabase client config + service layer.
-2. Real auth: Google sign-in + clearly-labelled Demo Sign In for testing; session + role routing replaces the role-picker mock.
-3. Switch AppStore reads/writes to live Supabase data with loading/empty/error states.
-4. Offline sync queue drains to Supabase once live.
+### Remaining app-code steps
+1. Switch AppStore reads/writes to live Supabase data with loading/empty/error states.
+2. Offline sync queue drains to Supabase once live.
 
 ### Dependencies
 - Supabase (clientRuntime; SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) — connected.
-- Google sign-in requires a Google Cloud OAuth client added in Supabase Auth later (walk-through when we reach it).
+- Google sign-in requires the Google Cloud OAuth client above.
 
 ### Deferred (Phase 3)
 - Real Google Drive upload + Sheets append, Xero/Hubdoc OAuth, push notifications, PDF handover export, charts.

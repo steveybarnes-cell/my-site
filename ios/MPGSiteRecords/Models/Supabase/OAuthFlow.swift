@@ -80,7 +80,8 @@ final class OAuthFlow: NSObject, ASWebAuthenticationPresentationContextProviding
     if let desc = params["error_description"] {
       throw SupabaseError.oauthFailed(desc.replacingOccurrences(of: "+", with: " "))
     }
-    guard let accessToken = params["access_token"], let refreshToken = params["refresh_token"] else {
+    guard let accessToken = params["access_token"], let refreshToken = params["refresh_token"]
+    else {
       throw SupabaseError.oauthFailed("Sign-in didn't return a valid session.")
     }
     let expiresIn = Double(params["expires_in"] ?? "3600") ?? 3600
@@ -90,7 +91,8 @@ final class OAuthFlow: NSObject, ASWebAuthenticationPresentationContextProviding
   }
 
   func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-    let scene = UIApplication.shared.connectedScenes
+    let scene =
+      UIApplication.shared.connectedScenes
       .compactMap { $0 as? UIWindowScene }
       .first { $0.activationState == .foregroundActive }
       ?? UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first

@@ -2,12 +2,19 @@ import SwiftUI
 
 struct LoginView: View {
   @Environment(AppStore.self) private var store
+  @Environment(AuthManager.self) private var auth
   @State private var email = ""
   @State private var password = ""
+  @State private var isSignUp = false
   @State private var selectedRole: UserRole = .tradesman
 
   private var quickUsers: [AppUser] {
     store.users.filter { $0.role == selectedRole && $0.active }
+  }
+
+  private var canSubmit: Bool {
+    !email.trimmingCharacters(in: .whitespaces).isEmpty
+      && password.count >= 6 && !auth.isWorking
   }
 
   var body: some View {
@@ -49,41 +56,81 @@ struct LoginView: View {
 
   private var signInCard: some View {
     VStack(alignment: .leading, spacing: 14) {
-      SectionHeader(title: "Secure Login")
+      SectionHeader(title: isSignUp ? "Create Account" : "Secure Login")
+
+      if !auth.isConfigured {
+        infoBanner(
+          "Not connected to Supabase yet. Use Demo Sign-in below to explore the app.",
+          symbol: "exclamationmark.triangle.fill")
+      }
+
       field(icon: "envelope", placeholder: "Email address", text: $email, secure: false)
       field(icon: "lock", placeholder: "Password", text: $password, secure: true)
-      PrimaryButton(title: "Log In", symbol: "arrow.right") {
-        if let u = quickUsers.first { store.login(as: u) }
+
+      if let message = auth.errorMessage {
+        infoBanner(message, symbol: "exclamationmark.circle.fill", tint: .red)
       }
-      HStack(spacing: 12) {
-        secondaryLogin("Magic Link", "wand.and.stars")
-        secondaryLogin("Google", "g.circle")
+
+      PrimaryButton(
+        title: auth.isWorking ? "Please wait…" : (isSignUp ? "Create Account" : "Log In"),
+        symbol: auth.isWorking ? "hourglass" : "arrow.right"
+      ) {
+        Task {
+          if isSignUp {
+            await auth.signUpWithEmail(email: email, password: password)
+          } else {
+            await auth.signInWithEmail(email: email, password: password)
+          }
+        }
       }
+      .disabled(!canSubmit)
+      .opacity(canSubmit ? 1 : 0.6)
+
+      Button {
+        withAnimation { isSignUp.toggle() }
+        auth.errorMessage = nil
+      } label: {
+        Text(isSignUp ? "Already have an account? Log in" : "New here? Create an account")
+          .font(.caption.weight(.medium))
+          .foregroundStyle(Brand.olive)
+      }
+      .buttonStyle(.plain)
+      .frame(maxWidth: .infinity)
+
+      HStack(spacing: 8) {
+        Rectangle().fill(Brand.hairline).frame(height: 1)
+        Text("or").font(.caption).foregroundStyle(Brand.inkSoft)
+        Rectangle().fill(Brand.hairline).frame(height: 1)
+      }
+
+      googleButton
     }
     .padding(18)
     .background(.white, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
   }
 
-  private func secondaryLogin(_ title: String, _ symbol: String) -> some View {
+  private var googleButton: some View {
     Button {
-      if let u = quickUsers.first { store.login(as: u) }
+      Task { await auth.signInWithGoogle() }
     } label: {
-      HStack(spacing: 6) {
-        Image(systemName: symbol)
-        Text(title).fontWeight(.medium)
+      HStack(spacing: 8) {
+        Image(systemName: "g.circle.fill")
+        Text("Continue with Google").fontWeight(.semibold)
       }
       .font(.subheadline)
       .frame(maxWidth: .infinity)
-      .padding(.vertical, 12)
+      .padding(.vertical, 13)
       .foregroundStyle(Brand.charcoal)
       .background(Brand.lightGreen, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
     .buttonStyle(.plain)
+    .disabled(auth.isWorking || !auth.isConfigured)
+    .opacity(auth.isConfigured ? 1 : 0.5)
   }
 
   private var roleDemoCard: some View {
     VStack(alignment: .leading, spacing: 14) {
-      SectionHeader(title: "Demo Sign-in", subtitle: "Pick a role to explore the app")
+      SectionHeader(title: "Demo Sign-in", subtitle: "Development only · explore any role")
       Picker("Role", selection: $selectedRole) {
         ForEach(UserRole.allCases) { Text($0.rawValue).tag($0) }
       }
@@ -92,7 +139,7 @@ struct LoginView: View {
       VStack(spacing: 8) {
         ForEach(quickUsers) { u in
           Button {
-            store.login(as: u)
+            auth.demoLogin(as: u)
           } label: {
             HStack(spacing: 12) {
               Image(systemName: u.role.icon)
@@ -118,6 +165,16 @@ struct LoginView: View {
     .background(Brand.lightGreen, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
   }
 
+  private func infoBanner(_ text: String, symbol: String, tint: Color = Brand.olive) -> some View {
+    HStack(alignment: .top, spacing: 8) {
+      Image(systemName: symbol).foregroundStyle(tint)
+      Text(text).font(.caption).foregroundStyle(Brand.ink)
+      Spacer(minLength: 0)
+    }
+    .padding(10)
+    .background(tint.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+  }
+
   private func field(icon: String, placeholder: String, text: Binding<String>, secure: Bool)
     -> some View
   {
@@ -129,6 +186,7 @@ struct LoginView: View {
         } else {
           TextField(placeholder, text: text).keyboardType(.emailAddress)
             .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
         }
       }
       .font(.subheadline)
@@ -140,6 +198,13 @@ struct LoginView: View {
   }
 }
 
-#Preview {
-  LoginView().environment(AppStore())
+private struct LoginPreview: View {
+  @State private var store = AppStore()
+  var body: some View {
+    LoginView()
+      .environment(store)
+      .environment(AuthManager(store: store))
+  }
 }
+
+#Preview { LoginPreview() }

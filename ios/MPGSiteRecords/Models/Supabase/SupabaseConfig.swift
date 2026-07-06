@@ -29,8 +29,9 @@ enum SupabaseConfig {
   static var restBaseURL: URL? { url?.appendingPathComponent("rest/v1") }
 
   private static func value(for key: String) -> String? {
-    guard let raw = ProcessInfo.processInfo.environment[key]?.trimmingCharacters(
-      in: .whitespacesAndNewlines), !raw.isEmpty
+    guard
+      let raw = ProcessInfo.processInfo.environment[key]?.trimmingCharacters(
+        in: .whitespacesAndNewlines), !raw.isEmpty
     else { return nil }
     return raw
   }
