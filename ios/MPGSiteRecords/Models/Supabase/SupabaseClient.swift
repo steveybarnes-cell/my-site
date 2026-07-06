@@ -138,6 +138,39 @@ struct SupabaseClient {
     return data
   }
 
+  /// Authenticated upsert (POST with merge-duplicates) of encoded rows. RLS applies.
+  /// Pass the raw JSON body for one or more rows.
+  func upsert(table: String, body: Data, accessToken: String) async throws {
+    try await write(table: table, query: "", method: "POST", body: body, accessToken: accessToken,
+      prefer: "resolution=merge-duplicates,return=minimal")
+  }
+
+  /// Authenticated PATCH of matching rows with an encoded partial body. RLS applies.
+  func patch(table: String, query: String, body: Data, accessToken: String) async throws {
+    try await write(table: table, query: query, method: "PATCH", body: body,
+      accessToken: accessToken, prefer: "return=minimal")
+  }
+
+  private func write(
+    table: String, query: String, method: String, body: Data, accessToken: String, prefer: String
+  ) async throws {
+    guard let base = SupabaseConfig.restBaseURL, let key = SupabaseConfig.anonKey else {
+      throw SupabaseError.notConfigured
+    }
+    var comps = URLComponents(
+      url: base.appendingPathComponent(table), resolvingAgainstBaseURL: false)!
+    if !query.isEmpty { comps.query = query }
+    var req = URLRequest(url: comps.url!)
+    req.httpMethod = method
+    req.setValue(key, forHTTPHeaderField: "apikey")
+    req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+    req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    req.setValue(prefer, forHTTPHeaderField: "Prefer")
+    req.httpBody = body
+    let (data, response) = try await session.data(for: req)
+    try Self.validate(response, data: data)
+  }
+
   // MARK: - Internals
 
   private func token(grant: String, body: [String: String]) async throws -> SupabaseSession {
