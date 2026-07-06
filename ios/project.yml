@@ -1,4 +1,8 @@
 name: MPGSiteRecords
+packages:
+  Supabase:
+    url: 'https://github.com/supabase/supabase-swift'
+    from: '2.0.0'
 targets:
   MPGSiteRecords:
     type: application
@@ -6,7 +10,9 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - path: MPGSiteRecords
-
+    dependencies:
+          - package: Supabase
+            product: Supabase
     settings:
       base:
         PRODUCT_NAME: MPGSiteRecords
@@ -33,3 +39,8 @@ targets:
       configs:
         Debug:
           ONLY_ACTIVE_ARCH: YES
+    scheme:
+      environmentVariables:
+        'SUPABASE_ANON_KEY': 'sb_publishable_aLr4R2Og756SVAe-0vX7DA_p5hrv7xl'
+        'SUPABASE_PUBLISHABLE_KEY': 'sb_publishable_aLr4R2Og756SVAe-0vX7DA_p5hrv7xl'
+        'SUPABASE_URL': 'https://jzzsatsmdmckgjllohst.supabase.co'
