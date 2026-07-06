@@ -8,5 +8,5 @@
 - [x] Phase 2 backend: Supabase schema + RLS + Storage + real auth + session restore
 - [x] Phase 2 backend: 3 company sites seeded to Supabase
 - [x] Phase 2 backend: clock-ins, daily records & weekly submissions read/write live Supabase
-- [ ] Phase 2 backend: wire remaining areas (allocations, materials, photos, notifications) to Supabase
+- [x] Phase 2 backend: allocations, materials, photos, notifications & query comments read/write live Supabase
 - [ ] Phase 3: Google Cloud OAuth client for Google sign-in; Google Drive/Sheets dashboard; Xero OAuth; PDF export
