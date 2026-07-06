@@ -23,12 +23,77 @@ final class AppStore {
   /// Whether the company Xero organisation is connected (modelled — real flow is Xero OAuth).
   var xeroConnected: Bool = false
 
+  // MARK: - Live backend (Supabase)
+
+  /// When set, the three core areas (clock records, daily records, weekly
+  /// submissions) read from and write to Supabase. `nil` = local/demo mode.
+  private(set) var backendToken: String?
+
+  /// True while the initial live data load is running.
+  var isLoadingLiveData = false
+  /// Set if a live sync fails, so the UI can surface it instead of showing stale data.
+  var liveDataError: String?
+
+  var isLiveBackend: Bool { backendToken != nil }
+
   init() { seed() }
 
   // MARK: - Auth (mock)
 
   func login(as user: AppUser) { currentUser = user }
-  func logout() { currentUser = nil }
+
+  func logout() {
+    currentUser = nil
+    backendToken = nil
+    liveDataError = nil
+  }
+
+  // MARK: - Live backend session
+
+  /// Switch the store into live mode for a signed-in Supabase user and load
+  /// real sites + core records. Keeps sample users/profiles for name lookups.
+  @MainActor
+  func startLiveSession(user: AppUser, token: String) async {
+    currentUser = user
+    backendToken = token
+    // Ensure the signed-in user is resolvable in `users` for name/lookup helpers.
+    if !users.contains(where: { $0.id == user.id }) {
+      users.append(user)
+    }
+    await loadLiveData()
+  }
+
+  /// Reload the three core areas + sites from Supabase.
+  @MainActor
+  func loadLiveData() async {
+    guard let token = backendToken else { return }
+    isLoadingLiveData = true
+    liveDataError = nil
+    defer { isLoadingLiveData = false }
+    do {
+      let liveSites = try await SupabaseData.loadSites(token: token)
+      if !liveSites.isEmpty { sites = liveSites }
+      clockRecords = try await SupabaseData.loadClockRecords(token: token)
+      dailyRecords = try await SupabaseData.loadDailyRecords(token: token)
+      submissions = try await SupabaseData.loadSubmissions(token: token)
+    } catch {
+      liveDataError =
+        (error as? SupabaseError)?.errorDescription ?? error.localizedDescription
+    }
+  }
+
+  /// Fire-and-forget persist of a value to Supabase when in live mode.
+  private func persist(_ work: @escaping (String) async throws -> Void) {
+    guard let token = backendToken else { return }
+    Task { @MainActor in
+      do {
+        try await work(token)
+      } catch {
+        self.liveDataError =
+          (error as? SupabaseError)?.errorDescription ?? error.localizedDescription
+      }
+    }
+  }
 
   var role: UserRole { currentUser?.role ?? .tradesman }
 
