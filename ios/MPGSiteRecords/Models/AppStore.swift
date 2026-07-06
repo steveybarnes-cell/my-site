@@ -234,6 +234,8 @@ final class AppStore {
     }
     if let mid = linkedMaterial, let i = materials.firstIndex(where: { $0.id == mid }) {
       materials[i].receiptUploaded = true
+      let updatedMaterial = materials[i]
+      persist { try await SupabaseData.save(updatedMaterial, token: $0) }
     }
 
     let photo = SitePhoto(
