@@ -76,6 +76,11 @@ final class AppStore {
       clockRecords = try await SupabaseData.loadClockRecords(token: token)
       dailyRecords = try await SupabaseData.loadDailyRecords(token: token)
       submissions = try await SupabaseData.loadSubmissions(token: token)
+      allocations = try await SupabaseData.loadAllocations(token: token)
+      materials = try await SupabaseData.loadMaterials(token: token)
+      photos = try await SupabaseData.loadPhotos(token: token)
+      notifications = try await SupabaseData.loadNotifications(token: token)
+      comments = try await SupabaseData.loadComments(token: token)
     } catch {
       liveDataError =
         (error as? SupabaseError)?.errorDescription ?? error.localizedDescription
