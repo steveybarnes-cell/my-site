@@ -115,7 +115,9 @@ enum SupabaseData {
     let reason_note: String?
     let created_at: String?
 
-    private func fix(_ lat: Double?, _ lng: Double?, _ acc: Double?, _ dist: Double?, _ inside: Bool?)
+    private func fix(
+      _ lat: Double?, _ lng: Double?, _ acc: Double?, _ dist: Double?, _ inside: Bool?
+    )
       -> LocationFix?
     {
       guard let lat, let lng else { return nil }
@@ -132,7 +134,8 @@ enum SupabaseData {
       else { return nil }
       return ClockRecord(
         id: uid, userId: userUUID, tradesmanName: tradesman_name ?? "Unknown", siteId: siteUUID,
-        siteName: site_name ?? "", date: parseDate(date) ?? Date(), device: device ?? "Mobile device",
+        siteName: site_name ?? "", date: parseDate(date) ?? Date(),
+        device: device ?? "Mobile device",
         clockInTime: parseTimestamp(clock_in_time) ?? Date(), clockInFix: inFix,
         clockInStatus: ClockStatus(rawValue: clock_in_status ?? "Valid") ?? .valid,
         clockOutTime: parseTimestamp(clock_out_time),
@@ -220,7 +223,8 @@ enum SupabaseData {
         finishTime: finish_time ?? "", breakMinutes: break_minutes ?? 0,
         totalHours: total_hours ?? 0, trade: trade ?? "", description: description ?? "",
         category: WorkCategory(rawValue: category ?? "") ?? .contract,
-        delayReason: DelayReason(rawValue: delay_reason ?? "") ?? .none, delayNote: delay_note ?? "",
+        delayReason: DelayReason(rawValue: delay_reason ?? "") ?? .none,
+        delayNote: delay_note ?? "",
         notes: notes ?? "", variationInstructedBy: variation_instructed_by ?? "",
         variationStatus: variation_status.flatMap { VariationStatus(rawValue: $0) })
     }

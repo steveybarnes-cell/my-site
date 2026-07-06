@@ -141,13 +141,15 @@ struct SupabaseClient {
   /// Authenticated upsert (POST with merge-duplicates) of encoded rows. RLS applies.
   /// Pass the raw JSON body for one or more rows.
   func upsert(table: String, body: Data, accessToken: String) async throws {
-    try await write(table: table, query: "", method: "POST", body: body, accessToken: accessToken,
+    try await write(
+      table: table, query: "", method: "POST", body: body, accessToken: accessToken,
       prefer: "resolution=merge-duplicates,return=minimal")
   }
 
   /// Authenticated PATCH of matching rows with an encoded partial body. RLS applies.
   func patch(table: String, query: String, body: Data, accessToken: String) async throws {
-    try await write(table: table, query: query, method: "PATCH", body: body,
+    try await write(
+      table: table, query: query, method: "PATCH", body: body,
       accessToken: accessToken, prefer: "return=minimal")
   }
 
