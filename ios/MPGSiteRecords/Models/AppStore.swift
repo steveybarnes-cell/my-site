@@ -164,6 +164,8 @@ final class AppStore {
   func updateAllocationStatus(_ id: UUID, to status: AllocationStatus) {
     guard let i = allocations.firstIndex(where: { $0.id == id }) else { return }
     allocations[i].status = status
+    let updated = allocations[i]
+    persist { try await SupabaseData.save(updated, token: $0) }
   }
 
   func setSubmissionStatus(_ id: UUID, to status: SubmissionStatus, by name: String? = nil) {
