@@ -1,5 +1,6 @@
 import AuthenticationServices
 import Foundation
+import UIKit
 
 /// Runs the Google sign-in flow through Supabase's hosted OAuth endpoint using
 /// `ASWebAuthenticationSession`, then returns a real Supabase session.
@@ -89,6 +90,16 @@ final class OAuthFlow: NSObject, ASWebAuthenticationPresentationContextProviding
   }
 
   func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-    ASPresentationAnchor()
+    let scene = UIApplication.shared.connectedScenes
+      .compactMap { $0 as? UIWindowScene }
+      .first { $0.activationState == .foregroundActive }
+      ?? UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+    if let window = scene?.keyWindow {
+      return window
+    }
+    if let scene {
+      return UIWindow(windowScene: scene)
+    }
+    return ASPresentationAnchor(frame: .zero)
   }
 }
