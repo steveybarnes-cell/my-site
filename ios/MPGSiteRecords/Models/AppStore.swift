@@ -327,6 +327,8 @@ final class AppStore {
       return
     }
     photos[i].syncStatus = .pending
+    let pendingPhoto = photos[i]
+    persist { try await SupabaseData.save(pendingPhoto, token: $0) }
     let capturedId = photoId
     Task { @MainActor in
       try? await Task.sleep(for: .seconds(1.4))
@@ -335,6 +337,8 @@ final class AppStore {
       self.photos[j].syncedAt = Date()
       self.photos[j].xeroReference =
         "XERO-" + String(capturedId.uuidString.prefix(6)).uppercased()
+      let syncedPhoto = self.photos[j]
+      self.persist { try await SupabaseData.save(syncedPhoto, token: $0) }
     }
   }
 
