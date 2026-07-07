@@ -52,7 +52,8 @@ struct DashboardCharts: View {
           .foregroundStyle(by: .value("Type", bar.kind))
           .cornerRadius(4)
         }
-        .chartForegroundStyleScale(["Labour": Brand.olive, "Materials": Brand.amber])
+        .chartForegroundStyleScale(
+          domain: ["Labour", "Materials"], range: [Brand.olive, Brand.amber])
         .chartLegend(position: .bottom, spacing: 8)
         .chartXAxis {
           AxisMarks { value in
