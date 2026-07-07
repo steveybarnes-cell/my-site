@@ -448,7 +448,7 @@ final class AppStore {
       id: UUID(), userId: userId, type: type,
       message: message, read: false, timestamp: Date(), symbol: symbol)
     notifications.append(n)
-    persist { try await SupabaseData.save(n, token: $0) }
+    sync(queued: SupabaseData.operation(for: n)) { try await SupabaseData.save(n, token: $0) }
   }
 
   // Dashboard rollups
