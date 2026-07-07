@@ -149,6 +149,6 @@ final class XeroService: NSObject, ASWebAuthenticationPresentationContextProvidi
       ?? UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
     if let window = scene?.keyWindow { return window }
     if let scene { return UIWindow(windowScene: scene) }
-    return ASPresentationAnchor(frame: .zero)
+    return ASPresentationAnchor()
   }
 }
