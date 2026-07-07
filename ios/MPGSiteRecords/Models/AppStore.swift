@@ -208,14 +208,18 @@ final class AppStore {
       notifications[i].read = true
     }
     let uid = u.id
-    persist { try await SupabaseData.markNotificationsRead(userId: uid, token: $0) }
+    sync(queued: SupabaseData.markNotificationsReadOperation(userId: uid)) {
+      try await SupabaseData.markNotificationsRead(userId: uid, token: $0)
+    }
   }
 
   func updateAllocationStatus(_ id: UUID, to status: AllocationStatus) {
     guard let i = allocations.firstIndex(where: { $0.id == id }) else { return }
     allocations[i].status = status
     let updated = allocations[i]
-    persist { try await SupabaseData.save(updated, token: $0) }
+    sync(queued: SupabaseData.operation(for: updated)) {
+      try await SupabaseData.save(updated, token: $0)
+    }
   }
 
   func setSubmissionStatus(_ id: UUID, to status: SubmissionStatus, by name: String? = nil) {
