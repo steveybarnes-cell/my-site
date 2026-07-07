@@ -23,34 +23,34 @@ struct SiteFormView: View {
   private var isEditing: Bool { site != nil }
 
   var body: some View {
-      Group {
-              NavigationStack {
-          ZStack {
-            MPGBackground()
-            ScrollView {
-              VStack(spacing: 16) {
-                details
-                managerSection
-                timesSection
-                geofenceSection
-                PrimaryButton(title: isEditing ? "Save Changes" : "Add Site", symbol: "checkmark") {
-                  save()
-                }
-                .disabled(name.isEmpty || address.isEmpty)
-                .opacity(name.isEmpty || address.isEmpty ? 0.5 : 1)
+    Group {
+      NavigationStack {
+        ZStack {
+          MPGBackground()
+          ScrollView {
+            VStack(spacing: 16) {
+              details
+              managerSection
+              timesSection
+              geofenceSection
+              PrimaryButton(title: isEditing ? "Save Changes" : "Add Site", symbol: "checkmark") {
+                save()
               }
-              .padding(16)
+              .disabled(name.isEmpty || address.isEmpty)
+              .opacity(name.isEmpty || address.isEmpty ? 0.5 : 1)
             }
+            .padding(16)
           }
-          .navigationTitle(isEditing ? "Edit Site" : "New Site")
-          .navigationBarTitleDisplayMode(.inline)
-          .toolbar {
-            ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-          }
-          .onAppear(perform: load)
-              }
+        }
+        .navigationTitle(isEditing ? "Edit Site" : "New Site")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+          ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+        }
+        .onAppear(perform: load)
       }
-      .__tenxTrackView("SiteFormView")
+    }
+    .__tenxTrackView("SiteFormView")
   }
 
   private var details: some View {

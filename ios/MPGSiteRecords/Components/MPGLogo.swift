@@ -1,9 +1,8 @@
 import SwiftUI
 
-/// The house / frame mark from the official My Project Group logo:
-/// a wide double-peak outline that reads like two joined roof trusses,
-/// with the taller apex on the right. Drawn as a stroked path so it stays
-/// crisp at any size.
+/// A clean, unmistakable house mark for My Project Group: a pitched roof
+/// over a square body, with a doorway cut in. Drawn as a stroked path so it
+/// stays crisp at any size.
 struct MPGFrameMark: Shape {
   func path(in rect: CGRect) -> Path {
     let w = rect.width
@@ -14,17 +13,23 @@ struct MPGFrameMark: Shape {
 
     var path = Path()
 
-    // Left wall up into the lower-left peak, down to the valley.
-    path.move(to: p(0.0, 1.0))
-    path.addLine(to: p(0.0, 0.46))
-    path.addLine(to: p(0.30, 0.12))
-    path.addLine(to: p(0.56, 0.46))
+    // Outer house outline: roof apex + walls + base.
+    path.move(to: p(0.08, 0.42))
+    path.addLine(to: p(0.50, 0.06))  // up to the ridge
+    path.addLine(to: p(0.92, 0.42))  // down the right roof slope
+    path.addLine(to: p(0.92, 1.0))  // right wall
+    path.addLine(to: p(0.08, 1.0))  // base
+    path.addLine(to: p(0.08, 0.42))  // left wall, close
 
-    // Right (taller) peak sharing the valley, then down the right wall.
-    path.move(to: p(0.44, 0.42))
-    path.addLine(to: p(0.72, 0.0))
-    path.addLine(to: p(1.0, 0.38))
-    path.addLine(to: p(1.0, 1.0))
+    // Roof eaves: a horizontal line under the roof for a built look.
+    path.move(to: p(0.08, 0.42))
+    path.addLine(to: p(0.92, 0.42))
+
+    // Doorway.
+    path.move(to: p(0.40, 1.0))
+    path.addLine(to: p(0.40, 0.66))
+    path.addLine(to: p(0.60, 0.66))
+    path.addLine(to: p(0.60, 1.0))
 
     return path
   }

@@ -25,34 +25,34 @@ struct AllocationFormView: View {
   private var canSave: Bool { siteId != nil && tradesmanId != nil && !taskDescription.isEmpty }
 
   var body: some View {
-      Group {
-              NavigationStack {
-          ZStack {
-            MPGBackground()
-            ScrollView {
-              VStack(spacing: 16) {
-                assignSection
-                workSection
-                optionsSection
-                if isEditing { statusSection }
-                PrimaryButton(
-                  title: isEditing ? "Save Changes" : "Allocate Work", symbol: "checkmark"
-                ) { save() }
-                .disabled(!canSave)
-                .opacity(canSave ? 1 : 0.5)
-              }
-              .padding(16)
+    Group {
+      NavigationStack {
+        ZStack {
+          MPGBackground()
+          ScrollView {
+            VStack(spacing: 16) {
+              assignSection
+              workSection
+              optionsSection
+              if isEditing { statusSection }
+              PrimaryButton(
+                title: isEditing ? "Save Changes" : "Allocate Work", symbol: "checkmark"
+              ) { save() }
+              .disabled(!canSave)
+              .opacity(canSave ? 1 : 0.5)
             }
+            .padding(16)
           }
-          .navigationTitle(isEditing ? "Edit Allocation" : "Allocate Work")
-          .navigationBarTitleDisplayMode(.inline)
-          .toolbar {
-            ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-          }
-          .onAppear(perform: load)
-              }
+        }
+        .navigationTitle(isEditing ? "Edit Allocation" : "Allocate Work")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+          ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+        }
+        .onAppear(perform: load)
       }
-      .__tenxTrackView("AllocationFormView")
+    }
+    .__tenxTrackView("AllocationFormView")
   }
 
   private var assignSection: some View {

@@ -16,31 +16,31 @@ struct StaffFormView: View {
   private var isEditing: Bool { user != nil }
 
   var body: some View {
-      Group {
-              NavigationStack {
-          ZStack {
-            MPGBackground()
-            ScrollView {
-              VStack(spacing: 16) {
-                details
-                PrimaryButton(title: isEditing ? "Save Changes" : "Add Member", symbol: "checkmark") {
-                  save()
-                }
-                .disabled(name.isEmpty)
-                .opacity(name.isEmpty ? 0.5 : 1)
+    Group {
+      NavigationStack {
+        ZStack {
+          MPGBackground()
+          ScrollView {
+            VStack(spacing: 16) {
+              details
+              PrimaryButton(title: isEditing ? "Save Changes" : "Add Member", symbol: "checkmark") {
+                save()
               }
-              .padding(16)
+              .disabled(name.isEmpty)
+              .opacity(name.isEmpty ? 0.5 : 1)
             }
+            .padding(16)
           }
-          .navigationTitle(isEditing ? "Edit Member" : "New Member")
-          .navigationBarTitleDisplayMode(.inline)
-          .toolbar {
-            ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-          }
-          .onAppear(perform: load)
-              }
+        }
+        .navigationTitle(isEditing ? "Edit Member" : "New Member")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+          ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+        }
+        .onAppear(perform: load)
       }
-      .__tenxTrackView("StaffFormView")
+    }
+    .__tenxTrackView("StaffFormView")
   }
 
   private var details: some View {
