@@ -52,7 +52,7 @@ struct MaterialFormView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
         .sheet(isPresented: $showCamera) {
-          CameraCaptureView { hasReceipt = true }
+          CameraCaptureView { _ in hasReceipt = true }
         }
         .onChange(of: pickerItem) { _, newValue in hasReceipt = newValue != nil }
       }
