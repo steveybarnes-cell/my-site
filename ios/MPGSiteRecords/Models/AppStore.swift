@@ -590,14 +590,18 @@ final class AppStore {
     }
     notifyAttendance(record: clockRecords[i], event: "clocked out")
     let updated = clockRecords[i]
-    persist { try await SupabaseData.save(updated, token: $0) }
+    sync(queued: SupabaseData.operation(for: updated)) {
+      try await SupabaseData.save(updated, token: $0)
+    }
   }
 
   func setClockApproval(_ id: UUID, approved: Bool) {
     guard let i = clockRecords.firstIndex(where: { $0.id == id }) else { return }
     clockRecords[i].adminApproved = approved
     let updated = clockRecords[i]
-    persist { try await SupabaseData.save(updated, token: $0) }
+    sync(queued: SupabaseData.operation(for: updated)) {
+      try await SupabaseData.save(updated, token: $0)
+    }
   }
 
   /// Notifies admin + site manager when an attendance event needs review.
