@@ -214,7 +214,8 @@ final class AppStore {
   func uploadFile(
     type: PhotoType, description: String, source: CaptureSource, ext: String = "jpg",
     site: Site, allocation: WorkAllocation? = nil, dailyRecordId: UUID? = nil,
-    submissionId: UUID? = nil, materialId: UUID? = nil, date: Date = Date()
+    submissionId: UUID? = nil, materialId: UUID? = nil, date: Date = Date(),
+    imageData: Data? = nil
   ) -> SitePhoto {
     let uploader = currentUser?.name ?? "Unknown"
     let tradesman = allocation.flatMap { user($0.tradesmanId)?.name } ?? uploader
