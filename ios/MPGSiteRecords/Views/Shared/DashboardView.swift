@@ -45,6 +45,20 @@ struct DashboardView: View {
                   ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
             }
           }
+          ToolbarItem(placement: .topBarLeading) {
+            if let url = exportURL {
+              ShareLink(item: url) {
+                Image(systemName: "square.and.arrow.up")
+              }
+            } else {
+              Button {
+                exportURL = PDFExportService.exportDashboardReport(
+                  analytics: analytics, filter: filter)
+              } label: {
+                Image(systemName: "arrow.down.doc")
+              }
+            }
+          }
         }
         .sheet(isPresented: $showFilters) {
           DashboardFilterSheet(filter: $filter, analytics: analytics)
