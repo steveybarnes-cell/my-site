@@ -12,4 +12,5 @@
 - [x] Phase 2 backend: PC-access reporting views live + in-app PC Access guidance card
 - [x] Phase 3: real photo image bytes uploaded to Storage bucket (camera + gallery)
 - [x] Phase 3: offline sync queue drains to Supabase (disk-backed, auto-retry, pending indicator)
-- [ ] Phase 3: Google Cloud OAuth client; Xero OAuth; PDF export; charts
+- [x] Phase 3: dashboard charts (Swift Charts) + branded PDF report export (ShareLink)
+- [ ] Phase 3 remaining: Google Cloud OAuth client (user); Xero OAuth (blocked on Xero dev credentials)

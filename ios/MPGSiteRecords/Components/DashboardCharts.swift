@@ -53,7 +53,8 @@ struct DashboardCharts: View {
           .cornerRadius(4)
         }
         .chartForegroundStyleScale(
-          domain: ["Labour", "Materials"], range: [Brand.olive, Brand.amber] as [Color])
+          domain: ["Labour", "Materials"], range: [Brand.olive, Brand.amber] as [Color]
+        )
         .chartLegend(position: .bottom, spacing: 8)
         .chartXAxis {
           AxisMarks { value in
@@ -166,7 +167,8 @@ struct DashboardCharts: View {
           .foregroundStyle(slice.color)
         }
         .chartForegroundStyleScale(
-          domain: slices.map(\.label), range: slices.map(\.color))
+          domain: slices.map(\.label), range: slices.map(\.color)
+        )
         .chartLegend(position: .bottom, spacing: 8)
         .frame(height: 200)
       }
