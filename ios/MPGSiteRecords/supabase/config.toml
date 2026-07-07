@@ -1,2 +1,5 @@
 [functions.xero-oauth]
 verify_jwt = false
+
+[functions.xero-push-invoice]
+verify_jwt = true
