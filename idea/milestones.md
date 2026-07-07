@@ -11,4 +11,5 @@
 - [x] Phase 2 backend: allocations, materials, photos, notifications & query comments read/write live Supabase
 - [x] Phase 2 backend: PC-access reporting views live + in-app PC Access guidance card
 - [x] Phase 3: real photo image bytes uploaded to Storage bucket (camera + gallery)
-- [ ] Phase 3: offline sync queue drains to Supabase; Google Cloud OAuth client; Xero OAuth; PDF export
+- [x] Phase 3: offline sync queue drains to Supabase (disk-backed, auto-retry, pending indicator)
+- [ ] Phase 3: Google Cloud OAuth client; Xero OAuth; PDF export; charts
