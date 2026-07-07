@@ -165,7 +165,8 @@ struct PhotoCaptureView: View {
     guard let site else { return }
     let uploaded = store.uploadFile(
       type: type, description: description, source: source, ext: "jpg",
-      site: site, allocation: allocation, dailyRecordId: nil, submissionId: nil)
+      site: site, allocation: allocation, dailyRecordId: nil, submissionId: nil,
+      imageData: imageData)
     savedName = uploaded.driveFileName
     dismiss()
   }
