@@ -21,6 +21,7 @@ struct DashboardView: View {
               if filter.isActive { activeFilterBar }
               if store.pendingSyncCount > 0 { pendingSyncBanner }
               weekSummarySection
+              DashboardCharts(analytics: analytics)
               siteCostSection
               tradesmanSection
               allocationTrackerSection
