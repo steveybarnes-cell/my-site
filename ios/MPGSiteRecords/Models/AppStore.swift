@@ -438,7 +438,9 @@ final class AppStore {
       id: UUID(), submissionId: submissionId, fromName: name,
       toUserId: toUserId, message: message, timestamp: Date(), fromAdmin: fromAdmin)
     comments.append(comment)
-    persist { try await SupabaseData.save(comment, token: $0) }
+    sync(queued: SupabaseData.operation(for: comment)) {
+      try await SupabaseData.save(comment, token: $0)
+    }
   }
 
   func notify(_ userId: UUID, type: String, message: String, symbol: String) {
