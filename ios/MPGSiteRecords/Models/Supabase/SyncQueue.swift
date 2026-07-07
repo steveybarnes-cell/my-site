@@ -65,7 +65,9 @@ final class SyncQueue {
   /// one record while offline collapse to the latest version.
   func enqueue(_ op: SyncOperation) {
     if op.method == .upsert, let newId = rowId(in: op.bodyData) {
-      operations.removeAll { $0.method == .upsert && $0.table == op.table && rowId(in: $0.bodyData) == newId }
+      operations.removeAll {
+        $0.method == .upsert && $0.table == op.table && rowId(in: $0.bodyData) == newId
+      }
     }
     operations.append(op)
     save()

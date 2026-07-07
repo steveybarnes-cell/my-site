@@ -76,15 +76,19 @@ struct DashboardView: View {
       Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
         .foregroundStyle(Brand.amber)
       VStack(alignment: .leading, spacing: 2) {
-        Text("\(store.pendingSyncCount) change\(store.pendingSyncCount == 1 ? "" : "s") waiting to sync")
-          .font(.footnote.weight(.semibold)).foregroundStyle(Brand.ink)
+        Text(
+          "\(store.pendingSyncCount) change\(store.pendingSyncCount == 1 ? "" : "s") waiting to sync"
+        )
+        .font(.footnote.weight(.semibold)).foregroundStyle(Brand.ink)
         Text("These will upload to the company database when back online.")
           .font(.caption2).foregroundStyle(Brand.inkSoft)
       }
       Spacer(minLength: 0)
     }
     .padding(12)
-    .background(Brand.amber.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    .background(
+      Brand.amber.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+    )
     .overlay(
       RoundedRectangle(cornerRadius: 12, style: .continuous)
         .stroke(Brand.amber.opacity(0.35), lineWidth: 1))
