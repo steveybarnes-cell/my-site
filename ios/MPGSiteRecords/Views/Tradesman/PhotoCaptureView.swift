@@ -206,7 +206,11 @@ struct CameraCaptureView: UIViewControllerRepresentable {
       _ picker: UIImagePickerController,
       didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
     ) {
-      parent.onCapture()
+      if let image = info[.originalImage] as? UIImage,
+        let data = image.jpegData(compressionQuality: 0.8)
+      {
+        parent.onCapture(data)
+      }
       parent.dismiss()
     }
 
