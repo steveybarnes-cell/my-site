@@ -252,8 +252,29 @@ final class SimulatedCameraController: UIViewController {
   }
 
   @objc private func capture() {
-    onCapture()
+    onCapture(Self.demoImageData())
     onDismiss()
+  }
+
+  private static func demoImageData() -> Data {
+    let size = CGSize(width: 1024, height: 1024)
+    let renderer = UIGraphicsImageRenderer(size: size)
+    let image = renderer.image { ctx in
+      UIColor(white: 0.12, alpha: 1).setFill()
+      ctx.fill(CGRect(origin: .zero, size: size))
+      let text = "MPG demo capture\n\(Date().formatted())"
+      let style = NSMutableParagraphStyle()
+      style.alignment = .center
+      let attrs: [NSAttributedString.Key: Any] = [
+        .foregroundColor: UIColor.white,
+        .font: UIFont.systemFont(ofSize: 48, weight: .semibold),
+        .paragraphStyle: style,
+      ]
+      text.draw(
+        in: CGRect(x: 40, y: 460, width: size.width - 80, height: 200),
+        withAttributes: attrs)
+    }
+    return image.jpegData(compressionQuality: 0.8) ?? Data()
   }
 }
 
