@@ -13,6 +13,7 @@ struct PhotoCaptureView: View {
   @State private var hasImage = false
   @State private var showCamera = false
   @State private var savedName: String?
+  @State private var imageData: Data?
 
   private var site: Site? { store.site(allocation.siteId) }
 
