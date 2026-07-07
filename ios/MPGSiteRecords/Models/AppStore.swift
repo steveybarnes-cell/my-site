@@ -91,9 +91,51 @@ final class AppStore {
       liveDataError =
         (error as? SupabaseError)?.errorDescription ?? error.localizedDescription
     }
+    // Connectivity is proven good — flush anything captured while offline.
+    await drainSyncQueue()
+  }
+
+  /// Replays any queued offline writes to Supabase, in order.
+  @MainActor
+  func drainSyncQueue() async {
+    guard let token = backendToken, !SyncQueue.shared.isEmpty else {
+      pendingSyncCount = SyncQueue.shared.count
+      return
+    }
+    let delivered = await SyncQueue.shared.drain(token: token)
+    pendingSyncCount = SyncQueue.shared.count
+    if delivered > 0 {
+      TenXPreviewSupport.log("sync-queue drained \(delivered) op(s), \(pendingSyncCount) remaining")
+    }
+  }
+
+  /// Persists a value to Supabase when in live mode. On failure (typically no
+  /// connectivity) the operation is enqueued to the disk-backed `SyncQueue` and
+  /// replayed automatically on the next successful live reload / drain, so the
+  /// user never loses a capture. `queued` builds the replayable operation.
+  private func sync(
+    queued: @autoclosure () -> SyncOperation?,
+    _ work: @escaping (String) async throws -> Void
+  ) {
+    guard let token = backendToken else { return }
+    let op = queued()
+    Task { @MainActor in
+      do {
+        try await work(token)
+        await drainSyncQueue()
+      } catch {
+        if let op {
+          SyncQueue.shared.enqueue(op)
+          pendingSyncCount = SyncQueue.shared.count
+        }
+        self.liveDataError =
+          (error as? SupabaseError)?.errorDescription ?? error.localizedDescription
+      }
+    }
   }
 
   /// Fire-and-forget persist of a value to Supabase when in live mode.
+  /// Legacy path (no offline queue) kept for writes without a queue builder.
   private func persist(_ work: @escaping (String) async throws -> Void) {
     guard let token = backendToken else { return }
     Task { @MainActor in
