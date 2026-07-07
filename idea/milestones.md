@@ -2,15 +2,12 @@
 - [x] AppStore with realistic sample data + role auth
 - [x] Role-based login + root routing
 - [x] Tradesman / Admin / Site Manager flows
-- [x] Notifications + warnings, Files tab, company dashboard, Xero/Hub sync (modelled), receipt capture
+- [x] Notifications + warnings, Files tab, company dashboard, receipt capture
 - [x] Site Files Hub (categories, Drive convention, register, handover, dashboard widgets)
 - [x] Geofenced clock-in/out + Attendance overview (map, review, approve/reject)
 - [x] Phase 2 backend: Supabase schema + RLS + Storage + real auth + session restore
-- [x] Phase 2 backend: 3 company sites seeded to Supabase
-- [x] Phase 2 backend: clock-ins, daily records & weekly submissions read/write live Supabase
-- [x] Phase 2 backend: allocations, materials, photos, notifications & query comments read/write live Supabase
-- [x] Phase 2 backend: PC-access reporting views live + in-app PC Access guidance card
-- [x] Phase 3: real photo image bytes uploaded to Storage bucket (camera + gallery)
-- [x] Phase 3: offline sync queue drains to Supabase (disk-backed, auto-retry, pending indicator)
-- [x] Phase 3: dashboard charts (Swift Charts) + branded PDF report export (ShareLink)
-- [ ] Phase 3 remaining: Google Cloud OAuth client (user); Xero OAuth (blocked on Xero dev credentials)
+- [x] Phase 2 backend: core areas read/write live Supabase + PC reporting views
+- [x] Phase 3: real photo uploads to Storage + offline sync queue
+- [x] Phase 3: dashboard charts (Swift Charts) + branded PDF report export
+- [x] Phase 3: Xero LIVE — OAuth connect + push approved invoice to Xero (Edge Functions deployed + app wired)
+- [ ] Phase 3 remaining: Google Cloud OAuth client (user) for Google sign-in

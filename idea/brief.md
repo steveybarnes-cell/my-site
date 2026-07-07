@@ -11,23 +11,27 @@ All three role experiences built and navigable end to end.
 ## PHASE 2 — Supabase backend — COMPLETE
 - Schema, RLS, auto-create-profile trigger, private storage bucket applied.
 - Real auth: email/password + sign-up + Google OAuth, Keychain session persistence + restore.
-- 3 company sites seeded. Core areas read/write live Supabase.
-- PC-accessible hub: 7 `report_*` views + in-app PC Access card.
+- Core areas read/write live Supabase. PC-accessible hub via `report_*` views.
 
 ## PHASE 3
 
 ### Done
 - Real photo image uploads to private `site-evidence` Storage bucket.
 - Offline sync queue: disk-backed FIFO, auto-retry, pending-sync banner.
-- **Dashboard charts (Swift Charts):** `DashboardCharts` adds a stacked site-cost bar, weekly net-value area/line trend, and an allocation-status donut, all driven by `DashboardAnalytics` and the active filter.
-- **PDF handover export:** `PDFExportService` renders a branded A4 report (week summary + site cost table + payment run) via `UIGraphicsPDFRenderer`, exposed on the dashboard toolbar as a generate → `ShareLink` flow.
+- Dashboard charts (Swift Charts) + branded A4 PDF handover export via ShareLink.
+- **Xero — LIVE.** Two Supabase Edge Functions deployed:
+  - `xero-oauth`: consent URL, callback token exchange, storage in `xero_connections`, auto-refresh.
+  - `xero-push-invoice`: approved submission → draft ACCREC invoice in Xero (auth/JWT-verified).
+  - App wiring: `XeroService` calls both functions with the signed-in user's Supabase JWT; Client Secret stays server-side as a backend secret. Admin → Profile → Integrations has a real Connect-to-Xero flow (`ASWebAuthenticationSession`). Admin → Invoices shows "Approve & Send to Xero" which pushes labour/materials/mileage line items, records the returned Xero invoice number, marks Approved for Payment, and notifies the tradesman. `mpgsiterecords://` URL scheme registered in Info.plist.
 
 ### Blocked on user
 - **Google provider config:** Google Cloud OAuth client + redirect `mpgsiterecords://auth-callback`. Email/password + Demo login work now.
-- **Xero OAuth:** needs Xero developer app credentials (client id/secret) + OAuth redirect. Currently modelled locally.
+
+### Notes
+- Xero push requires a real (non-demo) signed-in admin, since the push function verifies the Supabase JWT.
 
 ### Deferred
 - Push notifications, optional branded web portal.
 
 ### Design
-Reuse MPG system (charcoal + green, `mpgCard()`, `Brand` tokens). Charts use `Brand.olive`/`amber`/`blue`/`paidGreen`.
+Reuse MPG system (charcoal + green, `mpgCard()`, `Brand` tokens).
