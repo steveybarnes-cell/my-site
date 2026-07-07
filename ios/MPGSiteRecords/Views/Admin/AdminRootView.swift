@@ -269,14 +269,40 @@ struct AdminProfileView: View {
           .frame(width: 34, height: 34)
           .background(Brand.lightGreen, in: RoundedRectangle(cornerRadius: 10))
         VStack(alignment: .leading, spacing: 2) {
-          Text("Xero / Company Hub").font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
-          Text(store.xeroConnected ? "Connected — receipts can sync" : "Not connected")
+          Text("Xero").font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
+          Text(store.xeroConnected ? "Connected — invoices can be pushed" : "Not connected")
             .font(.caption).foregroundStyle(Brand.inkSoft)
         }
         Spacer()
-        Toggle("", isOn: $store.xeroConnected).labelsHidden().tint(Brand.paidGreen)
+        if store.xeroConnected {
+          Image(systemName: "checkmark.seal.fill").foregroundStyle(Brand.paidGreen)
+        }
       }
-      Text("Modelled connection. Real setup uses Xero OAuth + a backend (Files & Bills API).")
+
+      Button {
+        Task { await store.connectXero() }
+      } label: {
+        HStack(spacing: 8) {
+          if store.xeroWorking {
+            ProgressView().tint(.white)
+          } else {
+            Image(systemName: store.xeroConnected ? "arrow.triangle.2.circlepath" : "link")
+          }
+          Text(store.xeroConnected ? "Reconnect to Xero" : "Connect to Xero")
+            .font(.subheadline.weight(.semibold))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(Brand.charcoal, in: RoundedRectangle(cornerRadius: 12))
+        .foregroundStyle(.white)
+      }
+      .disabled(store.xeroWorking)
+
+      if let err = store.xeroError {
+        Text(err).font(.caption2).foregroundStyle(Brand.red)
+      }
+
+      Text("Approved invoices push straight into Xero as draft bills. The Xero secret stays server-side.")
         .font(.caption2).foregroundStyle(Brand.inkSoft)
     }
     .mpgCard()
