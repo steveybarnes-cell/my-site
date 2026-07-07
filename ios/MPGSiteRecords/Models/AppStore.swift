@@ -557,7 +557,9 @@ final class AppStore {
       reasonNote: reasonNote)
     clockRecords.append(record)
 
-    persist { try await SupabaseData.save(record, token: $0) }
+    sync(queued: SupabaseData.operation(for: record)) {
+      try await SupabaseData.save(record, token: $0)
+    }
     notifyAttendance(record: record, event: "clocked in")
     return record
   }
