@@ -178,7 +178,8 @@ extension SupabaseData {
         dailyRecordId: daily_record_id.flatMap { UUID(uuidString: $0) },
         submissionId: submission_id.flatMap { UUID(uuidString: $0) },
         materialId: material_id.flatMap { UUID(uuidString: $0) },
-        driveURL: storage_url ?? "", weekEnding: parseDate(week_ending))
+        driveURL: storage_url ?? "", weekEnding: parseDate(week_ending),
+        storageObjectPath: storage_path ?? "")
     }
   }
 
