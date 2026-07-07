@@ -361,6 +361,29 @@ struct DashboardView: View {
     .padding(.vertical, 4)
   }
 
+  private var pendingSyncBanner: some View {
+    HStack(spacing: 12) {
+      Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
+        .font(.title3).foregroundStyle(Brand.olive)
+      VStack(alignment: .leading, spacing: 2) {
+        Text("\(store.pendingSyncCount) change\(store.pendingSyncCount == 1 ? "" : "s") waiting to sync")
+          .font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
+        Text("Captured offline — these upload automatically when you're back online.")
+          .font(.caption).foregroundStyle(Brand.inkSoft)
+      }
+      Spacer(minLength: 0)
+      Button("Retry") {
+        Task { await store.drainSyncQueue() }
+      }
+      .font(.caption.weight(.semibold))
+      .buttonStyle(.borderedProminent)
+      .tint(Brand.olive)
+    }
+    .padding(14)
+    .background(Brand.olive.opacity(0.10), in: RoundedRectangle(cornerRadius: 14))
+    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Brand.olive.opacity(0.25), lineWidth: 1))
+  }
+
   private var pcAccessSection: some View {
     VStack(alignment: .leading, spacing: 12) {
       SectionHeader(
