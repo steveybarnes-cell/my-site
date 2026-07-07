@@ -34,9 +34,15 @@ final class AppStore {
   /// Set if a live sync fails, so the UI can surface it instead of showing stale data.
   var liveDataError: String?
 
+  /// Number of writes captured offline and waiting to reach Supabase.
+  var pendingSyncCount = 0
+
   var isLiveBackend: Bool { backendToken != nil }
 
-  init() { seed() }
+  init() {
+    seed()
+    pendingSyncCount = SyncQueue.shared.count
+  }
 
   // MARK: - Auth (mock)
 
