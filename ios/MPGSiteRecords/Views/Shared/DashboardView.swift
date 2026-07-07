@@ -6,6 +6,7 @@ struct DashboardView: View {
   @Environment(AppStore.self) private var store
   @State private var filter = DashboardFilter()
   @State private var showFilters = false
+  @State private var exportURL: URL?
 
   private var analytics: DashboardAnalytics {
     DashboardAnalytics(store: store, filter: filter)
