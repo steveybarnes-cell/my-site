@@ -360,6 +360,59 @@ struct DashboardView: View {
     .padding(.vertical, 4)
   }
 
+  private var pcAccessSection: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      SectionHeader(
+        title: "PC / Web Access",
+        subtitle: "Open the live company report from any computer")
+      VStack(alignment: .leading, spacing: 10) {
+        Label {
+          Text("Everything logged in the app syncs to your shared company database.")
+            .font(.footnote).foregroundStyle(Brand.ink)
+        } icon: {
+          Image(systemName: "externaldrive.connected.to.line.below").foregroundStyle(Brand.olive)
+        }
+        Divider().overlay(Brand.hairline)
+        pcStep(1, "On a PC browser, go to supabase.com and sign in.")
+        pcStep(2, "Open the My Project Group project, then choose Table Editor.")
+        pcStep(3, "Open any report view to read the live data:")
+        VStack(alignment: .leading, spacing: 4) {
+          reportName("report_work_allocations", "Work Allocations")
+          reportName("report_daily_records", "Daily Records")
+          reportName("report_materials", "Materials & Receipts")
+          reportName("report_photos_files", "Photos & Files")
+          reportName("report_payment_run", "Payment Run")
+          reportName("report_site_cost_summary", "Site Cost Summary")
+          reportName("report_attendance", "Attendance (clock in/out)")
+        }
+        .padding(.leading, 26)
+      }
+    }
+    .mpgCard()
+  }
+
+  private func pcStep(_ n: Int, _ text: String) -> some View {
+    HStack(alignment: .top, spacing: 10) {
+      Text("\(n)")
+        .font(.caption.weight(.bold)).foregroundStyle(.white)
+        .frame(width: 20, height: 20)
+        .background(Brand.olive, in: Circle())
+      Text(text).font(.footnote).foregroundStyle(Brand.ink)
+      Spacer(minLength: 0)
+    }
+  }
+
+  private func reportName(_ code: String, _ label: String) -> some View {
+    HStack(spacing: 8) {
+      Text(code)
+        .font(.caption2.monospaced().weight(.semibold))
+        .foregroundStyle(Brand.oliveDark)
+      Text("— \(label)")
+        .font(.caption2).foregroundStyle(Brand.inkSoft)
+      Spacer(minLength: 0)
+    }
+  }
+
   private var sourceNote: some View {
     Text(
       "This dashboard mirrors the central Google Sheets report (Work Allocations, Daily Records, Materials, Photos & Files, Weekly Submissions, Variation & Delay Registers, Approval Tracker, Payment Run). Live Google Sheets sync requires the Drive/Sheets backend."
