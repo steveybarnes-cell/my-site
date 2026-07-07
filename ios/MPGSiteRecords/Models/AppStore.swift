@@ -239,9 +239,15 @@ final class AppStore {
       persist { try await SupabaseData.save(updatedMaterial, token: $0) }
     }
 
+    let ownerId = currentUser?.id ?? allocation?.tradesmanId ?? UUID()
+    let objectPath =
+      imageData != nil
+      ? SupabaseStorage.objectPath(siteId: site.id, userId: ownerId, fileName: result.driveFileName)
+      : ""
+
     let photo = SitePhoto(
       id: UUID(),
-      userId: currentUser?.id ?? allocation?.tradesmanId ?? UUID(),
+      userId: ownerId,
       siteId: site.id,
       allocationId: allocation?.id,
       type: type,
@@ -257,10 +263,39 @@ final class AppStore {
       driveFolderPath: result.driveFolderPath,
       driveFileName: result.driveFileName,
       driveURL: result.driveURL,
-      weekEnding: result.weekEnding)
+      weekEnding: result.weekEnding,
+      storageObjectPath: objectPath)
 
     photos.append(photo)
-    persist { try await SupabaseData.save(photo, token: $0) }
+
+    // Upload the real bytes to the private Storage bucket, then persist the row
+    // with a signed display URL. Falls back to metadata-only if no bytes/token.
+    if let imageData, !objectPath.isEmpty, let token = backendToken {
+      let photoId = photo.id
+      Task { @MainActor in
+        do {
+          try await SupabaseStorage.upload(
+            data: imageData, path: objectPath,
+            contentType: ext == "png" ? "image/png" : "image/jpeg", token: token)
+          let signed = try? await SupabaseStorage.signedURL(path: objectPath, token: token)
+          if let i = self.photos.firstIndex(where: { $0.id == photoId }) {
+            if let signed { self.photos[i].driveURL = signed.absoluteString }
+            self.photos[i].syncStatus = .synced
+            self.photos[i].syncedAt = Date()
+            let updated = self.photos[i]
+            try await SupabaseData.save(updated, token: token)
+          }
+        } catch {
+          if let i = self.photos.firstIndex(where: { $0.id == photoId }) {
+            self.photos[i].syncStatus = .failed
+          }
+          self.liveDataError =
+            (error as? SupabaseError)?.errorDescription ?? error.localizedDescription
+        }
+      }
+    } else {
+      persist { try await SupabaseData.save(photo, token: $0) }
+    }
 
     // Notify the office when register-linked evidence lands.
     if let register = type.linkedRegister, let admin = users.first(where: { $0.role == .admin }) {
