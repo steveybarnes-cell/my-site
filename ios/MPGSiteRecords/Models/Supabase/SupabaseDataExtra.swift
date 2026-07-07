@@ -195,7 +195,7 @@ extension SupabaseData {
       "file_extension": p.fileExtension,
       "sync_status": p.syncStatus.rawValue,
       "xero_reference": p.xeroReference,
-      "storage_path": p.driveFolderPath,
+      "storage_path": p.storageObjectPath.isEmpty ? p.driveFolderPath : p.storageObjectPath,
       "storage_url": p.driveURL,
     ]
     if let a = p.allocationId { dict["allocation_id"] = a.uuidString.lowercased() }
