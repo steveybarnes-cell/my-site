@@ -77,12 +77,15 @@ struct DashboardCharts: View {
   }
 
   private var weekPoints: [WeekPoint] {
-    let grouped = Dictionary(grouping: analytics.paymentRun) {
-      FileStorage.weekEndingSunday(for: $0.weekEnding)
+    let grouped: [Date: [PaymentRunRow]] = Dictionary(grouping: analytics.paymentRun) { row in
+      FileStorage.weekEndingSunday(for: row.weekEnding)
     }
-    return grouped
-      .map { WeekPoint(week: $0.key, net: $0.value.reduce(0) { $0 + $1.netDue }) }
-      .sorted { $0.week < $1.week }
+    var result: [WeekPoint] = []
+    for (week, rows) in grouped {
+      let net = rows.reduce(0.0) { $0 + $1.netDue }
+      result.append(WeekPoint(week: week, net: net))
+    }
+    return result.sorted { $0.week < $1.week }
   }
 
   @ViewBuilder private var weeklyValueChart: some View {
