@@ -27,6 +27,10 @@ enum SupabaseConfig {
 
   static var authBaseURL: URL? { url?.appendingPathComponent("auth/v1") }
   static var restBaseURL: URL? { url?.appendingPathComponent("rest/v1") }
+  static var storageBaseURL: URL? { url?.appendingPathComponent("storage/v1") }
+
+  /// Private bucket holding all site evidence (photos, receipts, supplier invoices).
+  static let evidenceBucket = "site-evidence"
 
   private static func value(for key: String) -> String? {
     guard
