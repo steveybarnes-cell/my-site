@@ -323,6 +323,10 @@ struct SitePhoto: Identifiable, Hashable {
   var driveFileName: String = ""
   var driveURL: String = ""
   var weekEnding: Date? = nil
+
+  /// Real object path in the Supabase Storage `site-evidence` bucket
+  /// (`<site_id>/<user_id>/<filename>`). Empty until bytes are uploaded.
+  var storageObjectPath: String = ""
 }
 
 struct WeeklySubmission: Identifiable, Hashable {
