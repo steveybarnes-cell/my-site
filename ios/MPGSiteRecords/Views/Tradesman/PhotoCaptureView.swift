@@ -177,7 +177,7 @@ struct PhotoCaptureView: View {
 /// Wraps `UIImagePickerController` for camera capture. On the Simulator (no camera hardware)
 /// it falls back to a demo capture so the flow stays testable end to end.
 struct CameraCaptureView: UIViewControllerRepresentable {
-  var onCapture: () -> Void
+  var onCapture: (Data) -> Void
   @Environment(\.dismiss) private var dismiss
 
   func makeUIViewController(context: Context) -> UIViewController {
