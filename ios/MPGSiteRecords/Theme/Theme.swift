@@ -6,8 +6,8 @@ enum Brand {
   static let charcoalDeep = Color(hex: 0x1C201D)
   static let olive = Color(hex: 0x6F8F5A)
   static let oliveDark = Color(hex: 0x5A7748)
-  /// Bright brand green used in the official MY PROJECT GROUP wordmark.
-  static let logoGreen = Color(hex: 0x63B877)
+  /// Muted sage/olive green used in the official MY PROJECT GROUP wordmark.
+  static let logoGreen = Color(hex: 0x7D9B62)
   static let lightGreen = Color(hex: 0xE7EFE2)
   static let surface = Color.white
   static let ink = Color(hex: 0x23271F)
