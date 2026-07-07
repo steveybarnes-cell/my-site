@@ -316,8 +316,10 @@ struct AdminProfileView: View {
         Text(err).font(.caption2).foregroundStyle(Brand.red)
       }
 
-      Text("Approved invoices push straight into Xero as draft bills. The Xero secret stays server-side.")
-        .font(.caption2).foregroundStyle(Brand.inkSoft)
+      Text(
+        "Approved invoices push straight into Xero as draft bills. The Xero secret stays server-side."
+      )
+      .font(.caption2).foregroundStyle(Brand.inkSoft)
     }
     .mpgCard()
   }
