@@ -42,8 +42,8 @@ struct MaterialFormView: View {
               receiptSection
               chargeSection
               PrimaryButton(title: "Add Material", symbol: "plus") { save() }
-                .disabled(supplier.isEmpty || cost <= 0)
-                .opacity(supplier.isEmpty || cost <= 0 ? 0.5 : 1)
+                .disabled(isInvalid)
+                .opacity(isInvalid ? 0.5 : 1)
             }
             .padding(16)
           }
