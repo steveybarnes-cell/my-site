@@ -40,9 +40,23 @@ struct PhotoCaptureView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
         .sheet(isPresented: $showCamera) {
-          CameraCaptureView { hasImage = true }
+          CameraCaptureView { data in
+            imageData = data
+            hasImage = true
+          }
         }
-        .onChange(of: pickerItem) { _, newValue in hasImage = newValue != nil }
+        .onChange(of: pickerItem) { _, newValue in
+          guard let newValue else {
+            hasImage = false
+            return
+          }
+          Task {
+            if let data = try? await newValue.loadTransferable(type: Data.self) {
+              imageData = data
+              hasImage = true
+            }
+          }
+        }
       }
     }
     .__tenxTrackView("PhotoCaptureView")
