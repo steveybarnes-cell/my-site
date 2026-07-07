@@ -189,10 +189,20 @@ struct AdminSubmissionRow: View {
       }
       if live.status == .submitted || live.status == .approvedSM {
         HStack(spacing: 10) {
-          Button("Approve") {
-            store.setSubmissionStatus(live.id, to: .approvedPayment, by: store.currentUser?.name)
+          Button {
+            if store.xeroConnected {
+              Task { await store.pushSubmissionToXero(live.id) }
+            } else {
+              store.setSubmissionStatus(live.id, to: .approvedPayment, by: store.currentUser?.name)
+            }
+          } label: {
+            HStack(spacing: 6) {
+              if store.xeroWorking { ProgressView().tint(.white) }
+              Text(store.xeroConnected ? "Approve & Send to Xero" : "Approve")
+            }
           }
           .buttonStyle(.borderedProminent).tint(Brand.olive)
+          .disabled(store.xeroWorking)
           Button("Query") {
             store.setSubmissionStatus(live.id, to: .queryRaised, by: store.currentUser?.name)
           }
@@ -200,6 +210,10 @@ struct AdminSubmissionRow: View {
         }
         .font(.subheadline)
       } else if live.status == .approvedPayment {
+        if let number = store.xeroInvoiceNumbers[live.id] {
+          Label("Xero \(number)", systemImage: "checkmark.seal.fill")
+            .font(.caption.weight(.semibold)).foregroundStyle(Brand.paidGreen)
+        }
         Button("Mark as Paid") {
           store.setSubmissionStatus(live.id, to: .paid, by: store.currentUser?.name)
         }
