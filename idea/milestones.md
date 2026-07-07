@@ -10,4 +10,5 @@
 - [x] Phase 3: real photo uploads to Storage + offline sync queue
 - [x] Phase 3: dashboard charts (Swift Charts) + branded PDF report export
 - [x] Phase 3: Xero LIVE — OAuth connect + push approved invoice to Xero (Edge Functions deployed + app wired)
+- [x] Branding: official MPG logo applied as app icon + in-app MPGLogo refined to match official wordmark
 - [ ] Phase 3 remaining: Google Cloud OAuth client (user) for Google sign-in
