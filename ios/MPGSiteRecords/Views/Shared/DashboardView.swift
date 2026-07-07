@@ -26,6 +26,7 @@ struct DashboardView: View {
               missingEvidenceSection
               siteFilesSection
               paymentRunSection
+              pcAccessSection
               sourceNote
             }
             .padding(16)
