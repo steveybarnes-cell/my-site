@@ -288,7 +288,9 @@ final class AppStore {
     if let mid = linkedMaterial, let i = materials.firstIndex(where: { $0.id == mid }) {
       materials[i].receiptUploaded = true
       let updatedMaterial = materials[i]
-      persist { try await SupabaseData.save(updatedMaterial, token: $0) }
+      sync(queued: SupabaseData.operation(for: updatedMaterial)) {
+        try await SupabaseData.save(updatedMaterial, token: $0)
+      }
     }
 
     let ownerId = currentUser?.id ?? allocation?.tradesmanId ?? UUID()
