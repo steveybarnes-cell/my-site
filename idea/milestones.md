@@ -14,6 +14,6 @@
 - [x] Branding: MPGFrameMark simplified to plain house outline (roof + walls + base, no eaves/door)
 - [x] iOS 26 warning cleanup: removed deprecated ASPresentationAnchor inits + unused binding
 - [x] Admin Manage tab: add/edit sites (jobs), team members, and work allocations in-app
-- [x] Login: hide Demo Sign-in when Supabase is configured (real email/password login only)
+- [x] Login: Demo Sign-in card always available for running/demoing the app (real email/password + Google still work)
 - [ ] Sync new sites + staff records to Supabase (currently local-only writes)
 - [ ] Phase 3 remaining: Google Cloud OAuth client (user) for Google sign-in

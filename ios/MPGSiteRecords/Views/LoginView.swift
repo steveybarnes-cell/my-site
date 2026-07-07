@@ -25,11 +25,9 @@ struct LoginView: View {
           VStack(spacing: 24) {
             header
             signInCard
-            // Demo sign-in is only offered when Supabase isn't connected.
-            // Once configured, everyone uses their real email + password.
-            if !auth.isConfigured {
-              roleDemoCard
-            }
+            // Demo sign-in is always available so the app can be run and
+            // demonstrated without needing real Supabase accounts.
+            roleDemoCard
             Text("MPG-FRM-001 Rev 5.0 · My Project Group Ltd")
               .font(.caption2)
               .foregroundStyle(.white.opacity(0.4))

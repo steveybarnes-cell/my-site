@@ -20,11 +20,8 @@ All three role experiences built and navigable end to end.
 - Offline sync queue: disk-backed FIFO, auto-retry, pending-sync banner.
 - Dashboard charts (Swift Charts) + branded A4 PDF handover export via ShareLink.
 - **Xero — LIVE.** Two Supabase Edge Functions deployed (`xero-oauth`, `xero-push-invoice`); app wired with signed-in user's Supabase JWT; Client Secret stays server-side.
-- **Admin Manage tab (NEW).** Admin can now add and edit data in-app via a segmented Manage screen:
-  - **Sites/Jobs** — `SiteFormView`: name, address, client, site manager, status, default hours, WhatsApp link, notes, geofence (lat/long + radius).
-  - **Team** — `StaffFormView`: add/edit tradesmen + site managers (name, email, phone, role, active).
-  - **Work allocations** — `AllocationFormView`: assign site + tradesman + date, trade, task, category, priority, times, materials, photo requirement, status; new allocations auto-notify the tradesman.
-  - Store mutations: `saveSite`, `saveUser`, `saveAllocation`. Allocations sync to Supabase; sites + staff are local-only writes for now.
+- **Admin Manage tab.** Admin can add/edit sites, staff, and work allocations in-app.
+- **Demo mode login.** The Demo Sign-in card is always shown on the login screen so the app can be run and demonstrated (Tradesman / Admin / Site Manager) without needing real Supabase accounts. Real email/password + Google login remain fully functional.
 
 ### Blocked on user
 - **Google provider config:** Google Cloud OAuth client + redirect `mpgsiterecords://auth-callback`. Email/password + Demo login work now.
