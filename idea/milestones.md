@@ -11,4 +11,5 @@
 - [x] Phase 3: dashboard charts (Swift Charts) + branded PDF report export
 - [x] Phase 3: Xero LIVE — OAuth connect + push approved invoice to Xero (Edge Functions deployed + app wired)
 - [x] Branding: official MPG logo applied as app icon + in-app MPGLogo refined to match official wordmark
+- [x] iOS 26 warning cleanup: removed deprecated ASPresentationAnchor inits + unused binding
 - [ ] Phase 3 remaining: Google Cloud OAuth client (user) for Google sign-in

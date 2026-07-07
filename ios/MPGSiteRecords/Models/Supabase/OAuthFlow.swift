@@ -91,17 +91,12 @@ final class OAuthFlow: NSObject, ASWebAuthenticationPresentationContextProviding
   }
 
   func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-    let scene =
-      UIApplication.shared.connectedScenes
-      .compactMap { $0 as? UIWindowScene }
-      .first { $0.activationState == .foregroundActive }
-      ?? UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
-    if let window = scene?.keyWindow {
-      return window
+    let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+    let scene = scenes.first { $0.activationState == .foregroundActive } ?? scenes.first
+    guard let scene else {
+      // Auth is only ever presented while a window scene is active, so this is unreachable.
+      preconditionFailure("No active UIWindowScene available to anchor the auth session.")
     }
-    if let scene {
-      return UIWindow(windowScene: scene)
-    }
-    return ASPresentationAnchor(frame: .zero)
+    return scene.keyWindow ?? UIWindow(windowScene: scene)
   }
 }

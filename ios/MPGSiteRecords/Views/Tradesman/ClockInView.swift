@@ -77,7 +77,7 @@ struct ClockInView: View {
           Text(site.address).font(.caption).foregroundStyle(Brand.inkSoft)
         }
         Spacer()
-        if let rec = openRecord {
+        if openRecord != nil {
           StatusChip(text: "Clocked in", color: Brand.paidGreen, filled: true)
         } else {
           StatusChip(text: "Not clocked in", color: Brand.inkSoft)
