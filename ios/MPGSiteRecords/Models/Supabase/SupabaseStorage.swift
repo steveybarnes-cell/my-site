@@ -69,7 +69,8 @@ enum SupabaseStorage {
     let decoded = try JSONDecoder().decode(SignedURLResponse.self, from: data)
 
     // The API returns a path like "/object/sign/site-evidence/...?token=..."
-    let relative = decoded.signedURL.hasPrefix("/") ? String(decoded.signedURL.dropFirst()) : decoded.signedURL
+    let relative =
+      decoded.signedURL.hasPrefix("/") ? String(decoded.signedURL.dropFirst()) : decoded.signedURL
     guard let full = URL(string: "storage/v1/\(relative)", relativeTo: siteBase)?.absoluteURL else {
       throw SupabaseError.invalidResponse
     }
