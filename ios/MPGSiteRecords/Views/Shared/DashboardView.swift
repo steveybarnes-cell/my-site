@@ -19,6 +19,7 @@ struct DashboardView: View {
           ScrollView {
             VStack(spacing: 22) {
               if filter.isActive { activeFilterBar }
+              if store.pendingSyncCount > 0 { pendingSyncBanner }
               weekSummarySection
               siteCostSection
               tradesmanSection
