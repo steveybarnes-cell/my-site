@@ -22,6 +22,7 @@ struct MaterialFormView: View {
   private var cost: Double { Double(costExVat) ?? 0 }
   private var vat: Double { cost * 0.20 }
   private var site: Site? { store.site(allocation.siteId) }
+  private var isInvalid: Bool { supplier.isEmpty || cost <= 0 }
 
   var body: some View {
     Group {
