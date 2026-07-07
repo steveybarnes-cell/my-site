@@ -9,6 +9,9 @@ struct AdminRootView: View {
         Tab("Dashboard", systemImage: "square.grid.2x2.fill") {
           DashboardView()
         }
+        Tab("Manage", systemImage: "square.and.pencil") {
+          ManageView()
+        }
         Tab("Invoices", systemImage: "doc.text.fill") {
           AdminSubmissionsView()
         }

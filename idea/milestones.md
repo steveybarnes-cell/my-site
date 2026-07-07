@@ -10,6 +10,8 @@
 - [x] Phase 3: real photo uploads to Storage + offline sync queue
 - [x] Phase 3: dashboard charts (Swift Charts) + branded PDF report export
 - [x] Phase 3: Xero LIVE — OAuth connect + push approved invoice to Xero (Edge Functions deployed + app wired)
-- [x] Branding: official MPG logo applied as app icon + in-app MPGLogo refined to match official wordmark
+- [x] Branding: official MPG logo applied as app icon + in-app MPGLogo refined
 - [x] iOS 26 warning cleanup: removed deprecated ASPresentationAnchor inits + unused binding
+- [x] Admin Manage tab: add/edit sites (jobs), team members, and work allocations in-app
+- [ ] Sync new sites + staff records to Supabase (currently local-only writes)
 - [ ] Phase 3 remaining: Google Cloud OAuth client (user) for Google sign-in

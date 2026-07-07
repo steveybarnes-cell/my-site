@@ -19,19 +19,19 @@ All three role experiences built and navigable end to end.
 - Real photo image uploads to private `site-evidence` Storage bucket.
 - Offline sync queue: disk-backed FIFO, auto-retry, pending-sync banner.
 - Dashboard charts (Swift Charts) + branded A4 PDF handover export via ShareLink.
-- **Xero — LIVE.** Two Supabase Edge Functions deployed:
-  - `xero-oauth`: consent URL, callback token exchange, storage in `xero_connections`, auto-refresh.
-  - `xero-push-invoice`: approved submission → draft ACCREC invoice in Xero (auth/JWT-verified).
-  - App wiring: `XeroService` calls both functions with the signed-in user's Supabase JWT; Client Secret stays server-side as a backend secret. Admin → Profile → Integrations has a real Connect-to-Xero flow (`ASWebAuthenticationSession`). Admin → Invoices shows "Approve & Send to Xero" which pushes labour/materials/mileage line items, records the returned Xero invoice number, marks Approved for Payment, and notifies the tradesman. `mpgsiterecords://` URL scheme registered in Info.plist.
+- **Xero — LIVE.** Two Supabase Edge Functions deployed (`xero-oauth`, `xero-push-invoice`); app wired with signed-in user's Supabase JWT; Client Secret stays server-side.
+- **Admin Manage tab (NEW).** Admin can now add and edit data in-app via a segmented Manage screen:
+  - **Sites/Jobs** — `SiteFormView`: name, address, client, site manager, status, default hours, WhatsApp link, notes, geofence (lat/long + radius).
+  - **Team** — `StaffFormView`: add/edit tradesmen + site managers (name, email, phone, role, active).
+  - **Work allocations** — `AllocationFormView`: assign site + tradesman + date, trade, task, category, priority, times, materials, photo requirement, status; new allocations auto-notify the tradesman.
+  - Store mutations: `saveSite`, `saveUser`, `saveAllocation`. Allocations sync to Supabase; sites + staff are local-only writes for now.
 
 ### Blocked on user
 - **Google provider config:** Google Cloud OAuth client + redirect `mpgsiterecords://auth-callback`. Email/password + Demo login work now.
 
-### Notes
-- Xero push requires a real (non-demo) signed-in admin, since the push function verifies the Supabase JWT.
-
-### Deferred
+### Deferred / Next
+- Add Supabase save endpoints for sites + staff so Manage tab writes persist across devices.
 - Push notifications, optional branded web portal.
 
 ### Design
-Reuse MPG system (charcoal + green, `mpgCard()`, `Brand` tokens).
+Reuse MPG system (charcoal + green, `mpgCard()`, `mpgFormSection()`, `Brand` tokens, shared `Field`/`SectionHeader`/`PrimaryButton`).

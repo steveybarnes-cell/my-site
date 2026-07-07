@@ -234,6 +234,44 @@ final class AppStore {
       message: "Your invoice \(sub.invoiceNumber) is now \(status.rawValue).", symbol: "doc.text")
   }
 
+  // MARK: - Admin management: sites, staff, allocations
+
+  /// Adds or updates a site (job). Local-first; live-mode persistence for sites
+  /// is handled on next backend sync once a Site save endpoint is added.
+  func saveSite(_ s: Site) {
+    if let i = sites.firstIndex(where: { $0.id == s.id }) {
+      sites[i] = s
+    } else {
+      sites.append(s)
+    }
+  }
+
+  /// Adds or updates a team member (tradesman or site manager).
+  func saveUser(_ u: AppUser) {
+    if let i = users.firstIndex(where: { $0.id == u.id }) {
+      users[i] = u
+    } else {
+      users.append(u)
+    }
+  }
+
+  /// Adds or updates a work allocation (job assigned to a tradesman for a day).
+  func saveAllocation(_ a: WorkAllocation) {
+    let isNew = !allocations.contains(where: { $0.id == a.id })
+    if let i = allocations.firstIndex(where: { $0.id == a.id }) {
+      allocations[i] = a
+    } else {
+      allocations.append(a)
+    }
+    sync(queued: SupabaseData.operation(for: a)) { try await SupabaseData.save(a, token: $0) }
+    if isNew {
+      notify(
+        a.tradesmanId, type: "Allocation",
+        message: "You have been allocated work at \(site(a.siteId)?.name ?? "a site") on "
+          + "\(Fmt.date(a.date)).", symbol: "hammer.fill")
+    }
+  }
+
   func addRecord(_ r: DailyRecord) {
     dailyRecords.append(r)
     sync(queued: SupabaseData.operation(for: r)) { try await SupabaseData.save(r, token: $0) }
