@@ -228,7 +228,7 @@ final class AppStore {
     if status == .paid { submissions[i].paidDate = Date() }
     if let name { submissions[i].approvedBy = name }
     let sub = submissions[i]
-    persist { try await SupabaseData.save(sub, token: $0) }
+    sync(queued: SupabaseData.operation(for: sub)) { try await SupabaseData.save(sub, token: $0) }
     notify(
       sub.userId, type: "Invoice",
       message: "Your invoice \(sub.invoiceNumber) is now \(status.rawValue).", symbol: "doc.text")
