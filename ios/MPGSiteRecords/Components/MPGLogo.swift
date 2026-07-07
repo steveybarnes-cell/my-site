@@ -13,23 +13,13 @@ struct MPGFrameMark: Shape {
 
     var path = Path()
 
-    // Outer house outline: roof apex + walls + base.
+    // Plain house outline only: roof apex + walls + base, closed.
     path.move(to: p(0.08, 0.42))
     path.addLine(to: p(0.50, 0.06))  // up to the ridge
     path.addLine(to: p(0.92, 0.42))  // down the right roof slope
     path.addLine(to: p(0.92, 1.0))  // right wall
     path.addLine(to: p(0.08, 1.0))  // base
-    path.addLine(to: p(0.08, 0.42))  // left wall, close
-
-    // Roof eaves: a horizontal line under the roof for a built look.
-    path.move(to: p(0.08, 0.42))
-    path.addLine(to: p(0.92, 0.42))
-
-    // Doorway.
-    path.move(to: p(0.40, 1.0))
-    path.addLine(to: p(0.40, 0.66))
-    path.addLine(to: p(0.60, 0.66))
-    path.addLine(to: p(0.60, 1.0))
+    path.closeSubpath()  // left wall back to start
 
     return path
   }
