@@ -432,6 +432,99 @@ final class AppStore {
     }
   }
 
+  // MARK: - Xero (live)
+
+  /// True while a connect / push request is in flight.
+  var xeroWorking = false
+  /// Set when a Xero connect/push fails, so the UI can show it.
+  var xeroError: String?
+  /// Xero invoice numbers keyed by submission id, once pushed successfully.
+  var xeroInvoiceNumbers: [UUID: String] = [:]
+
+  /// Runs the live "Connect to Xero" OAuth flow via the `xero-oauth` Edge Function.
+  @MainActor
+  func connectXero() async {
+    guard let token = backendToken else {
+      xeroError = "Sign in with your MPG account first to connect Xero."
+      return
+    }
+    xeroWorking = true
+    xeroError = nil
+    defer { xeroWorking = false }
+    do {
+      try await XeroService.shared.connect(token: token)
+      xeroConnected = true
+    } catch let e as SupabaseError {
+      if e == .oauthCancelled { return }
+      xeroError = e.errorDescription
+    } catch {
+      xeroError = error.localizedDescription
+    }
+  }
+
+  /// Pushes an approved submission to Xero as a draft invoice via the
+  /// `xero-push-invoice` Edge Function, then marks it approved for payment.
+  @MainActor
+  func pushSubmissionToXero(_ id: UUID) async {
+    guard let token = backendToken else {
+      xeroError = "Sign in with your MPG account first to push to Xero."
+      return
+    }
+    guard let sub = submissions.first(where: { $0.id == id }) else { return }
+    let tradesman = user(sub.userId)?.name ?? "Subcontractor"
+
+    var lines: [XeroService.LineItem] = []
+    if sub.labourTotal > 0 {
+      lines.append(
+        .init(
+          description: "Labour — \(String(format: "%.1f", sub.totalHours)) hrs (week ending "
+            + "\(Self.shortDate(sub.weekEnding)))",
+          quantity: sub.totalHours, unitAmount: sub.labourRate, accountCode: "200"))
+    }
+    if sub.materialsTotal > 0 {
+      lines.append(
+        .init(
+          description: "Materials", quantity: 1, unitAmount: sub.materialsTotal, accountCode: "310")
+      )
+    }
+    if sub.plantMileage > 0 {
+      lines.append(
+        .init(
+          description: "Plant / mileage", quantity: 1, unitAmount: sub.plantMileage,
+          accountCode: "449"))
+    }
+    guard !lines.isEmpty else {
+      xeroError = "This invoice has no billable lines to send."
+      return
+    }
+
+    xeroWorking = true
+    xeroError = nil
+    defer { xeroWorking = false }
+    do {
+      let result = try await XeroService.shared.pushInvoice(
+        contactName: tradesman, reference: sub.invoiceNumber, lineItems: lines, token: token)
+      if let number = result.invoiceNumber ?? result.invoiceId {
+        xeroInvoiceNumbers[id] = number
+      }
+      setSubmissionStatus(id, to: .approvedPayment, by: currentUser?.name)
+      notify(
+        sub.userId, type: "Invoice",
+        message: "Your invoice \(sub.invoiceNumber) has been sent to Xero for payment.",
+        symbol: "sparkles.rectangle.stack")
+    } catch let e as SupabaseError {
+      xeroError = e.errorDescription
+    } catch {
+      xeroError = error.localizedDescription
+    }
+  }
+
+  private static func shortDate(_ date: Date) -> String {
+    let f = DateFormatter()
+    f.dateFormat = "d MMM"
+    return f.string(from: date)
+  }
+
   func addQuery(submissionId: UUID, toUserId: UUID, message: String, fromAdmin: Bool) {
     let name = currentUser?.name ?? "Office"
     let comment = QueryComment(
