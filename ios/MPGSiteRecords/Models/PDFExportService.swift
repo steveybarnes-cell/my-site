@@ -18,7 +18,7 @@ enum PDFExportService {
     let name = "MPG-Report-\(Self.fileStamp()).pdf"
     let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
     do {
-      try data.write(to: url, options: .atomic)
+      try data.write(to: url, options: Data.WritingOptions.atomic)
       return url
     } catch {
       return nil
