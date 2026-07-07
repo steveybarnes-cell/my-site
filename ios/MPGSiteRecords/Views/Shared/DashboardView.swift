@@ -69,6 +69,27 @@ struct DashboardView: View {
       RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Brand.hairline, lineWidth: 1))
   }
 
+  // MARK: - Pending sync banner
+
+  private var pendingSyncBanner: some View {
+    HStack(spacing: 10) {
+      Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
+        .foregroundStyle(Brand.amber)
+      VStack(alignment: .leading, spacing: 2) {
+        Text("\(store.pendingSyncCount) change\(store.pendingSyncCount == 1 ? "" : "s") waiting to sync")
+          .font(.footnote.weight(.semibold)).foregroundStyle(Brand.ink)
+        Text("These will upload to the company database when back online.")
+          .font(.caption2).foregroundStyle(Brand.inkSoft)
+      }
+      Spacer(minLength: 0)
+    }
+    .padding(12)
+    .background(Brand.amber.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    .overlay(
+      RoundedRectangle(cornerRadius: 12, style: .continuous)
+        .stroke(Brand.amber.opacity(0.35), lineWidth: 1))
+  }
+
   // MARK: - 1. This week summary
 
   private var weekSummarySection: some View {
@@ -359,29 +380,6 @@ struct DashboardView: View {
         .background((count > 0 ? Brand.red : Brand.paidGreen).opacity(0.12), in: Capsule())
     }
     .padding(.vertical, 4)
-  }
-
-  private var pendingSyncBanner: some View {
-    HStack(spacing: 12) {
-      Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
-        .font(.title3).foregroundStyle(Brand.olive)
-      VStack(alignment: .leading, spacing: 2) {
-        Text("\(store.pendingSyncCount) change\(store.pendingSyncCount == 1 ? "" : "s") waiting to sync")
-          .font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
-        Text("Captured offline — these upload automatically when you're back online.")
-          .font(.caption).foregroundStyle(Brand.inkSoft)
-      }
-      Spacer(minLength: 0)
-      Button("Retry") {
-        Task { await store.drainSyncQueue() }
-      }
-      .font(.caption.weight(.semibold))
-      .buttonStyle(.borderedProminent)
-      .tint(Brand.olive)
-    }
-    .padding(14)
-    .background(Brand.olive.opacity(0.10), in: RoundedRectangle(cornerRadius: 14))
-    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Brand.olive.opacity(0.25), lineWidth: 1))
   }
 
   private var pcAccessSection: some View {
