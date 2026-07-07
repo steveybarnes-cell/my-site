@@ -9,4 +9,5 @@
 - [x] Phase 2 backend: 3 company sites seeded to Supabase
 - [x] Phase 2 backend: clock-ins, daily records & weekly submissions read/write live Supabase
 - [x] Phase 2 backend: allocations, materials, photos, notifications & query comments read/write live Supabase
-- [ ] Phase 3: Google Cloud OAuth client for Google sign-in; Google Drive/Sheets dashboard; Xero OAuth; PDF export
+- [x] Phase 2 backend: PC-access reporting views live + in-app PC Access guidance card
+- [ ] Phase 3: Google Cloud OAuth client for Google sign-in; real photo image uploads to Storage; Xero OAuth; PDF export
