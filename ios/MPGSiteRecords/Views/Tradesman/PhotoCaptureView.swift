@@ -222,9 +222,9 @@ struct CameraCaptureView: UIViewControllerRepresentable {
 
 /// Simple simulator stand-in that confirms a "capture" so the pipeline is demonstrable in preview.
 final class SimulatedCameraController: UIViewController {
-  let onCapture: () -> Void
+  let onCapture: (Data) -> Void
   let onDismiss: () -> Void
-  init(onCapture: @escaping () -> Void, onDismiss: @escaping () -> Void) {
+  init(onCapture: @escaping (Data) -> Void, onDismiss: @escaping () -> Void) {
     self.onCapture = onCapture
     self.onDismiss = onDismiss
     super.init(nibName: nil, bundle: nil)
