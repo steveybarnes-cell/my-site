@@ -143,6 +143,19 @@ struct PhotoCaptureView: View {
   private var detailsSection: some View {
     VStack(alignment: .leading, spacing: 12) {
       SectionHeader(title: "Description / notes")
+      if isScanning {
+        Label("Reading receipt with AI…", systemImage: "sparkles")
+          .font(.caption).foregroundStyle(Brand.olive)
+          .frame(maxWidth: .infinity, alignment: .leading)
+      } else if let scanNote {
+        Label(scanNote, systemImage: "checkmark.seal.fill")
+          .font(.caption).foregroundStyle(Brand.paidGreen)
+          .frame(maxWidth: .infinity, alignment: .leading)
+      } else if let scanError {
+        Label(scanError, systemImage: "exclamationmark.triangle.fill")
+          .font(.caption).foregroundStyle(Brand.red)
+          .frame(maxWidth: .infinity, alignment: .leading)
+      }
       TextField("What does this file show?", text: $description, axis: .vertical)
         .lineLimit(2...4)
         .font(.subheadline)
@@ -150,6 +163,36 @@ struct PhotoCaptureView: View {
         .background(.white, in: RoundedRectangle(cornerRadius: 12))
     }
     .mpgFormSection()
+  }
+
+  private func scanIfReceipt() {
+    guard isReceiptType, let data = imageData else { return }
+    guard let token = store.currentBackendToken else {
+      scanError = "Sign in to your live account to auto-read receipts."
+      return
+    }
+    scanError = nil
+    scanNote = nil
+    isScanning = true
+    Task { @MainActor in
+      defer { isScanning = false }
+      do {
+        let r = try await ReceiptScanService.scan(imageData: data, token: token)
+        var parts: [String] = []
+        if let s = r.supplier, !s.isEmpty { parts.append(s) }
+        if let d = r.description, !d.isEmpty { parts.append(d) }
+        if let total = r.total, total > 0 {
+          parts.append(String(format: "£%.2f", total))
+        } else if let net = r.costExVat, net > 0 {
+          parts.append(String(format: "£%.2f ex VAT", net))
+        }
+        let summary = parts.joined(separator: " — ")
+        if !summary.isEmpty && description.isEmpty { description = summary }
+        scanNote = "Details filled from receipt — please check them."
+      } catch {
+        scanError = "Couldn't read the receipt automatically. Enter the details manually."
+      }
+    }
   }
 
   // MARK: - Drive preview
