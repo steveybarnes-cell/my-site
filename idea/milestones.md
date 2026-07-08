@@ -15,7 +15,8 @@
 - [x] Go-live prep: Demo Sign-in gated behind #if DEBUG (hidden in App Store/Release build)
 - [x] Go-live prep: Steve (info@my-project.co.uk) confirmed role=Admin in Supabase; others default Tradesman
 - [x] Go-live prep: Production Audit complete
-- [ ] Provide App Store support/website URL (user)
-- [ ] Decide on Google sign-in for v1: wire Google Cloud OAuth client, or hide button until an update (user)
+- [x] Go-live prep: Google provider enabled in Supabase; app OAuth flow already wired
+- [x] Go-live prep: support URL confirmed (https://my-project.co.uk)
+- [ ] User: add Supabase Site URL + Redirect URL (mpgsiterecords://auth-callback) and Google Cloud web OAuth client ID/secret
 - [ ] Publishing: Credentials (ASC API key) → Prefill → App Store Connect setup → Submission
 - [ ] Sync new sites + staff records to Supabase (currently local-only writes)
