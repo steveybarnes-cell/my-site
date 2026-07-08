@@ -3,3 +3,6 @@ verify_jwt = false
 
 [functions.xero-push-invoice]
 verify_jwt = true
+
+[functions.scan-receipt]
+verify_jwt = true
