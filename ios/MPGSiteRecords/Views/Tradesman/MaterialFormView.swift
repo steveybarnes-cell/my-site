@@ -124,6 +124,20 @@ struct MaterialFormView: View {
     VStack(alignment: .leading, spacing: 12) {
       SectionHeader(title: "Receipt / supplier invoice")
 
+      if isScanning {
+        Label("Reading receipt with AI…", systemImage: "sparkles")
+          .font(.caption).foregroundStyle(Brand.olive)
+          .frame(maxWidth: .infinity, alignment: .leading)
+      } else if let scanNote {
+        Label(scanNote, systemImage: "checkmark.seal.fill")
+          .font(.caption).foregroundStyle(Brand.paidGreen)
+          .frame(maxWidth: .infinity, alignment: .leading)
+      } else if let scanError {
+        Label(scanError, systemImage: "exclamationmark.triangle.fill")
+          .font(.caption).foregroundStyle(Brand.red)
+          .frame(maxWidth: .infinity, alignment: .leading)
+      }
+
       Picker("Type", selection: $receiptType) {
         Text("Receipt").tag(PhotoType.receipt)
         Text("Supplier invoice").tag(PhotoType.supplierInvoice)
