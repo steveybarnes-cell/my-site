@@ -104,9 +104,16 @@ struct MaterialFormView: View {
           .keyboardType(.decimalPad).multilineTextAlignment(.trailing)
           .frame(width: 100).padding(8)
           .background(.white, in: RoundedRectangle(cornerRadius: 10))
+          .onChange(of: costExVat) { _, _ in vatOverride = nil }
       }
       InfoRow(label: "VAT (20%)", value: Fmt.gbp(vat))
       InfoRow(label: "Total", value: Fmt.gbp(cost + vat))
+      HStack {
+        Text("Purchase date").font(.subheadline).foregroundStyle(Brand.ink)
+        Spacer()
+        DatePicker("", selection: $purchaseDate, displayedComponents: .date)
+          .labelsHidden()
+      }
     }
     .mpgFormSection()
   }
