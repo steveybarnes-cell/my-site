@@ -60,9 +60,25 @@ struct MaterialFormView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
         .sheet(isPresented: $showCamera) {
-          CameraCaptureView { _ in hasReceipt = true }
+          CameraCaptureView { data in
+            receiptData = data
+            hasReceipt = true
+            scan()
+          }
         }
-        .onChange(of: pickerItem) { _, newValue in hasReceipt = newValue != nil }
+        .onChange(of: pickerItem) { _, newValue in
+          guard let newValue else {
+            hasReceipt = false
+            return
+          }
+          Task {
+            if let data = try? await newValue.loadTransferable(type: Data.self) {
+              receiptData = data
+              hasReceipt = true
+              scan()
+            }
+          }
+        }
       }
     }
     .__tenxTrackView("MaterialFormView")
