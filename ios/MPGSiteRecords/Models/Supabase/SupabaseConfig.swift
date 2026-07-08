@@ -21,8 +21,6 @@ enum SupabaseConfig {
   static var anonKey: String? {
     value(for: "SUPABASE_PUBLISHABLE_KEY") ?? value(for: "SUPABASE_ANON_KEY")
   }
-
-  /// True only when both required values are present.
   static var isConfigured: Bool { url != nil && (anonKey?.isEmpty == false) }
 
   static var authBaseURL: URL? { url?.appendingPathComponent("auth/v1") }
