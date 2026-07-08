@@ -23,15 +23,15 @@ All three role experiences built and navigable end to end.
 ## PHASE 4 — App Store go-live (in progress)
 
 ### Done
-- **Demo Sign-in gated for release.** The Demo Sign-in card is now wrapped in `#if DEBUG`, so it appears when running from Xcode but is compiled out of the live App Store (Release) build. The public build shows only real email/password + Google login.
-- **Admin role confirmed.** Steve (info@my-project.co.uk) has `role = Admin` in Supabase; all other users default to Tradesman.
+- **Demo Sign-in gated for release** (#if DEBUG).
+- **Admin role confirmed.** Steve (info@my-project.co.uk) has `role = Admin`.
 - **Production Audit stage complete.**
 - Submission details recorded: support email info@my-project.co.uk, legal seller "My Project Group Limited", App Review phone 0117 251 0565.
+- **Device connectivity fix.** `SupabaseConfig` now reads the process environment first (Xcode/simulator dev), then falls back to public URL + publishable key baked into Info.plist (`SupabaseURL`, `SupabasePublishableKey` from `$(SUPABASE_URL)`/`$(SUPABASE_PUBLISHABLE_KEY)`). This fixes the "Not connected to Supabase yet" banner on installed device builds where the environment isn't injected. Only client-safe public keys are shipped; no service_role/admin secret.
 
 ### Blocked on user
-- **Support/website URL** required for App Store submission (not yet provided).
-- **Google sign-in** needs a Google Cloud OAuth client in Supabase Auth to work live. Optional for launch — email/password works today. Decision pending: wire it or hide the Google button for v1.
-- **App Store Connect API key** to be added in Publishing → Credentials (never pasted in chat).
+- **Google sign-in** needs a Google Cloud OAuth client in Supabase Auth to work live. Optional for launch.
+- **App Store Connect API key** validation currently blocked on the 10x-side `asc` auto-install bug (support report pending).
 
 ### Remaining Publishing stages
 - Credentials → Prefill → App Store Connect setup → Submission → Management.

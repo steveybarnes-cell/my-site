@@ -17,6 +17,7 @@
 - [x] Go-live prep: Production Audit complete
 - [x] Go-live prep: Google provider enabled in Supabase; app OAuth flow already wired
 - [x] Go-live prep: support URL confirmed (https://my-project.co.uk)
+- [x] Fix: Supabase config falls back to shipped Info.plist values so installed builds connect (no more "not connected" on device)
 - [ ] User: add Supabase Site URL + Redirect URL (mpgsiterecords://auth-callback) and Google Cloud web OAuth client ID/secret
 - [ ] Publishing: Credentials (ASC API key) → Prefill → App Store Connect setup → Submission
 - [ ] Sync new sites + staff records to Supabase (currently local-only writes)
