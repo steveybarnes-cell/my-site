@@ -31,11 +31,29 @@ enum SupabaseConfig {
   static let evidenceBucket = "site-evidence"
 
   private static func value(for key: String) -> String? {
-    guard
-      let raw = ProcessInfo.processInfo.environment[key]?.trimmingCharacters(
-        in: .whitespacesAndNewlines), !raw.isEmpty
-    else { return nil }
-    return raw
+    // 1. Development: environment variables injected by Xcode / the 10x simulator.
+    if let raw = ProcessInfo.processInfo.environment[key]?.trimmingCharacters(
+      in: .whitespacesAndNewlines), !raw.isEmpty
+    {
+      return raw
+    }
+    // 2. Shipped builds (TestFlight / App Store): read the public value baked into
+    //    the app bundle. These are the client-safe URL + publishable key only —
+    //    never the service_role key or any admin secret.
+    let infoKey: String?
+    switch key {
+    case "SUPABASE_URL": infoKey = "SupabaseURL"
+    case "SUPABASE_PUBLISHABLE_KEY", "SUPABASE_ANON_KEY": infoKey = "SupabasePublishableKey"
+    default: infoKey = nil
+    }
+    if let infoKey,
+      let raw = (Bundle.main.object(forInfoDictionaryKey: infoKey) as? String)?
+        .trimmingCharacters(in: .whitespacesAndNewlines),
+      !raw.isEmpty, !raw.hasPrefix("$(")
+    {
+      return raw
+    }
+    return nil
   }
 }
 
