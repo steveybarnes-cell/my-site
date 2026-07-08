@@ -10,6 +10,10 @@
 	<string>MPG Site Records can save site photos you capture back to your photo library.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>MPG Site Records uses your location only when you clock in or out, or upload site evidence, to confirm you are on or near the allocated site. Your location is never tracked continuously in the background.</string>
+	<key>SupabaseURL</key>
+	<string>$(SUPABASE_URL)</string>
+	<key>SupabasePublishableKey</key>
+	<string>$(SUPABASE_PUBLISHABLE_KEY)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
