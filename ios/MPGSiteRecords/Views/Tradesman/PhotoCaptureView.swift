@@ -52,6 +52,7 @@ struct PhotoCaptureView: View {
           CameraCaptureView { data in
             imageData = data
             hasImage = true
+            scanIfReceipt()
           }
         }
         .onChange(of: pickerItem) { _, newValue in
@@ -63,8 +64,13 @@ struct PhotoCaptureView: View {
             if let data = try? await newValue.loadTransferable(type: Data.self) {
               imageData = data
               hasImage = true
+              scanIfReceipt()
             }
           }
+        }
+        .onChange(of: type) { _, _ in
+          scanNote = nil
+          scanError = nil
         }
       }
     }
