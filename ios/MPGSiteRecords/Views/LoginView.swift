@@ -25,12 +25,10 @@ struct LoginView: View {
           VStack(spacing: 24) {
             header
             signInCard
-            #if DEBUG
-              // Demo sign-in exists only in development builds so the app can be
-              // run and demonstrated without real Supabase accounts. It is
-              // compiled out of the live App Store (Release) build entirely.
-              roleDemoCard
-            #endif
+            // Demo sign-in lets you run and demonstrate the app (including as
+            // Admin) without a real Supabase account. Available on device while
+            // accounts are still being set up.
+            roleDemoCard
             Text("MPG-FRM-001 Rev 5.0 · My Project Group Ltd")
               .font(.caption2)
               .foregroundStyle(.white.opacity(0.4))
