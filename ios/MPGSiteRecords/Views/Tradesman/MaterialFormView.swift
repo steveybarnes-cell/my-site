@@ -220,6 +220,36 @@ struct MaterialFormView: View {
       .background(.white, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
   }
 
+  private func scan() {
+    guard let data = receiptData else { return }
+    guard let token = store.currentBackendToken else {
+      scanError = "Sign in to your live account to auto-read receipts."
+      return
+    }
+    scanError = nil
+    scanNote = nil
+    isScanning = true
+    Task { @MainActor in
+      defer { isScanning = false }
+      do {
+        let r = try await ReceiptScanService.scan(imageData: data, token: token)
+        if let s = r.supplier, !s.isEmpty { supplier = s }
+        if let d = r.description, !d.isEmpty, description.isEmpty { description = d }
+        if let net = r.costExVat, net > 0 {
+          costExVat = String(format: "%.2f", net)
+        } else if let total = r.total, total > 0 {
+          // Derive net from gross if only the total was found.
+          costExVat = String(format: "%.2f", total / 1.20)
+        }
+        if let v = r.vatAmount, v > 0 { vatOverride = v }
+        if let date = r.purchaseDate { purchaseDate = date }
+        scanNote = "Details filled from receipt — please check them."
+      } catch {
+        scanError = "Couldn't read the receipt automatically. Enter the details manually."
+      }
+    }
+  }
+
   private func save() {
     guard let me = store.currentUser else { return }
     let materialId = UUID()
