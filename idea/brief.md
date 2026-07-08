@@ -13,18 +13,28 @@ All three role experiences built and navigable end to end.
 - Real auth: email/password + sign-up + Google OAuth, Keychain session persistence + restore.
 - Core areas read/write live Supabase. PC-accessible hub via `report_*` views.
 
-## PHASE 3
-
-### Done
+## PHASE 3 — COMPLETE
 - Real photo image uploads to private `site-evidence` Storage bucket.
 - Offline sync queue: disk-backed FIFO, auto-retry, pending-sync banner.
 - Dashboard charts (Swift Charts) + branded A4 PDF handover export via ShareLink.
-- **Xero — LIVE.** Two Supabase Edge Functions deployed (`xero-oauth`, `xero-push-invoice`); app wired with signed-in user's Supabase JWT; Client Secret stays server-side.
+- **Xero — LIVE.** Two Supabase Edge Functions deployed; app wired with signed-in user's Supabase JWT; Client Secret stays server-side.
 - **Admin Manage tab.** Admin can add/edit sites, staff, and work allocations in-app.
-- **Demo mode login.** The Demo Sign-in card is always shown on the login screen so the app can be run and demonstrated (Tradesman / Admin / Site Manager) without needing real Supabase accounts. Real email/password + Google login remain fully functional.
+
+## PHASE 4 — App Store go-live (in progress)
+
+### Done
+- **Demo Sign-in gated for release.** The Demo Sign-in card is now wrapped in `#if DEBUG`, so it appears when running from Xcode but is compiled out of the live App Store (Release) build. The public build shows only real email/password + Google login.
+- **Admin role confirmed.** Steve (info@my-project.co.uk) has `role = Admin` in Supabase; all other users default to Tradesman.
+- **Production Audit stage complete.**
+- Submission details recorded: support email info@my-project.co.uk, legal seller "My Project Group Limited", App Review phone 0117 251 0565.
 
 ### Blocked on user
-- **Google provider config:** Google Cloud OAuth client + redirect `mpgsiterecords://auth-callback`. Email/password + Demo login work now.
+- **Support/website URL** required for App Store submission (not yet provided).
+- **Google sign-in** needs a Google Cloud OAuth client in Supabase Auth to work live. Optional for launch — email/password works today. Decision pending: wire it or hide the Google button for v1.
+- **App Store Connect API key** to be added in Publishing → Credentials (never pasted in chat).
+
+### Remaining Publishing stages
+- Credentials → Prefill → App Store Connect setup → Submission → Management.
 
 ### Deferred / Next
 - Add Supabase save endpoints for sites + staff so Manage tab writes persist across devices.

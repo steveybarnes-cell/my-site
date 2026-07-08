@@ -11,9 +11,11 @@
 - [x] Phase 3: dashboard charts (Swift Charts) + branded PDF report export
 - [x] Phase 3: Xero LIVE — OAuth connect + push approved invoice to Xero (Edge Functions deployed + app wired)
 - [x] Branding: official MPG logo applied as app icon + in-app MPGLogo refined
-- [x] Branding: MPGFrameMark simplified to plain house outline (roof + walls + base, no eaves/door)
-- [x] iOS 26 warning cleanup: removed deprecated ASPresentationAnchor inits + unused binding
 - [x] Admin Manage tab: add/edit sites (jobs), team members, and work allocations in-app
-- [x] Login: Demo Sign-in card always available for running/demoing the app (real email/password + Google still work)
+- [x] Go-live prep: Demo Sign-in gated behind #if DEBUG (hidden in App Store/Release build)
+- [x] Go-live prep: Steve (info@my-project.co.uk) confirmed role=Admin in Supabase; others default Tradesman
+- [x] Go-live prep: Production Audit complete
+- [ ] Provide App Store support/website URL (user)
+- [ ] Decide on Google sign-in for v1: wire Google Cloud OAuth client, or hide button until an update (user)
+- [ ] Publishing: Credentials (ASC API key) → Prefill → App Store Connect setup → Submission
 - [ ] Sync new sites + staff records to Supabase (currently local-only writes)
-- [ ] Phase 3 remaining: Google Cloud OAuth client (user) for Google sign-in
