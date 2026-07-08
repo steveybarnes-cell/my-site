@@ -39,6 +39,9 @@ final class AppStore {
 
   var isLiveBackend: Bool { backendToken != nil }
 
+  /// Read-only access to the signed-in user's Supabase JWT for authorised Edge Function calls.
+  var currentBackendToken: String? { backendToken }
+
   init() {
     seed()
     pendingSyncCount = SyncQueue.shared.count
