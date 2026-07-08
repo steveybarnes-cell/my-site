@@ -12,13 +12,15 @@
 - [x] Phase 3: Xero LIVE — OAuth connect + push approved invoice to Xero (Edge Functions deployed + app wired)
 - [x] Branding: official MPG logo applied as app icon + in-app MPGLogo refined
 - [x] Admin Manage tab: add/edit sites (jobs), team members, and work allocations in-app
+- [x] AI receipt scan: photograph receipt in Add Material to auto-fill supplier, cost, VAT and date (scan-receipt Edge Function via OpenAI vision, key server-side)
 - [x] Go-live prep: Demo Sign-in gated behind #if DEBUG (hidden in App Store/Release build)
 - [x] Go-live prep: Steve (info@my-project.co.uk) confirmed role=Admin in Supabase; others default Tradesman
 - [x] Go-live prep: Production Audit complete
 - [x] Go-live prep: Google provider enabled in Supabase; app OAuth flow already wired
 - [x] Go-live prep: support URL confirmed (https://my-project.co.uk)
-- [x] Fix: Supabase config falls back to shipped Info.plist values so installed builds connect (no more "not connected" on device)
+- [x] Fix: Supabase config falls back to shipped Info.plist values so installed builds connect
 - [x] Demo Sign-in exposed on device (ungated) so Admin login works without a real account while accounts are set up
+- [ ] User: add OPENAI_API_KEY in Integrations → Hosted Keys so AI receipt scan works live
 - [ ] Before final App Store submit: re-gate or replace demo sign-in with password-protected admin auth
 - [ ] User: add Supabase Site URL + Redirect URL (mpgsiterecords://auth-callback) and Google Cloud web OAuth client ID/secret
 - [ ] Publishing: Credentials (ASC API key) → Prefill → App Store Connect setup → Submission

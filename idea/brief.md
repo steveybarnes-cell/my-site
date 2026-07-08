@@ -19,25 +19,28 @@ All three role experiences built and navigable end to end.
 - Dashboard charts (Swift Charts) + branded A4 PDF handover export via ShareLink.
 - **Xero — LIVE.** Two Supabase Edge Functions deployed; app wired with signed-in user's Supabase JWT; Client Secret stays server-side.
 - **Admin Manage tab.** Admin can add/edit sites, staff, and work allocations in-app.
+- **AI receipt scan — LIVE (needs OpenAI key).** `scan-receipt` Edge Function deployed (verify_jwt on): takes a base64 receipt image and returns supplier/description/costExVat/vatAmount/total/date JSON via OpenAI vision (`gpt-5.4-mini`). `ReceiptScanService` calls it with the user's Supabase token. In Add Material, capturing/picking a receipt auto-fills supplier, cost ex VAT, VAT and a new Purchase date field; fields stay editable with a "please check" note and manual fallback. OpenAI key stays server-side — requires `OPENAI_API_KEY` backend secret to function live.
 
 ## PHASE 4 — App Store go-live (in progress)
 
 ### Done
-- **Demo Sign-in gated for release** (#if DEBUG).
-- **Admin role confirmed.** Steve (info@my-project.co.uk) has `role = Admin`.
-- **Production Audit stage complete.**
+- Demo Sign-in gated for release (then temporarily exposed on device for admin access without an account).
+- Admin role confirmed (Steve, info@my-project.co.uk).
+- Production Audit complete.
 - Submission details recorded: support email info@my-project.co.uk, legal seller "My Project Group Limited", App Review phone 0117 251 0565.
-- **Device connectivity fix.** `SupabaseConfig` now reads the process environment first (Xcode/simulator dev), then falls back to public URL + publishable key baked into Info.plist (`SupabaseURL`, `SupabasePublishableKey` from `$(SUPABASE_URL)`/`$(SUPABASE_PUBLISHABLE_KEY)`). This fixes the "Not connected to Supabase yet" banner on installed device builds where the environment isn't injected. Only client-safe public keys are shipped; no service_role/admin secret.
+- Device connectivity fix (Info.plist fallback for Supabase URL + publishable key).
 
 ### Blocked on user
-- **Google sign-in** needs a Google Cloud OAuth client in Supabase Auth to work live. Optional for launch.
-- **App Store Connect API key** validation currently blocked on the 10x-side `asc` auto-install bug (support report pending).
+- **OpenAI key** for AI receipt scan: add `OPENAI_API_KEY` in Integrations → Hosted Keys (syncs to Supabase secrets).
+- **Google sign-in** needs a Google Cloud OAuth client in Supabase Auth. Optional for launch.
+- **App Store Connect API key** validation blocked on 10x-side `asc` auto-install bug (support report pending).
 
 ### Remaining Publishing stages
 - Credentials → Prefill → App Store Connect setup → Submission → Management.
 
 ### Deferred / Next
 - Add Supabase save endpoints for sites + staff so Manage tab writes persist across devices.
+- Optionally extend AI receipt scan to the general Add File / PhotoCaptureView receipt uploads.
 - Push notifications, optional branded web portal.
 
 ### Design
