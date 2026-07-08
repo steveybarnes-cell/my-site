@@ -15,7 +15,16 @@ struct PhotoCaptureView: View {
   @State private var savedName: String?
   @State private var imageData: Data?
 
+  // AI receipt scan (only for receipt / supplier invoice types)
+  @State private var isScanning = false
+  @State private var scanNote: String?
+  @State private var scanError: String?
+
   private var site: Site? { store.site(allocation.siteId) }
+
+  private var isReceiptType: Bool {
+    type == .receipt || type == .supplierInvoice
+  }
 
   var body: some View {
     Group {
