@@ -255,7 +255,7 @@ struct MaterialFormView: View {
     let materialId = UUID()
     let m = MaterialItem(
       id: materialId, userId: me.id, siteId: allocation.siteId, dailyRecordId: nil,
-      date: Date(), supplier: supplier, description: description, reason: reason,
+      date: purchaseDate, supplier: supplier, description: description, reason: reason,
       costExVat: cost, vatAmount: vat, receiptUploaded: hasReceipt,
       chargeable: chargeable, approved: false, notes: "")
     store.addMaterial(m)
