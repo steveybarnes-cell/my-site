@@ -2,6 +2,9 @@ import SwiftUI
 
 struct ProfileView: View {
   @Environment(AppStore.self) private var store
+  @Environment(AuthManager.self) private var auth
+  @State private var showDeleteConfirm = false
+  @State private var showDeleteError = false
   private var me: AppUser? { store.currentUser }
   private var profile: TradesmanProfile? { me.flatMap { store.profile(for: $0.id) } }
 
@@ -29,11 +32,30 @@ struct ProfileView: View {
               ) {
                 store.logout()
               }
+              deleteAccountSection
             }
             .padding(16)
           }
         }
         .navigationTitle("Profile")
+        .alert("Delete your account?", isPresented: $showDeleteConfirm) {
+          Button("Cancel", role: .cancel) {}
+          Button("Delete", role: .destructive) {
+            Task {
+              let ok = await auth.deleteAccount()
+              if !ok { showDeleteError = true }
+            }
+          }
+        } message: {
+          Text(
+            "This permanently deletes your MPG Site Records account and your personal data. This cannot be undone."
+          )
+        }
+        .alert("Couldn't delete account", isPresented: $showDeleteError) {
+          Button("OK", role: .cancel) {}
+        } message: {
+          Text(auth.errorMessage ?? "Something went wrong. Please try again or contact support.")
+        }
       }
     }
     .__tenxTrackView("ProfileView")
@@ -95,6 +117,36 @@ struct ProfileView: View {
     .mpgCard()
   }
 
+  private var deleteAccountSection: some View {
+    VStack(spacing: 8) {
+      Button {
+        showDeleteConfirm = true
+      } label: {
+        HStack(spacing: 8) {
+          if auth.isWorking {
+            ProgressView().tint(Brand.rust)
+          } else {
+            Image(systemName: "trash")
+          }
+          Text("Delete my account")
+        }
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(Brand.rust)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 14)
+        .background(
+          RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .stroke(Brand.rust.opacity(0.5), lineWidth: 1)
+        )
+      }
+      .disabled(auth.isWorking)
+      Text("Permanently removes your account and personal data.")
+        .font(.caption)
+        .foregroundStyle(.white.opacity(0.6))
+    }
+    .padding(.top, 4)
+  }
+
   private var contactCard: some View {
     VStack(alignment: .leading, spacing: 12) {
       SectionHeader(title: "Contact")
@@ -106,10 +158,9 @@ struct ProfileView: View {
 }
 
 #Preview {
-  ProfileView().environment(
-    {
-      let s = AppStore()
-      s.login(as: s.tradesmen().first!)
-      return s
-    }())
+  let s = AppStore()
+  s.login(as: s.tradesmen().first!)
+  return ProfileView()
+    .environment(s)
+    .environment(AuthManager(store: s))
 }
