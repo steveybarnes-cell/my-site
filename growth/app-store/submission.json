@@ -50,7 +50,7 @@
 
     ],
     "servesEUUsers" : false,
-    "supportEmail" : "",
+    "supportEmail" : "info@my-project.co.uk",
     "supportName" : "",
     "supportsAccountDeletion" : false,
     "usesAccounts" : true,
