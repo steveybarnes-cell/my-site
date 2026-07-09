@@ -19,7 +19,7 @@
     "collectsLocationData" : true,
     "collectsMicrophoneData" : false,
     "collectsPhotoLibraryData" : true,
-    "companyName" : "",
+    "companyName" : "myProjectGroup ltd",
     "contactEmail" : "",
     "entitlementKeys" : [
 
