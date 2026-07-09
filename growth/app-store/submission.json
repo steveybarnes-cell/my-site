@@ -97,7 +97,7 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "App uses role-based authentication (Admin\/Site Manager\/Tradesman) requiring user accounts.",
+          "reason" : "Supabase Auth requires email for user authentication and account management.",
           "tracking" : false
         },
         {
@@ -107,7 +107,7 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "Role-based account system requires user identification to distinguish Admin, Site Manager, and Tradesman roles.",
+          "reason" : "Supabase Auth assigns user IDs to distinguish Admin, Site Manager, and Tradesman roles.",
           "tracking" : false
         },
         {
@@ -117,7 +117,7 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "App uses geofenced clock-in\/clock-out functionality via CLLocationManager for site attendance tracking.",
+          "reason" : "App uses location only when clocking in\/out or uploading site evidence to verify user is on or near allocated site.",
           "tracking" : false
         },
         {
@@ -127,7 +127,7 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "App accesses photo library via PHPickerViewController for capturing site photos, materials, and receipts.",
+          "reason" : "App captures and stores before, during, completion photos and supplier receipts; timestamped and attached to jobs.",
           "tracking" : false
         },
         {
@@ -147,7 +147,7 @@
           "purposes" : [
             "Analytics"
           ],
-          "reason" : "Analytics integration typically includes crash reporting for app stability monitoring.",
+          "reason" : "Analytics integration captures crash and performance data for app stability monitoring.",
           "tracking" : false
         }
       ],
@@ -455,6 +455,8 @@
       "No analytics provider name is specified beyond the label 'Analytics'. Confirm the provider, verify its privacy policy, and update the Privacy Policy with the provider's name before publication."
     ]
   },
+  "lastASCClassificationAt" : "2026-07-09T13:32:56Z",
+  "lastASCClassificationHash" : "f10b4d6abb2da7fb110bda6dc5591802e7facc1b4a8d6c2fdaa5c3c09cb5dc62",
   "publish" : {
     "isPublished" : false,
     "lastPublishedSlug" : "",

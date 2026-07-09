@@ -3,22 +3,22 @@
 ## Contact Info
 
 - **Email Address** — Linked · Not Used to Track · Purpose: App Functionality
-  - App uses role-based authentication (Admin/Site Manager/Tradesman) requiring user accounts.
+  - Supabase Auth requires email for user authentication and account management.
 
 ## Identifiers
 
 - **User ID** — Linked · Not Used to Track · Purpose: App Functionality
-  - Role-based account system requires user identification to distinguish Admin, Site Manager, and Tradesman roles.
+  - Supabase Auth assigns user IDs to distinguish Admin, Site Manager, and Tradesman roles.
 
 ## Location
 
 - **Precise Location** — Linked · Not Used to Track · Purpose: App Functionality
-  - App uses geofenced clock-in/clock-out functionality via CLLocationManager for site attendance tracking.
+  - App uses location only when clocking in/out or uploading site evidence to verify user is on or near allocated site.
 
 ## User Content
 
 - **Photos or Videos** — Linked · Not Used to Track · Purpose: App Functionality
-  - App accesses photo library via PHPickerViewController for capturing site photos, materials, and receipts.
+  - App captures and stores before, during, completion photos and supplier receipts; timestamped and attached to jobs.
 
 ## Usage Data
 
@@ -28,4 +28,4 @@
 ## Diagnostics
 
 - **Crash Data** — Not Linked · Not Used to Track · Purpose: Analytics
-  - Analytics integration typically includes crash reporting for app stability monitoring.
+  - Analytics integration captures crash and performance data for app stability monitoring.
