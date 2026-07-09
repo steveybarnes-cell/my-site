@@ -98,7 +98,7 @@
         "Alcohol, Tobacco, or Drug Use or References: None",
         "Simulated Gambling: None",
         "Medical\/Treatment Information: None",
-        "Contests: None",
+        "Contests: No",
         "Unrestricted Web Access: No",
         "Gambling and Contests: No",
         "AI-Generated Content: None"
@@ -111,7 +111,7 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "Supabase Auth backend requires email for account authentication and user management.",
+          "reason" : "Supabase Auth requires email for account authentication and sign-in.",
           "tracking" : false
         },
         {
@@ -121,7 +121,7 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "Supabase Auth assigns user IDs for role-based access control (Admin, Site Manager, Tradesman).",
+          "reason" : "Supabase Auth assigns unique user IDs for role-based access (Admin\/Site Manager\/Tradesman).",
           "tracking" : false
         },
         {
@@ -131,7 +131,7 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "Location collected only during geofenced clock-in\/out to confirm user presence at allocated site.",
+          "reason" : "Location collected when clocking in\/out or uploading site evidence to verify presence on allocated site.",
           "tracking" : false
         },
         {
@@ -141,7 +141,17 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "App captures before, during, and completion site photos with timestamps and receipts attached to jobs.",
+          "reason" : "Camera captures before\/during\/completion work photos and supplier receipts; stored locally and synced to backend.",
+          "tracking" : false
+        },
+        {
+          "category" : "User Content",
+          "dataType" : "Other User Content",
+          "linked" : true,
+          "purposes" : [
+            "App Functionality"
+          ],
+          "reason" : "Daily site records, materials logs, timesheets and invoices submitted by tradesmen stored in custom API backend.",
           "tracking" : false
         },
         {
@@ -151,7 +161,7 @@
           "purposes" : [
             "Analytics"
           ],
-          "reason" : "Analytics integrated to track user interactions within the app.",
+          "reason" : "Analytics integration tracks user interactions with the app for performance and feature usage insights.",
           "tracking" : false
         },
         {
@@ -161,7 +171,7 @@
           "purposes" : [
             "Analytics"
           ],
-          "reason" : "Analytics service collects crash data for debugging and app stability monitoring.",
+          "reason" : "Analytics service captures crash reports to identify and fix stability issues.",
           "tracking" : false
         }
       ],
@@ -469,7 +479,7 @@
       "No analytics provider name is specified beyond the label 'Analytics'. Confirm the provider, verify its privacy policy, and update the Privacy Policy with the provider's name before publication."
     ]
   },
-  "lastASCClassificationAt" : "2026-07-09T14:14:51Z",
+  "lastASCClassificationAt" : "2026-07-09T14:34:38Z",
   "lastASCClassificationHash" : "f10b4d6abb2da7fb110bda6dc5591802e7facc1b4a8d6c2fdaa5c3c09cb5dc62",
   "publish" : {
     "isPublished" : false,
