@@ -13,6 +13,7 @@
 - [x] Branding: official MPG logo applied as app icon + in-app MPGLogo refined
 - [x] Admin Manage tab: add/edit sites (jobs), team members, and work allocations in-app
 - [x] AI receipt scan: photograph receipt in Add Material to auto-fill supplier, cost, VAT and date (scan-receipt Edge Function via OpenAI vision, key server-side)
+- [x] AI receipt take-off review: tradesman checks/edits AI-read supplier, cost, VAT and date in a review sheet and must approve before it fills the material form
 - [x] Go-live prep: Demo Sign-in gated behind #if DEBUG (hidden in App Store/Release build)
 - [x] Go-live prep: Steve (info@my-project.co.uk) confirmed role=Admin in Supabase; others default Tradesman
 - [x] Go-live prep: Production Audit complete
