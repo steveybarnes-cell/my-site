@@ -312,5 +312,54 @@ extension AppStore {
         redcliffe, "Programme v2", .programme, .driveLink, "Drive link",
         by: jenny, days: 8, approval: .approved),
     ]
+
+    // Company feed (general posts + group chat)
+    func minsAgo(_ n: Int) -> Date { cal.date(byAdding: .minute, value: -n, to: Date())! }
+    func hrsAgo(_ n: Int) -> Date { cal.date(byAdding: .hour, value: -n, to: Date())! }
+
+    feedPosts = [
+      FeedPost(
+        authorId: steve.id, authorName: steve.name, authorRole: .admin,
+        text:
+          "Morning all 👋 New standard invoice format is now live in the app — please submit weekly invoices through here from now on, no more WhatsApp photos. Any questions give me a shout.",
+        photoSymbols: [], siteId: nil, timestamp: hrsAgo(26),
+        likedBy: [jenny.id, brandon.id, mike.id, dan.id],
+        comments: [
+          FeedComment(
+            authorId: brandon.id, authorName: brandon.name,
+            text: "Nice one Steve, much easier than the old way.", timestamp: hrsAgo(25)),
+          FeedComment(
+            authorId: mike.id, authorName: mike.name,
+            text: "Works well. Receipt scanner is spot on 👍", timestamp: hrsAgo(24)),
+        ]),
+      FeedPost(
+        authorId: dan.id, authorName: dan.name, authorRole: .tradesman,
+        text:
+          "Rear utility dig-out done at Clifton Village. Ready for the sub-base tomorrow. Photos attached for the variation.",
+        photoSymbols: ["photo.fill", "photo.stack"], siteId: clifton.id, timestamp: hrsAgo(20),
+        likedBy: [paulSM.id, steve.id],
+        comments: [
+          FeedComment(
+            authorId: paulSM.id, authorName: paulSM.name,
+            text: "Great work Dan, I'll get the variation signed off.", timestamp: hrsAgo(19))
+        ]),
+      FeedPost(
+        authorId: jenny.id, authorName: jenny.name, authorRole: .siteManager,
+        text:
+          "Reminder: hard hats and hi-vis at all times on Marlborough Street — building control are visiting Thursday. Cheers.",
+        photoSymbols: [], siteId: marlborough.id, timestamp: hrsAgo(6),
+        likedBy: [steve.id, brandon.id],
+        comments: []),
+      FeedPost(
+        authorId: brandon.id, authorName: brandon.name, authorRole: .tradesman,
+        text: "Communal hallway second coat finished at Marlborough. Looking clean ✨",
+        photoSymbols: ["photo", "photo.fill"], siteId: marlborough.id, timestamp: minsAgo(45),
+        likedBy: [jenny.id, steve.id, mike.id],
+        comments: [
+          FeedComment(
+            authorId: jenny.id, authorName: jenny.name, text: "Looks brilliant 👏",
+            timestamp: minsAgo(30))
+        ]),
+    ]
   }
 }

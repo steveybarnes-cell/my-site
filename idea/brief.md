@@ -29,23 +29,28 @@ All three role experiences built and navigable end to end.
 - Production Audit complete.
 - Submission details recorded: support email info@my-project.co.uk, legal seller "My Project Group Limited", App Review phone 0117 251 0565.
 - Device connectivity fix (Info.plist fallback for Supabase URL + publishable key).
-- **Account deletion (Apple Guideline 5.1.1) — DONE.** `delete-account` Edge Function deployed + ACTIVE (verify_jwt on): verifies caller JWT, then uses server-side service-role key to permanently delete the auth user + profile row (owned data cascades). App side: `AccountService.deleteAccount(token:)`, `AuthManager.deleteAccount()` (deletes then clears Keychain + signs out), and a "Delete my account" button on the Profile screen with a destructive confirmation alert and an error alert. Edge-function source stored as `*.ts.txt` to avoid duplicate `index.ts` bundle-resource build collisions.
+- **Account deletion (Apple Guideline 5.1.1) — DONE.** `delete-account` Edge Function deployed + ACTIVE; app-side `AccountService.deleteAccount` + Profile delete button with confirmation.
 
 ### Blocked on user
-- **OpenAI key** for AI receipt scan: add `OPENAI_API_KEY` in Integrations → Hosted Keys.
-- **App Store Connect fields** (user-entered): Support URL `https://my-project.co.uk`, Privacy Policy URL `https://my-project.co.uk/privacy`, seller "My Project Group Limited", App Review phone `+44 117 251 0565`.
-- **Choose build + Contact Information** in App Store Connect, then type SUBMIT to unlock final submission.
+- **OpenAI key** for AI receipt scan: add `OPENAI_API_KEY` in Backend > Secrets.
+- **App Store Connect fields**: Support URL, Privacy Policy URL, seller, App Review phone.
+- **Choose build + Contact Information** in App Store Connect, then submit.
 
 ### Remaining Publishing stages
 - Prefill → attach build → Submission → Management.
 
+## PHASE 5 — Team feed / company group chat (NEW — local demo)
+- **Models:** `FeedPost` (author, role, text, photo SF-symbol stand-ins, optional site tag, likes, comments) + `FeedComment` in `Models/CompanyFeed.swift`.
+- **AppStore:** `feedPosts` state + `feed` (newest-first), `addFeedPost`, `toggleLike`/`isLiked`, `addComment`, `deleteFeedPost` (author or admin only). Realistic seeded posts.
+- **UI:** `CompanyFeedView` (wall + composer entry), `FeedComposerView` (text, site tag, demo photo attach), `FeedCommentsView` (thread + inline chat composer). Reuses Brand tokens, `mpgCard()`, shared components.
+- **Navigation:** "Team" tab (bubble.left.and.bubble.right.fill) added to all three role root views.
+- **Scope note:** Currently local/in-memory only — resets on relaunch, no cross-device sync yet.
+
 ### Deferred / Next
+- Wire Team feed to Supabase (`feed_posts` / `feed_comments` tables + RLS) with real photo uploads to `site-evidence`, using the existing offline sync queue.
 - Add Supabase save endpoints for sites + staff so Manage tab writes persist across devices.
 - Optionally extend AI receipt scan to the general Add File / PhotoCaptureView receipt uploads.
 - Push notifications, optional branded web portal.
 
-### Known infra note
-- `TenXPreviewSupport.swift` (10x-managed preview helper) can report a stale build-copy error (`TenXDateFormatting` not in scope) out of sync with its source; app code compiles cleanly and it clears on project regeneration.
-
 ### Design
-Reuse MPG system (charcoal + green, `mpgCard()`, `mpgFormSection()`, `Brand` tokens, shared `Field`/`SectionHeader`/`PrimaryButton`). Delete button uses `Brand.red` outlined style.
+Reuse MPG system (charcoal + green, `mpgCard()`, `mpgFormSection()`, `Brand` tokens, shared `Field`/`SectionHeader`/`PrimaryButton`). Delete uses `Brand.red` destructive style.

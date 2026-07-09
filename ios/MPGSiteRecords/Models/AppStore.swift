@@ -19,6 +19,7 @@ final class AppStore {
   var notifications: [AppNotification] = []
   var clockRecords: [ClockRecord] = []
   var siteFiles: [SiteFile] = []
+  var feedPosts: [FeedPost] = []
 
   /// Whether the company Xero organisation is connected (modelled — real flow is Xero OAuth).
   var xeroConnected: Bool = false
@@ -160,6 +161,62 @@ final class AppStore {
   func profile(for userId: UUID) -> TradesmanProfile? { profiles.first { $0.userId == userId } }
 
   func tradesmen() -> [AppUser] { users.filter { $0.role == .tradesman } }
+
+  // MARK: - Company feed
+
+  /// Newest-first company feed.
+  var feed: [FeedPost] { feedPosts.sorted { $0.timestamp > $1.timestamp } }
+
+  @discardableResult
+  func addFeedPost(text: String, photoSymbols: [String] = [], siteId: UUID? = nil) -> FeedPost? {
+    guard let me = currentUser else { return nil }
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty || !photoSymbols.isEmpty else { return nil }
+    let post = FeedPost(
+      authorId: me.id,
+      authorName: me.name,
+      authorRole: me.role,
+      text: trimmed,
+      photoSymbols: photoSymbols,
+      siteId: siteId)
+    feedPosts.append(post)
+    return post
+  }
+
+  func toggleLike(_ postId: UUID) {
+    guard let me = currentUser,
+      let i = feedPosts.firstIndex(where: { $0.id == postId })
+    else { return }
+    if feedPosts[i].likedBy.contains(me.id) {
+      feedPosts[i].likedBy.remove(me.id)
+    } else {
+      feedPosts[i].likedBy.insert(me.id)
+    }
+  }
+
+  func isLiked(_ post: FeedPost) -> Bool {
+    guard let me = currentUser else { return false }
+    return post.likedBy.contains(me.id)
+  }
+
+  func addComment(to postId: UUID, text: String) {
+    guard let me = currentUser,
+      let i = feedPosts.firstIndex(where: { $0.id == postId })
+    else { return }
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else { return }
+    feedPosts[i].comments.append(
+      FeedComment(authorId: me.id, authorName: me.name, text: trimmed))
+  }
+
+  func deleteFeedPost(_ postId: UUID) {
+    guard let me = currentUser,
+      let post = feedPosts.first(where: { $0.id == postId })
+    else { return }
+    // Only the author or an admin may delete a post.
+    guard post.authorId == me.id || me.role == .admin else { return }
+    feedPosts.removeAll { $0.id == postId }
+  }
   func siteManagers() -> [AppUser] { users.filter { $0.role == .siteManager } }
 
   // Privacy-aware queries

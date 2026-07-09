@@ -21,6 +21,9 @@ struct SiteManagerRootView: View {
         Tab("Files", systemImage: "folder.fill") {
           FilesView()
         }
+        Tab("Team", systemImage: "bubble.left.and.bubble.right.fill") {
+          CompanyFeedView()
+        }
         Tab("Alerts", systemImage: "bell.fill") {
           NotificationsView()
         }
