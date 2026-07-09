@@ -81,6 +81,20 @@ struct MaterialFormView: View {
             }
           }
         }
+        .sheet(isPresented: $showReview) {
+          if let pendingScan {
+            ReceiptReviewSheet(scanned: pendingScan) { approved in
+              supplier = approved.supplier
+              if !approved.description.isEmpty { description = approved.description }
+              if approved.costExVat > 0 {
+                costExVat = String(format: "%.2f", approved.costExVat)
+              }
+              vatOverride = approved.vatAmount > 0 ? approved.vatAmount : nil
+              purchaseDate = approved.purchaseDate
+              scanNote = "Approved from receipt take-off."
+            }
+          }
+        }
       }
     }
     .__tenxTrackView("MaterialFormView")
