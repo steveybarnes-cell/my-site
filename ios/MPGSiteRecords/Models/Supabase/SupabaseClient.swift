@@ -54,7 +54,17 @@ private struct TokenResponse: Decodable {
 struct SupabaseClient {
   static let shared = SupabaseClient()
 
-  private let session = URLSession.shared
+  /// A URLSession with tight timeouts so a slow / unreachable network can never
+  /// hang a request indefinitely. The default `URLSession.shared` waits up to 60s,
+  /// which can leave launch stuck on the "restoring" spinner long enough for iOS
+  /// to fire the 0x8BADF00D watchdog kill when the app is backgrounded.
+  private let session: URLSession = {
+    let config = URLSessionConfiguration.default
+    config.timeoutIntervalForRequest = 15
+    config.timeoutIntervalForResource = 25
+    config.waitsForConnectivity = false
+    return URLSession(configuration: config)
+  }()
 
   // MARK: - Auth
 

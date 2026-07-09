@@ -20,9 +20,9 @@
 - [x] Team feed is the default/first tab on app open across all three roles
 - [x] Demo Mode: always-available role-picker entry from login
 - [x] Device connectivity: baked-in client-safe Supabase URL + publishable key fallbacks
-- [x] iOS 26 cleanup: replaced deprecated Text(+) concatenation with string interpolation in CompanyFeedView
+- [x] Launch stability: fixed 0x8BADF00D watchdog crash — short URLSession timeouts + 12s cap on restore()
+- [x] User: add OPENAI_API_KEY in Backend > Secrets so AI receipt scan works live
 - [ ] Team feed: wire to Supabase (feed_posts/feed_comments + RLS) + real photo uploads for cross-device sync
-- [ ] User: add OPENAI_API_KEY in Backend > Secrets so AI receipt scan works live
 - [ ] User: select development Team in Xcode Signing & Capabilities to build to device
 - [ ] Publishing: attach build + Contact Info in App Store Connect, then submit
 - [ ] Post-launch: push notifications (New work / Invoice queried / Timesheet paid)

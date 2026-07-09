@@ -53,12 +53,28 @@ final class AuthManager {
       return
     }
     do {
-      let valid =
-        stored.isExpired
-        ? try await SupabaseClient.shared.refresh(refreshToken: stored.refreshToken)
-        : stored
-      try await adopt(valid)
+      // Hard cap the whole restore so a hanging network call can never leave the
+      // app stuck on the launch "restoring" spinner — being stuck there long
+      // enough to get backgrounded triggers the iOS 0x8BADF00D watchdog kill.
+      try await withThrowingTaskGroup(of: Void.self) { group in
+        group.addTask { @MainActor in
+          let valid =
+            stored.isExpired
+            ? try await SupabaseClient.shared.refresh(refreshToken: stored.refreshToken)
+            : stored
+          try await self.adopt(valid)
+        }
+        group.addTask {
+          try await Task.sleep(for: .seconds(12))
+          throw SupabaseError.invalidResponse
+        }
+        // Take whichever finishes first, then cancel the loser.
+        try await group.next()
+        group.cancelAll()
+      }
     } catch {
+      // Network hung or refresh failed. Resolve to signed-out so launch never
+      // stalls; the user can sign in again and a fresh session is created then.
       clearSession()
       phase = .signedOut
     }
