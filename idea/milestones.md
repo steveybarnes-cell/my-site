@@ -9,22 +9,12 @@
 - [x] Phase 2 backend: core areas read/write live Supabase + PC reporting views
 - [x] Phase 3: real photo uploads to Storage + offline sync queue
 - [x] Phase 3: dashboard charts (Swift Charts) + branded PDF report export
-- [x] Phase 3: Xero LIVE — OAuth connect + push approved invoice to Xero (Edge Functions deployed + app wired)
-- [x] Branding: official MPG logo applied as app icon + in-app MPGLogo refined
-- [x] Admin Manage tab: add/edit sites (jobs), team members, and work allocations in-app
-- [x] AI receipt scan: photograph receipt in Add Material to auto-fill supplier, cost, VAT and date (scan-receipt Edge Function via OpenAI vision, key server-side)
-- [x] AI receipt take-off review: tradesman checks/edits AI-read supplier, cost, VAT and date in a review sheet and must approve before it fills the material form
-- [x] Go-live prep: Demo Sign-in gated behind #if DEBUG (hidden in App Store/Release build)
-- [x] Go-live prep: Steve (info@my-project.co.uk) confirmed role=Admin in Supabase; others default Tradesman
-- [x] Go-live prep: Production Audit complete
-- [x] Go-live prep: Google provider enabled in Supabase; app OAuth flow already wired
-- [x] Go-live prep: support URL confirmed (https://my-project.co.uk)
-- [x] Fix: Supabase config falls back to shipped Info.plist values so installed builds connect
-- [x] Demo Sign-in exposed on device (ungated) so Admin login works without a real account while accounts are set up
-- [x] Publishing: ASC API key credential validated (asc CLI symlinked to /usr/local/bin, key suffix MSZSCR)
-- [x] Apple 5.1.1: in-app Delete my account flow (delete-account Edge Function + Profile button, confirmation, sign-out)
-- [ ] User: add OPENAI_API_KEY in Integrations → Hosted Keys so AI receipt scan works live
-- [ ] Before final App Store submit: re-gate or replace demo sign-in with password-protected admin auth
-- [ ] User: add Supabase Site URL + Redirect URL (mpgsiterecords://auth-callback) and Google Cloud web OAuth client ID/secret
-- [ ] Publishing: Prefill → attach build → Submission (type SUBMIT to unlock)
-- [ ] Sync new sites + staff records to Supabase (currently local-only writes)
+- [x] Phase 3: Xero LIVE — OAuth connect + push approved invoice to Xero
+- [x] Admin Manage tab: add/edit sites, team members, and work allocations in-app
+- [x] AI receipt scan LIVE + take-off review sheet (graceful manual-entry fallback if scan fails)
+- [x] Apple 5.1.1: in-app Delete my account flow
+- [x] Launch-safety: demo sign-in re-gated behind #if DEBUG (hidden in App Store build)
+- [x] Launch-safety: Admin site + team-member writes now persist to Supabase (offline-queued)
+- [ ] User: add OPENAI_API_KEY in Backend > Secrets so AI receipt scan works live
+- [ ] Publishing: attach build + Contact Info in App Store Connect, then submit
+- [ ] Post-launch: push notifications (New work / Invoice queried / Timesheet paid)

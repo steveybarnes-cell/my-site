@@ -35,6 +35,18 @@ extension SupabaseData {
       label: "Allocation — \(a.taskDescription)")
   }
 
+  static func operation(for s: Site) -> SyncOperation? {
+    upsertOperation(
+      table: "sites", body: siteBody(for: s),
+      label: "Site — \(s.name)")
+  }
+
+  static func operation(for u: AppUser) -> SyncOperation? {
+    upsertOperation(
+      table: "profiles", body: profileBody(for: u),
+      label: "Team member — \(u.name)")
+  }
+
   static func operation(for m: MaterialItem) -> SyncOperation? {
     upsertOperation(
       table: "materials", body: body(for: m),

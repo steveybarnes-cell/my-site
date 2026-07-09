@@ -5,6 +5,50 @@ import Foundation
 /// Same RLS-through-token pattern as `SupabaseData`.
 extension SupabaseData {
 
+  // MARK: - Sites (admin write-back)
+
+  static func siteBody(for s: Site) -> [String: Any] {
+    var dict: [String: Any] = [
+      "id": s.id.uuidString.lowercased(),
+      "name": s.name,
+      "address": s.address,
+      "client": s.client,
+      "status": s.status.rawValue,
+      "notes": s.notes,
+      "whatsapp_link": s.whatsappLink,
+      "default_start": s.defaultStart,
+      "default_finish": s.defaultFinish,
+      "latitude": s.latitude,
+      "longitude": s.longitude,
+      "geofence_radius": s.geofenceRadius,
+    ]
+    if let sm = s.siteManagerId { dict["site_manager_id"] = sm.uuidString.lowercased() }
+    return dict
+  }
+
+  static func save(_ s: Site, token: String) async throws {
+    try await SupabaseClient.shared.upsert(
+      table: "sites", body: try encode(siteBody(for: s)), accessToken: token)
+  }
+
+  // MARK: - Team members (profiles)
+
+  static func profileBody(for u: AppUser) -> [String: Any] {
+    [
+      "id": u.id.uuidString.lowercased(),
+      "name": u.name,
+      "email": u.email,
+      "role": u.role.rawValue,
+      "phone": u.phone,
+      "active": u.active,
+    ]
+  }
+
+  static func save(_ u: AppUser, token: String) async throws {
+    try await SupabaseClient.shared.upsert(
+      table: "profiles", body: try encode(profileBody(for: u)), accessToken: token)
+  }
+
   // MARK: - Work allocations
 
   struct AllocationRow: Decodable {

@@ -26,9 +26,11 @@ struct LoginView: View {
             header
             signInCard
             // Demo sign-in lets you run and demonstrate the app (including as
-            // Admin) without a real Supabase account. Available on device while
-            // accounts are still being set up.
-            roleDemoCard
+            // Admin) without a real Supabase account. Compiled into DEBUG builds
+            // only — it is never present in the App Store / Release build.
+            #if DEBUG
+              roleDemoCard
+            #endif
             Text("MPG-FRM-001 Rev 5.0 · My Project Group Ltd")
               .font(.caption2)
               .foregroundStyle(.white.opacity(0.4))
@@ -62,9 +64,15 @@ struct LoginView: View {
       SectionHeader(title: isSignUp ? "Create Account" : "Secure Login")
 
       if !auth.isConfigured {
-        infoBanner(
-          "Not connected to Supabase yet. Use Demo Sign-in below to explore the app.",
-          symbol: "exclamationmark.triangle.fill")
+        #if DEBUG
+          infoBanner(
+            "Not connected to Supabase yet. Use Demo Sign-in below to explore the app.",
+            symbol: "exclamationmark.triangle.fill")
+        #else
+          infoBanner(
+            "Can't reach the server right now. Check your connection and try again.",
+            symbol: "exclamationmark.triangle.fill")
+        #endif
       }
 
       field(icon: "envelope", placeholder: "Email address", text: $email, secure: false)

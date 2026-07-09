@@ -239,23 +239,26 @@ final class AppStore {
 
   // MARK: - Admin management: sites, staff, allocations
 
-  /// Adds or updates a site (job). Local-first; live-mode persistence for sites
-  /// is handled on next backend sync once a Site save endpoint is added.
+  /// Adds or updates a site (job). Local-first, then persists to Supabase (or
+  /// queues the write offline) so the site appears on every device and the PC hub.
   func saveSite(_ s: Site) {
     if let i = sites.firstIndex(where: { $0.id == s.id }) {
       sites[i] = s
     } else {
       sites.append(s)
     }
+    sync(queued: SupabaseData.operation(for: s)) { try await SupabaseData.save(s, token: $0) }
   }
 
-  /// Adds or updates a team member (tradesman or site manager).
+  /// Adds or updates a team member (tradesman or site manager). Local-first, then
+  /// persists the profile row to Supabase (or queues it offline).
   func saveUser(_ u: AppUser) {
     if let i = users.firstIndex(where: { $0.id == u.id }) {
       users[i] = u
     } else {
       users.append(u)
     }
+    sync(queued: SupabaseData.operation(for: u)) { try await SupabaseData.save(u, token: $0) }
   }
 
   /// Adds or updates a work allocation (job assigned to a tradesman for a day).
