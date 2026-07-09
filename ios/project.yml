@@ -1,8 +1,4 @@
 name: MPGSiteRecords
-packages:
-  Supabase:
-    url: 'https://github.com/supabase/supabase-swift'
-    from: '2.0.0'
 targets:
   MPGSiteRecords:
     type: application
@@ -10,9 +6,6 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - path: MPGSiteRecords
-    dependencies:
-          - package: Supabase
-            product: Supabase
     settings:
       base:
         PRODUCT_NAME: MPGSiteRecords
