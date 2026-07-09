@@ -13,13 +13,26 @@ enum SupabaseConfig {
   static let callbackScheme = "mpgsiterecords"
   static let callbackURL = "\(callbackScheme)://auth-callback"
 
+  /// Client-safe public defaults baked into the app so device / TestFlight / App Store
+  /// builds work even when no environment variables or Info.plist build settings are
+  /// present. These are the public project URL + publishable (anon) key ONLY — both are
+  /// designed to ship inside the client. Never put the service_role key or any secret here.
+  private static let defaultURL = "https://jzzsatsmdmckgjllohst.supabase.co"
+  /// Publishable / anon key. Safe to ship. Populate this with your project's public key.
+  private static let defaultAnonKey = ""
+
   static var url: URL? {
-    guard let raw = value(for: "SUPABASE_URL"), let u = URL(string: raw) else { return nil }
-    return u
+    if let raw = value(for: "SUPABASE_URL"), let u = URL(string: raw) { return u }
+    return URL(string: defaultURL)
   }
 
   static var anonKey: String? {
-    value(for: "SUPABASE_PUBLISHABLE_KEY") ?? value(for: "SUPABASE_ANON_KEY")
+    if let raw = value(for: "SUPABASE_PUBLISHABLE_KEY") ?? value(for: "SUPABASE_ANON_KEY"),
+      !raw.isEmpty
+    {
+      return raw
+    }
+    return defaultAnonKey.isEmpty ? nil : defaultAnonKey
   }
   static var isConfigured: Bool { url != nil && (anonKey?.isEmpty == false) }
 
