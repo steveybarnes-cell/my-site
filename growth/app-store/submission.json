@@ -97,7 +97,7 @@
         "Alcohol, Tobacco, or Drug Use or References: None",
         "Simulated Gambling: None",
         "Medical\/Treatment Information: None",
-        "Contests: No",
+        "Contests: None",
         "Unrestricted Web Access: No",
         "Gambling and Contests: No",
         "AI-Generated Content: None"
@@ -110,7 +110,7 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "Supabase Auth requires email for account authentication and sign-in.",
+          "reason" : "Supabase Auth requires email for account creation and authentication.",
           "tracking" : false
         },
         {
@@ -120,7 +120,7 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "Supabase Auth assigns unique user IDs for role-based access (Admin\/Site Manager\/Tradesman).",
+          "reason" : "Supabase Auth assigns user IDs to distinguish role-based access (Admin\/Site Manager\/Tradesman).",
           "tracking" : false
         },
         {
@@ -130,7 +130,7 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "Location collected when clocking in\/out or uploading site evidence to verify presence on allocated site.",
+          "reason" : "App uses location when clocking in\/out and uploading site evidence to verify proximity to allocated site.",
           "tracking" : false
         },
         {
@@ -140,17 +140,7 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "Camera captures before\/during\/completion work photos and supplier receipts; stored locally and synced to backend.",
-          "tracking" : false
-        },
-        {
-          "category" : "User Content",
-          "dataType" : "Other User Content",
-          "linked" : true,
-          "purposes" : [
-            "App Functionality"
-          ],
-          "reason" : "Daily site records, materials logs, timesheets and invoices submitted by tradesmen stored in custom API backend.",
+          "reason" : "App captures before\/during\/completion site photos and supplier receipts; users attach existing photos from library.",
           "tracking" : false
         },
         {
@@ -160,7 +150,7 @@
           "purposes" : [
             "Analytics"
           ],
-          "reason" : "Analytics integration tracks user interactions with the app for performance and feature usage insights.",
+          "reason" : "Analytics service integrated to track user interactions within the app.",
           "tracking" : false
         },
         {
@@ -170,7 +160,7 @@
           "purposes" : [
             "Analytics"
           ],
-          "reason" : "Analytics service captures crash reports to identify and fix stability issues.",
+          "reason" : "Analytics service collects crash data for app stability monitoring.",
           "tracking" : false
         }
       ],
@@ -495,7 +485,7 @@
       "The demo account credentials for App Review have not been confirmed in the facts. Ensure valid demo credentials for both the tradesman and admin roles are entered in App Store Connect > App Review Information before submitting."
     ]
   },
-  "lastASCClassificationAt" : "2026-07-09T14:14:51Z",
+  "lastASCClassificationAt" : "2026-07-09T14:39:53Z",
   "lastASCClassificationHash" : "f10b4d6abb2da7fb110bda6dc5591802e7facc1b4a8d6c2fdaa5c3c09cb5dc62",
   "publish" : {
     "isPublished" : false,
