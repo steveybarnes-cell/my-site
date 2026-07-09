@@ -19,6 +19,7 @@
 - [x] Team feed: Instagram-style layout (edge-to-edge posts, square photo carousel, double-tap like, heart/like count, inline caption + comment preview)
 - [x] Team feed is the default/first tab on app open across all three roles
 - [x] Demo Mode: always-available role-picker entry from login (sample data, no Supabase session)
+- [x] Device connectivity: baked-in client-safe Supabase URL + publishable key fallbacks so Xcode device/TestFlight/App Store builds connect
 - [ ] Team feed: wire to Supabase (feed_posts/feed_comments + RLS) + real photo uploads for cross-device sync
 - [ ] User: add OPENAI_API_KEY in Backend > Secrets so AI receipt scan works live
 - [ ] Publishing: attach build + Contact Info in App Store Connect, then submit

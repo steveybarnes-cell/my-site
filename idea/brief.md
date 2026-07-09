@@ -28,7 +28,7 @@ All three role experiences built and navigable end to end.
 - Admin role confirmed (Steve, info@my-project.co.uk).
 - Production Audit complete.
 - Submission details recorded: support email info@my-project.co.uk, legal seller "My Project Group Limited", App Review phone 0117 251 0565.
-- Device connectivity fix (Info.plist fallback for Supabase URL + publishable key).
+- **Device connectivity fix (v3 — self-contained).** `SupabaseConfig` now has both public client-safe values baked in: project URL hardcoded (`https://jzzsatsmdmckgjllohst.supabase.co`) AND `defaultAnonKey` hardcoded with the publishable key (`sb_publishable_…`). Env vars / Info.plist build settings are used first when present, but the app is now fully self-contained. This fixes "can't reach server" on Xcode device / TestFlight / App Store builds where the 10x env vars and `$(SUPABASE_URL)` Info.plist substitutions are absent. Both are public client keys designed to ship in-app — no secrets exposed.
 - **Account deletion (Apple Guideline 5.1.1) — DONE.** `delete-account` Edge Function deployed + ACTIVE; app-side `AccountService.deleteAccount` + Profile delete button with confirmation.
 
 ### Blocked on user
@@ -41,25 +41,18 @@ All three role experiences built and navigable end to end.
 
 ## PHASE 5 — Team feed / company group chat (local demo)
 - **Models:** `FeedPost` + `FeedComment` in `Models/CompanyFeed.swift`.
-- **AppStore:** `feedPosts` state + `feed` (newest-first), `addFeedPost`, `toggleLike`/`isLiked`, `addComment`, `deleteFeedPost` (author or admin only). Realistic seeded posts.
-- **UI:** `CompanyFeedView` (wall + composer entry), `FeedComposerView`, `FeedCommentsView`. Reuses Brand tokens + shared components.
-- **Instagram-style layout:** edge-to-edge posts with hairline separators, full-width square photo carousel (page dots for multi-photo), double-tap-to-like, action bar with heart (fills red + bounce) and comment bubble, bold like count, inline `name + caption`, "View all N comments" with latest comment preview, uppercase relative timestamp.
-- **Navigation:** "Team" tab added to all three role root views.
+- **UI:** `CompanyFeedView` (Instagram-style), `FeedComposerView`, `FeedCommentsView`.
+- **Navigation:** "Team" tab is the default/first tab on app open in all three role root views.
 - **Scope note:** Currently local/in-memory only — resets on relaunch, no cross-device sync yet.
 
 ## PHASE 6 — Demo Mode (all builds)
-- **Always-available Demo Mode**, separate from the DEBUG-only quick sign-in.
-- **Entry:** "Explore in Demo Mode" button on `LoginView` (visible in Release too), opens `Views/DemoModeView.swift`.
-- **DemoModeView:** role picker (Tradesman / Admin / Site Manager) + sample team-member list; tapping a person enters that role's full experience with seeded sample data. Clear banner ("nothing sent to the server").
-- **AppStore:** `isDemoMode` flag set via `startDemo(as:)`, cleared on `logout()`. `AuthManager.enterDemo(as:)` starts the session without touching Supabase.
-- **Scope note:** Sample data only, local to device, resets on sign-out.
+- **Always-available Demo Mode** via "Explore in Demo Mode" on `LoginView`, opens `Views/DemoModeView.swift` (role picker + sample team-member list). `AuthManager.enterDemo(as:)` starts a session without Supabase.
 
 ### Deferred / Next
-- Wire Team feed to Supabase (`feed_posts` / `feed_comments` tables + RLS) with real photo uploads to `site-evidence`, using the existing offline sync queue. Switch composer to real PhotosPicker + camera capture.
+- Wire Team feed to Supabase (`feed_posts` / `feed_comments` tables + RLS) with real photo uploads.
 - Add Supabase save endpoints for sites + staff so Manage tab writes persist across devices.
 - Optionally extend AI receipt scan to the general Add File / PhotoCaptureView receipt uploads.
-- Optionally gate live actions (e.g. Xero push) or show a "Demo" chrome badge while `isDemoMode` is active.
 - Push notifications, optional branded web portal.
 
 ### Design
-Reuse MPG system (charcoal + green, `mpgCard()`, `mpgFormSection()`, `Brand` tokens, shared `Field`/`SectionHeader`/`PrimaryButton`). Delete uses `Brand.red` destructive style. Team feed uses `Brand.red` heart for likes.
+Reuse MPG system (charcoal + green, `mpgCard()`, `mpgFormSection()`, `Brand` tokens, shared `Field`/`SectionHeader`/`PrimaryButton`).

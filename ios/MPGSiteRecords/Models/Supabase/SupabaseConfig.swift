@@ -19,7 +19,7 @@ enum SupabaseConfig {
   /// designed to ship inside the client. Never put the service_role key or any secret here.
   private static let defaultURL = "https://jzzsatsmdmckgjllohst.supabase.co"
   /// Publishable / anon key. Safe to ship. Populate this with your project's public key.
-  private static let defaultAnonKey = ""
+  private static let defaultAnonKey = "sb_publishable_aLr4R2Og756SVAe-0vX7DA_p5hrv7xl"
 
   static var url: URL? {
     if let raw = value(for: "SUPABASE_URL"), let u = URL(string: raw) { return u }
