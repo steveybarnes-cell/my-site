@@ -249,17 +249,9 @@ struct MaterialFormView: View {
       defer { isScanning = false }
       do {
         let r = try await ReceiptScanService.scan(imageData: data, token: token)
-        if let s = r.supplier, !s.isEmpty { supplier = s }
-        if let d = r.description, !d.isEmpty, description.isEmpty { description = d }
-        if let net = r.costExVat, net > 0 {
-          costExVat = String(format: "%.2f", net)
-        } else if let total = r.total, total > 0 {
-          // Derive net from gross if only the total was found.
-          costExVat = String(format: "%.2f", total / 1.20)
-        }
-        if let v = r.vatAmount, v > 0 { vatOverride = v }
-        if let date = r.purchaseDate { purchaseDate = date }
-        scanNote = "Details filled from receipt — please check them."
+        pendingScan = r
+        showReview = true
+        scanNote = "Check the AI take-off before it fills the form."
       } catch {
         scanError = "Couldn't read the receipt automatically. Enter the details manually."
       }
