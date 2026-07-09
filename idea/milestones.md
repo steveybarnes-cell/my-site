@@ -16,11 +16,13 @@
 - [x] Launch-safety: demo sign-in re-gated behind #if DEBUG (hidden in App Store build)
 - [x] Launch-safety: Admin site + team-member writes now persist to Supabase (offline-queued)
 - [x] Team feed (company group chat): posts, photos, likes, comments across all roles (local/in-memory)
-- [x] Team feed: Instagram-style layout (edge-to-edge posts, square photo carousel, double-tap like, heart/like count, inline caption + comment preview)
+- [x] Team feed: Instagram-style layout
 - [x] Team feed is the default/first tab on app open across all three roles
-- [x] Demo Mode: always-available role-picker entry from login (sample data, no Supabase session)
-- [x] Device connectivity: baked-in client-safe Supabase URL + publishable key fallbacks so Xcode device/TestFlight/App Store builds connect
+- [x] Demo Mode: always-available role-picker entry from login
+- [x] Device connectivity: baked-in client-safe Supabase URL + publishable key fallbacks
+- [x] iOS 26 cleanup: replaced deprecated Text(+) concatenation with string interpolation in CompanyFeedView
 - [ ] Team feed: wire to Supabase (feed_posts/feed_comments + RLS) + real photo uploads for cross-device sync
 - [ ] User: add OPENAI_API_KEY in Backend > Secrets so AI receipt scan works live
+- [ ] User: select development Team in Xcode Signing & Capabilities to build to device
 - [ ] Publishing: attach build + Contact Info in App Store Connect, then submit
 - [ ] Post-launch: push notifications (New work / Invoice queried / Timesheet paid)

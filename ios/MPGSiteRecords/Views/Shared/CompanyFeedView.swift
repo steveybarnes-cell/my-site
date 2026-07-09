@@ -113,10 +113,11 @@ struct FeedPostCard: View {
         }
 
         if !post.text.isEmpty {
-          (Text(post.authorName).font(.subheadline.weight(.semibold))
-            + Text("  ") + Text(post.text).font(.subheadline))
-            .foregroundStyle(Brand.ink)
-            .frame(maxWidth: .infinity, alignment: .leading)
+          Text(
+            "\(Text(post.authorName).font(.subheadline.weight(.semibold)))  \(Text(post.text).font(.subheadline))"
+          )
+          .foregroundStyle(Brand.ink)
+          .frame(maxWidth: .infinity, alignment: .leading)
         }
 
         if !post.comments.isEmpty {
@@ -133,11 +134,12 @@ struct FeedPostCard: View {
           .buttonStyle(.plain)
 
           if let last = post.comments.last {
-            (Text(last.authorName).font(.subheadline.weight(.semibold))
-              + Text("  ") + Text(last.text).font(.subheadline))
-              .foregroundStyle(Brand.ink)
-              .lineLimit(2)
-              .frame(maxWidth: .infinity, alignment: .leading)
+            Text(
+              "\(Text(last.authorName).font(.subheadline.weight(.semibold)))  \(Text(last.text).font(.subheadline))"
+            )
+            .foregroundStyle(Brand.ink)
+            .lineLimit(2)
+            .frame(maxWidth: .infinity, alignment: .leading)
           }
         }
 
