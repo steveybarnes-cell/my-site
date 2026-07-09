@@ -22,7 +22,7 @@
     "collectsLocationData" : true,
     "collectsMicrophoneData" : false,
     "collectsPhotoLibraryData" : true,
-    "companyName" : "My ProjectGroup",
+    "companyName" : "My ProjectGroupLimited",
     "contactEmail" : "",
     "entitlementKeys" : [
       "com.apple.developer.applesignin",
