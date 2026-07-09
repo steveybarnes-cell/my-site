@@ -26,6 +26,8 @@ struct MaterialFormView: View {
   @State private var isScanning = false
   @State private var scanError: String?
   @State private var scanNote: String?
+  @State private var pendingScan: ReceiptScanService.ScannedReceipt?
+  @State private var showReview = false
 
   private var cost: Double { Double(costExVat) ?? 0 }
   private var vat: Double { vatOverride ?? (cost * 0.20) }
