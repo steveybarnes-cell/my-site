@@ -3,29 +3,29 @@
 ## Contact Info
 
 - **Email Address** — Linked · Not Used to Track · Purpose: App Functionality
-  - Supabase Auth requires email for user authentication and account management.
+  - Supabase Auth backend requires email for account authentication and user management.
 
 ## Identifiers
 
 - **User ID** — Linked · Not Used to Track · Purpose: App Functionality
-  - Supabase Auth assigns user IDs to distinguish Admin, Site Manager, and Tradesman roles.
+  - Supabase Auth assigns user IDs for role-based access control (Admin, Site Manager, Tradesman).
 
 ## Location
 
 - **Precise Location** — Linked · Not Used to Track · Purpose: App Functionality
-  - App uses location only when clocking in/out or uploading site evidence to verify user is on or near allocated site.
+  - Location collected only during geofenced clock-in/out to confirm user presence at allocated site.
 
 ## User Content
 
 - **Photos or Videos** — Linked · Not Used to Track · Purpose: App Functionality
-  - App captures and stores before, during, completion photos and supplier receipts; timestamped and attached to jobs.
+  - App captures before, during, and completion site photos with timestamps and receipts attached to jobs.
 
 ## Usage Data
 
 - **Product Interaction** — Not Linked · Not Used to Track · Purpose: Analytics
-  - App integrates analytics service to track user interactions and feature usage.
+  - Analytics integrated to track user interactions within the app.
 
 ## Diagnostics
 
 - **Crash Data** — Not Linked · Not Used to Track · Purpose: Analytics
-  - Analytics integration captures crash and performance data for app stability monitoring.
+  - Analytics service collects crash data for debugging and app stability monitoring.
