@@ -22,6 +22,7 @@
 - [x] Fix: Supabase config falls back to shipped Info.plist values so installed builds connect
 - [x] Demo Sign-in exposed on device (ungated) so Admin login works without a real account while accounts are set up
 - [x] Publishing: ASC API key credential validated (asc CLI symlinked to /usr/local/bin, key suffix MSZSCR)
+- [x] Apple 5.1.1: in-app Delete my account flow (delete-account Edge Function + Profile button, confirmation, sign-out)
 - [ ] User: add OPENAI_API_KEY in Integrations → Hosted Keys so AI receipt scan works live
 - [ ] Before final App Store submit: re-gate or replace demo sign-in with password-protected admin auth
 - [ ] User: add Supabase Site URL + Redirect URL (mpgsiterecords://auth-callback) and Google Cloud web OAuth client ID/secret
