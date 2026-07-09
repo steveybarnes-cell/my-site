@@ -1,8 +1,9 @@
 # Review Notes
 
-- MPG Site Records is an internal business tool for construction subcontractors and site managers at My Project Group Ltd. Access requires credentials issued by the organisation.
-- The app uses role-based authentication: Tradesman, Site Manager, and Admin roles each see different screens and actions.
-- Location permission (When In Use) is used exclusively for GPS geofenced clock-in and clock-out on construction sites.
-- Photo library permission is used to attach site photos and receipt images to job records.
-- No in-app purchases or subscriptions are present in this version.
-- A demo account will need to be provided separately once backend authentication is live. At submission time, please check the demo account checklist items below.
+- This app is for authorised subcontractors and staff of My Project Group Ltd only. Account creation is not open to the public; access requires credentials issued by the company.
+- A demo tradesman account and a demo admin account are available for review — see the demo account checklist below.
+- The app uses location only when the user actively clocks in, clocks out, or uploads site evidence. There is no background location tracking.
+- Camera and photo library permissions are used to capture and attach site photos and supplier receipts to job records.
+- GPS geofencing is used to confirm the user is near the allocated job site at clock-in and clock-out.
+- The Apple Sign In entitlement is present as an additional authentication option alongside Supabase Auth email/password login.
+- Associated Domains entitlement supports universal links to deep-link into specific job or invoice records.

@@ -1,48 +1,70 @@
-# Terms of Use
+# Terms of Use — MPG Site Records
 
-These Terms of Use govern your access to and use of the MPG Site Records iOS application. By downloading, installing, or using the app you agree to these terms. If you do not agree, do not use the app.
+These Terms of Use ("Terms") govern your access to and use of the MPG Site Records application ("the App") provided by My Project Group Ltd ("we", "us", "our").
+
+By creating an account or using the App you agree to these Terms. If you do not agree, do not use the App.
 
 ## Use Of The Service
 
-MPG Site Records is a construction site records management tool built for subcontractors and staff working with My Project Group Ltd. The app allows you to log daily site records, capture photos and receipts, clock in and out, and submit timesheets and invoices for review and payment. The app is provided for internal professional use only and is not a general-purpose consumer product.
+The App is a construction-site management tool designed for use by authorised subcontractors, tradesmen, site managers, and administrators working with My Project Group Ltd. Access is granted on the basis that you are an authorised user.
+
+The App is provided for professional and business use. You must use it in accordance with these Terms and all applicable laws and regulations.
 
 ## Accounts And Eligibility
 
-To use MPG Site Records you must be authorised by the organisation and provided with access credentials. You must be at least 18 years old and legally permitted to work in the applicable jurisdiction. You are responsible for keeping your login credentials confidential and for all activity that occurs under your account. You must notify the organisation immediately if you suspect unauthorised access to your account.
+You must be at least 18 years old and authorised by My Project Group Ltd to create and hold an account.
+
+You are responsible for maintaining the confidentiality of your login credentials. You must notify us immediately at info@my-project.co.uk if you suspect unauthorised access to your account.
+
+You are responsible for the accuracy of the profile information you provide, including trade details and compliance information such as UTR and CIS status.
 
 ## Acceptable Use
 
-You agree to use the app only for its intended purpose of recording legitimate construction site activity. You must not:
+When using the App you must not:
 
-- Submit false, inaccurate, or misleading site records, timesheets, or invoices.
-- Upload content that is unlawful, defamatory, offensive, or that infringes any third-party rights.
-- Attempt to gain unauthorised access to accounts, systems, or data belonging to other users.
-- Interfere with or disrupt the operation of the app or its backend infrastructure.
-- Use the app in any way that violates applicable law or regulation.
-- Reverse engineer, decompile, or attempt to extract the source code of the app.
+- Submit false, inaccurate, or misleading site records, clock-in data, photos, receipts, or invoice information.
+- Attempt to circumvent GPS geofencing or location verification.
+- Upload content that is offensive, defamatory, or infringes any third party's intellectual property rights.
+- Attempt to gain unauthorised access to other users' accounts or data.
+- Interfere with or disrupt the App's servers, infrastructure, or security.
+- Use the App for any purpose other than legitimate construction site management and invoicing activities.
 
 ## Intellectual Property
 
-All software, design, and content comprising MPG Site Records, other than content you upload, is the property of its respective owners and is protected by applicable intellectual property law. You are granted a limited, non-exclusive, non-transferable licence to use the app solely for the purposes described in these terms. Nothing in these terms transfers any ownership of intellectual property to you.
+The App, including its design, functionality, and underlying code, is the property of My Project Group Ltd and its licensors. Nothing in these Terms transfers any intellectual property rights to you.
 
-You retain ownership of content you upload, such as photos and documents. By uploading content you grant the organisation a licence to store, display, and use that content as necessary to operate the service.
+You retain ownership of the photos and records you submit through the App. By submitting content you grant My Project Group Ltd a non-exclusive licence to store, display, and use that content for the purposes of providing the service described in the App.
 
 ## Disclaimers
 
-MPG Site Records is provided on an as-is and as-available basis. To the fullest extent permitted by law, no warranties are made, express or implied, regarding the app's fitness for a particular purpose, accuracy, reliability, or availability. The app is a tool to assist record-keeping; it does not constitute legal, financial, or compliance advice.
+The App is provided "as is" and "as available" without warranties of any kind, express or implied, to the fullest extent permitted by applicable law.
+
+We do not warrant that the App will be uninterrupted, error-free, or free from loss of data. You are responsible for maintaining your own records where required by law or contract.
+
+GPS and location accuracy depends on your device hardware and network conditions. We do not guarantee the precision of location readings used for clock-in verification.
 
 ## Limitation Of Liability
 
-To the fullest extent permitted by applicable law, in no event shall the organisation or its personnel be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or relating to your use of or inability to use the app, even if advised of the possibility of such damages. Nothing in these terms limits liability for fraud, death, or personal injury caused by negligence.
+To the fullest extent permitted by applicable law, My Project Group Ltd shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or relating to your use of, or inability to use, the App.
+
+Our total aggregate liability to you for any claim arising from these Terms or your use of the App shall not exceed the amount, if any, paid by you to us in the twelve months preceding the claim.
+
+Nothing in these Terms limits liability for death or personal injury caused by our negligence, fraud, or any other liability that cannot be excluded by law.
 
 ## Termination
 
-The organisation may suspend or revoke your access to MPG Site Records at any time, with or without notice, if you breach these terms or are no longer authorised to use the system. Upon termination, your right to use the app ceases immediately. Provisions that by their nature should survive termination will do so.
+We may suspend or terminate your access to the App at any time if we reasonably believe you have breached these Terms, your engagement with My Project Group Ltd has ended, or for any other legitimate operational reason.
+
+On termination, your right to access the App ceases. Records submitted prior to termination may be retained in accordance with our Privacy Policy and legal obligations.
 
 ## Changes To These Terms
 
-We may update these Terms of Use from time to time. When we do, we will update the effective date and, where appropriate, notify users through the app. Continued use of the app after changes take effect constitutes your acceptance of the revised terms.
+We may update these Terms from time to time. When we make material changes we will notify you via the App or by email. Your continued use of the App after the effective date of any changes constitutes your acceptance of the updated Terms.
 
 ## Contact
 
-For questions about these Terms of Use, please contact the team responsible for MPG Site Records. No public contact email or website URL has been provided at this time — please refer to the support information distributed with the app.
+Questions about these Terms should be directed to:
+
+My Project Group Ltd
+Email: info@my-project.co.uk
+Phone: 0044 0117 251 05 65

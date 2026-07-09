@@ -1,1 +1,1 @@
-construction,site records,timesheet,subcontractor,invoice,CIS,tradesman,job log,receipts,attendance
+construction,site records,CIS invoice,timesheet,subcontractor,GPS clock-in,tradesman,job log

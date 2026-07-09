@@ -1,31 +1,41 @@
-# Support
+# Support — MPG Site Records
 
-Welcome to MPG Site Records support. This page explains how to get help, what information to include with your request, and what to expect in response.
+Need help with MPG Site Records? The sections below explain how to reach us, what to include in your request, and what to expect in response.
+
+For all support enquiries, email us at info@my-project.co.uk or call 0044 0117 251 05 65.
 
 ## How To Reach Support
 
-MPG Site Records is an internal tool provided by My Project Group Ltd. If you need help, please reach out through the contact channel provided to you by your organisation when you were given access to the app. No public support email or website URL has been configured yet — this information will be distributed by the organisation directly.
+Our primary support channel is email. Send your query to info@my-project.co.uk with a clear subject line such as "MPG Site Records — [brief issue description]".
+
+You can also call us on 0044 0117 251 05 65 during normal UK business hours.
 
 ## What To Include In Your Request
 
-To help us resolve your issue as quickly as possible, please include the following details in every support request.
+To help us resolve your issue as quickly as possible, please include the following details in your message.
 
-- Your full name and the role you use in the app (Tradesman, Site Manager, or Admin).
-- The device model and iOS version you are running (found in Settings > General > About).
-- The version of MPG Site Records you have installed.
-- A clear description of the issue, including which screen or feature is affected.
-- The steps you took before the problem occurred.
-- Screenshots or screen recordings if the issue is visual.
-- The approximate date and time the issue occurred, especially for missing clock-ins, records, or invoice discrepancies.
+- Your full name and registered email address.
+- Your role in the App (tradesman, site manager, or admin).
+- The name of the site or job the issue relates to, if applicable.
+- A clear description of what you were trying to do and what happened instead.
+- The iOS version and device model you are using (found in Settings > General > About).
+- The App version number (found in Settings > General > About, or on the App profile screen).
+- Screenshots or screen recordings if they help illustrate the problem.
 
 ## Account And Access Issues
 
-If you cannot sign in, have been locked out, or believe your role permissions are incorrect, contact your organisation administrator in the first instance. Admins can reset access and adjust roles within the system. If the issue persists after admin intervention, escalate through the organisation's support channel.
+If you cannot log in, have forgotten your credentials, or believe your account has been set up incorrectly, contact us at info@my-project.co.uk and include your registered email address.
+
+Access to the App is granted by My Project Group Ltd. If you are a new subcontractor who has not yet received login details, speak to your site manager or contact the office directly.
 
 ## Privacy And Data Requests
 
-If you wish to request access to the personal data held about you, ask for corrections, or request deletion of your data, please submit your request through the organisation's designated contact channel. Include your full name, the email address associated with your account, and a description of your request. We will acknowledge your request and respond in accordance with our Privacy Policy.
+To request access to, correction of, or deletion of your personal data held in MPG Site Records, email info@my-project.co.uk with the subject line "Data Request — MPG Site Records" and include your full name and registered email address.
+
+We will acknowledge your request promptly and respond in full within a reasonable timeframe, subject to any legal obligations that require us to retain certain records.
 
 ## Response Expectations
 
-We aim to acknowledge all support requests promptly during normal working hours. Response times may vary depending on request complexity and volume. Issues affecting your ability to submit timesheets or clock in during live site work will be treated as high priority.
+We aim to respond to all support emails within two business days. Complex technical issues or data requests may take longer; we will keep you informed of progress.
+
+The App is operated by My Project Group Ltd for use by authorised personnel. Apple Inc. does not provide support for this application.
