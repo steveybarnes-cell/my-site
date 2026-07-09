@@ -101,6 +101,36 @@ final class AuthManager {
     phase = .signedOut
   }
 
+  // MARK: - Delete account
+
+  /// Permanently delete the signed-in user's account (Apple Guideline 5.1.1),
+  /// then clear the local session and sign out. Returns true on success.
+  func deleteAccount() async -> Bool {
+    guard let token = session?.accessToken else {
+      // No live session (e.g. demo mode) — just sign out locally.
+      clearSession()
+      store.logout()
+      phase = .signedOut
+      return true
+    }
+    isWorking = true
+    errorMessage = nil
+    defer { isWorking = false }
+    do {
+      try await AccountService.deleteAccount(token: token)
+      clearSession()
+      store.logout()
+      phase = .signedOut
+      return true
+    } catch let e as SupabaseError {
+      errorMessage = e.errorDescription
+      return false
+    } catch {
+      errorMessage = error.localizedDescription
+      return false
+    }
+  }
+
   // MARK: - Demo (development-only)
 
   /// Clearly-labelled local demo login. Does not touch Supabase.
