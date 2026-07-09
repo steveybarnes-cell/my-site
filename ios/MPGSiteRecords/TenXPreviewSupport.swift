@@ -33,7 +33,7 @@ enum TenXPreviewSupport {
         let normalizedMessage = message
             .replacingOccurrences(of: "\n", with: " ")
             .replacingOccurrences(of: "\r", with: " ")
-        let timestamp = ISO8601DateFormatter().string(from: Date())
+        let timestamp = TenXDateFormatting.iso8601.string(from: Date())
         let line = "\(timestamp) \(normalizedMessage)"
         print("[10x-runtime] \(line)")
 

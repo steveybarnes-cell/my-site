@@ -10,6 +10,7 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - path: MPGSiteRecords
+
     dependencies:
           - package: Supabase
             product: Supabase
@@ -23,6 +24,8 @@ targets:
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: 'UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight'
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: 'UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight'
         INFOPLIST_KEY_UIRequiresFullScreen: YES
         INFOPLIST_KEY_NSCameraUsageDescription: 'MPG Site Records uses the camera so you can take before, during and completion photos of your work and capture supplier receipts on site. Photos are timestamped and attached to the job.'
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: 'MPG Site Records uses your location only when you clock in or out, or upload site evidence, to confirm you are on or near the allocated site. Your location is never tracked continuously in the background.'
