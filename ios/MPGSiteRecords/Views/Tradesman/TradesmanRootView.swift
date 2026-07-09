@@ -6,6 +6,9 @@ struct TradesmanRootView: View {
   var body: some View {
     Group {
       TabView {
+        Tab("Team", systemImage: "bubble.left.and.bubble.right.fill") {
+          CompanyFeedView()
+        }
         Tab("Today", systemImage: "sun.max.fill") {
           TradesmanTodayView()
         }
@@ -14,9 +17,6 @@ struct TradesmanRootView: View {
         }
         Tab("Files", systemImage: "folder.fill") {
           FilesView()
-        }
-        Tab("Team", systemImage: "bubble.left.and.bubble.right.fill") {
-          CompanyFeedView()
         }
         Tab("Invoices", systemImage: "sterlingsign.circle.fill") {
           TradesmanSubmissionsView()

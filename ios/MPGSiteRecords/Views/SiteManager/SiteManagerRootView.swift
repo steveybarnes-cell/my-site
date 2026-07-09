@@ -6,6 +6,9 @@ struct SiteManagerRootView: View {
   var body: some View {
     Group {
       TabView {
+        Tab("Team", systemImage: "bubble.left.and.bubble.right.fill") {
+          CompanyFeedView()
+        }
         Tab("My Sites", systemImage: "mappin.and.ellipse") {
           SiteManagerSitesView()
         }
@@ -20,9 +23,6 @@ struct SiteManagerRootView: View {
         }
         Tab("Files", systemImage: "folder.fill") {
           FilesView()
-        }
-        Tab("Team", systemImage: "bubble.left.and.bubble.right.fill") {
-          CompanyFeedView()
         }
         Tab("Alerts", systemImage: "bell.fill") {
           NotificationsView()

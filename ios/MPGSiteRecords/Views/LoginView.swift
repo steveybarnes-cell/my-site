@@ -7,6 +7,7 @@ struct LoginView: View {
   @State private var password = ""
   @State private var isSignUp = false
   @State private var selectedRole: UserRole = .tradesman
+  @State private var showDemo = false
 
   private var quickUsers: [AppUser] {
     store.users.filter { $0.role == selectedRole && $0.active }
@@ -25,6 +26,7 @@ struct LoginView: View {
           VStack(spacing: 24) {
             header
             signInCard
+            demoButton
             // Demo sign-in lets you run and demonstrate the app (including as
             // Admin) without a real Supabase account. Compiled into DEBUG builds
             // only — it is never present in the App Store / Release build.
@@ -43,6 +45,27 @@ struct LoginView: View {
       }
     }
     .__tenxTrackView("LoginView")
+    .sheet(isPresented: $showDemo) {
+      DemoModeView()
+    }
+  }
+
+  private var demoButton: some View {
+    Button {
+      showDemo = true
+    } label: {
+      HStack(spacing: 8) {
+        Image(systemName: "play.circle.fill")
+        Text("Explore in Demo Mode").fontWeight(.semibold)
+      }
+      .font(.subheadline)
+      .frame(maxWidth: .infinity)
+      .padding(.vertical, 13)
+      .foregroundStyle(.white)
+      .background(
+        Brand.olive.opacity(0.9), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+    .buttonStyle(.plain)
   }
 
   private var header: some View {

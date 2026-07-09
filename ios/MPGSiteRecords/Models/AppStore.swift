@@ -24,6 +24,9 @@ final class AppStore {
   /// Whether the company Xero organisation is connected (modelled — real flow is Xero OAuth).
   var xeroConnected: Bool = false
 
+  /// True when the user entered via Demo Mode (sample data, no Supabase session).
+  private(set) var isDemoMode = false
+
   // MARK: - Live backend (Supabase)
 
   /// When set, the three core areas (clock records, daily records, weekly
@@ -52,10 +55,18 @@ final class AppStore {
 
   func login(as user: AppUser) { currentUser = user }
 
+  /// Enter Demo Mode as the given sample user. No Supabase session; sample data only.
+  func startDemo(as user: AppUser) {
+    isDemoMode = true
+    backendToken = nil
+    currentUser = user
+  }
+
   func logout() {
     currentUser = nil
     backendToken = nil
     liveDataError = nil
+    isDemoMode = false
   }
 
   // MARK: - Live backend session

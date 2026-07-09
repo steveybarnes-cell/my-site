@@ -43,14 +43,22 @@ All three role experiences built and navigable end to end.
 - **Models:** `FeedPost` + `FeedComment` in `Models/CompanyFeed.swift`.
 - **AppStore:** `feedPosts` state + `feed` (newest-first), `addFeedPost`, `toggleLike`/`isLiked`, `addComment`, `deleteFeedPost` (author or admin only). Realistic seeded posts.
 - **UI:** `CompanyFeedView` (wall + composer entry), `FeedComposerView`, `FeedCommentsView`. Reuses Brand tokens + shared components.
-- **Instagram-style layout (NEW):** edge-to-edge posts with hairline separators, full-width square photo carousel (page dots for multi-photo), double-tap-to-like, action bar with heart (fills red + bounce) and comment bubble, bold like count, inline `name + caption`, "View all N comments" with latest comment preview, uppercase relative timestamp.
+- **Instagram-style layout:** edge-to-edge posts with hairline separators, full-width square photo carousel (page dots for multi-photo), double-tap-to-like, action bar with heart (fills red + bounce) and comment bubble, bold like count, inline `name + caption`, "View all N comments" with latest comment preview, uppercase relative timestamp.
 - **Navigation:** "Team" tab added to all three role root views.
 - **Scope note:** Currently local/in-memory only — resets on relaunch, no cross-device sync yet.
+
+## PHASE 6 — Demo Mode (all builds)
+- **Always-available Demo Mode**, separate from the DEBUG-only quick sign-in.
+- **Entry:** "Explore in Demo Mode" button on `LoginView` (visible in Release too), opens `Views/DemoModeView.swift`.
+- **DemoModeView:** role picker (Tradesman / Admin / Site Manager) + sample team-member list; tapping a person enters that role's full experience with seeded sample data. Clear banner ("nothing sent to the server").
+- **AppStore:** `isDemoMode` flag set via `startDemo(as:)`, cleared on `logout()`. `AuthManager.enterDemo(as:)` starts the session without touching Supabase.
+- **Scope note:** Sample data only, local to device, resets on sign-out.
 
 ### Deferred / Next
 - Wire Team feed to Supabase (`feed_posts` / `feed_comments` tables + RLS) with real photo uploads to `site-evidence`, using the existing offline sync queue. Switch composer to real PhotosPicker + camera capture.
 - Add Supabase save endpoints for sites + staff so Manage tab writes persist across devices.
 - Optionally extend AI receipt scan to the general Add File / PhotoCaptureView receipt uploads.
+- Optionally gate live actions (e.g. Xero push) or show a "Demo" chrome badge while `isDemoMode` is active.
 - Push notifications, optional branded web portal.
 
 ### Design

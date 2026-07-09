@@ -139,6 +139,12 @@ final class AuthManager {
     phase = .signedIn
   }
 
+  /// Enter Demo Mode as a sample user. Available in all builds (sample data only).
+  func enterDemo(as user: AppUser) {
+    store.startDemo(as: user)
+    phase = .signedIn
+  }
+
   // MARK: - Internals
 
   private func run(_ work: @escaping () async throws -> Void) async {
