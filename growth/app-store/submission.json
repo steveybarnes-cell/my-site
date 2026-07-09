@@ -1,7 +1,8 @@
 {
   "confirmations" : {
     "confirmedFields" : {
-      "asc_setup.appAvailability" : true
+      "asc_setup.appAvailability" : true,
+      "asc_setup.appPrivacy" : true
     },
     "manualReviewNotes" : [
 
