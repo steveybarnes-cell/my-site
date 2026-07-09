@@ -1,7 +1,7 @@
 {
   "confirmations" : {
     "confirmedFields" : {
-      "asc_setup.ageRating" : true,
+      "asc_setup.ageRating" : false,
       "asc_setup.appAvailability" : false,
       "asc_setup.appPrivacy" : false,
       "asc_setup.regulatedMedicalDevice" : true
