@@ -39,18 +39,19 @@ All three role experiences built and navigable end to end.
 ### Remaining Publishing stages
 - Prefill → attach build → Submission → Management.
 
-## PHASE 5 — Team feed / company group chat (NEW — local demo)
-- **Models:** `FeedPost` (author, role, text, photo SF-symbol stand-ins, optional site tag, likes, comments) + `FeedComment` in `Models/CompanyFeed.swift`.
+## PHASE 5 — Team feed / company group chat (local demo)
+- **Models:** `FeedPost` + `FeedComment` in `Models/CompanyFeed.swift`.
 - **AppStore:** `feedPosts` state + `feed` (newest-first), `addFeedPost`, `toggleLike`/`isLiked`, `addComment`, `deleteFeedPost` (author or admin only). Realistic seeded posts.
-- **UI:** `CompanyFeedView` (wall + composer entry), `FeedComposerView` (text, site tag, demo photo attach), `FeedCommentsView` (thread + inline chat composer). Reuses Brand tokens, `mpgCard()`, shared components.
-- **Navigation:** "Team" tab (bubble.left.and.bubble.right.fill) added to all three role root views.
+- **UI:** `CompanyFeedView` (wall + composer entry), `FeedComposerView`, `FeedCommentsView`. Reuses Brand tokens + shared components.
+- **Instagram-style layout (NEW):** edge-to-edge posts with hairline separators, full-width square photo carousel (page dots for multi-photo), double-tap-to-like, action bar with heart (fills red + bounce) and comment bubble, bold like count, inline `name + caption`, "View all N comments" with latest comment preview, uppercase relative timestamp.
+- **Navigation:** "Team" tab added to all three role root views.
 - **Scope note:** Currently local/in-memory only — resets on relaunch, no cross-device sync yet.
 
 ### Deferred / Next
-- Wire Team feed to Supabase (`feed_posts` / `feed_comments` tables + RLS) with real photo uploads to `site-evidence`, using the existing offline sync queue.
+- Wire Team feed to Supabase (`feed_posts` / `feed_comments` tables + RLS) with real photo uploads to `site-evidence`, using the existing offline sync queue. Switch composer to real PhotosPicker + camera capture.
 - Add Supabase save endpoints for sites + staff so Manage tab writes persist across devices.
 - Optionally extend AI receipt scan to the general Add File / PhotoCaptureView receipt uploads.
 - Push notifications, optional branded web portal.
 
 ### Design
-Reuse MPG system (charcoal + green, `mpgCard()`, `mpgFormSection()`, `Brand` tokens, shared `Field`/`SectionHeader`/`PrimaryButton`). Delete uses `Brand.red` destructive style.
+Reuse MPG system (charcoal + green, `mpgCard()`, `mpgFormSection()`, `Brand` tokens, shared `Field`/`SectionHeader`/`PrimaryButton`). Delete uses `Brand.red` destructive style. Team feed uses `Brand.red` heart for likes.

@@ -25,12 +25,12 @@ struct CompanyFeedView: View {
             }
           } else {
             ScrollView {
-              LazyVStack(spacing: 14) {
+              LazyVStack(spacing: 22) {
                 ForEach(store.feed) { post in
                   FeedPostCard(post: post)
                 }
               }
-              .padding(16)
+              .padding(.vertical, 12)
             }
           }
         }
@@ -64,65 +64,95 @@ struct FeedPostCard: View {
   private var siteName: String? { post.siteId.flatMap { store.site($0)?.name } }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: 0) {
       FeedAuthorHeader(
         name: post.authorName, role: post.authorRole, timestamp: post.timestamp,
         siteName: siteName,
         canDelete: canDelete,
-        onDelete: { store.deleteFeedPost(post.id) })
-
-      if !post.text.isEmpty {
-        Text(post.text)
-          .font(.subheadline)
-          .foregroundStyle(Brand.ink)
-          .frame(maxWidth: .infinity, alignment: .leading)
-      }
+        onDelete: { store.deleteFeedPost(post.id) }
+      )
+      .padding(.horizontal, 16)
+      .padding(.bottom, 12)
 
       if !post.photoSymbols.isEmpty {
         FeedPhotoGrid(symbols: post.photoSymbols)
+          .onTapGesture(count: 2) {
+            if !liked { withAnimation(.snappy) { store.toggleLike(post.id) } }
+          }
       }
 
-      Divider().overlay(Brand.hairline)
-
-      HStack(spacing: 22) {
+      // Instagram-style action bar
+      HStack(spacing: 18) {
         Button {
           withAnimation(.snappy) { store.toggleLike(post.id) }
         } label: {
-          Label(
-            post.likedBy.isEmpty ? "Like" : "\(post.likedBy.count)",
-            systemImage: liked ? "hand.thumbsup.fill" : "hand.thumbsup")
+          Image(systemName: liked ? "heart.fill" : "heart")
+            .foregroundStyle(liked ? Brand.red : Brand.ink)
+            .symbolEffect(.bounce, value: liked)
         }
-        .foregroundStyle(liked ? Brand.olive : Brand.inkSoft)
 
         Button {
           showComments = true
         } label: {
-          Label(
-            post.comments.isEmpty ? "Comment" : "\(post.comments.count)",
-            systemImage: "bubble.left")
+          Image(systemName: "bubble.right")
+            .foregroundStyle(Brand.ink)
         }
-        .foregroundStyle(Brand.inkSoft)
 
         Spacer()
       }
-      .font(.footnote.weight(.semibold))
+      .font(.system(size: 22))
       .buttonStyle(.plain)
+      .padding(.horizontal, 16)
+      .padding(.top, 12)
 
-      if let last = post.comments.last {
-        Button {
-          showComments = true
-        } label: {
-          FeedCommentRow(comment: last, compact: true)
+      VStack(alignment: .leading, spacing: 6) {
+        if !post.likedBy.isEmpty {
+          Text("\(post.likedBy.count) \(post.likedBy.count == 1 ? "like" : "likes")")
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(Brand.ink)
         }
-        .buttonStyle(.plain)
-        if post.comments.count > 1 {
-          Button("View all \(post.comments.count) comments") { showComments = true }
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(Brand.olive)
+
+        if !post.text.isEmpty {
+          (Text(post.authorName).font(.subheadline.weight(.semibold))
+            + Text("  ") + Text(post.text).font(.subheadline))
+            .foregroundStyle(Brand.ink)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+
+        if !post.comments.isEmpty {
+          Button {
+            showComments = true
+          } label: {
+            Text(
+              post.comments.count == 1
+                ? "View 1 comment" : "View all \(post.comments.count) comments"
+            )
+            .font(.subheadline)
+            .foregroundStyle(Brand.inkSoft)
+          }
+          .buttonStyle(.plain)
+
+          if let last = post.comments.last {
+            (Text(last.authorName).font(.subheadline.weight(.semibold))
+              + Text("  ") + Text(last.text).font(.subheadline))
+              .foregroundStyle(Brand.ink)
+              .lineLimit(2)
+              .frame(maxWidth: .infinity, alignment: .leading)
+          }
+        }
+
+        Text(post.timestamp.relativeShort.uppercased())
+          .font(.caption2)
+          .foregroundStyle(Brand.inkSoft)
+          .padding(.top, 2)
       }
+      .padding(.horizontal, 16)
+      .padding(.top, 8)
     }
-    .mpgCard()
+    .padding(.vertical, 14)
+    .background(Brand.surface)
+    .overlay(alignment: .top) { Divider().overlay(Brand.hairline) }
+    .overlay(alignment: .bottom) { Divider().overlay(Brand.hairline) }
     .sheet(isPresented: $showComments) {
       FeedCommentsView(postId: post.id)
     }
@@ -192,27 +222,32 @@ struct FeedAuthorHeader: View {
 struct FeedPhotoGrid: View {
   let symbols: [String]
 
-  private var columns: [GridItem] {
-    Array(repeating: GridItem(.flexible(), spacing: 8), count: symbols.count == 1 ? 1 : 2)
+  var body: some View {
+    if symbols.count == 1, let symbol = symbols.first {
+      photoTile(symbol)
+        .aspectRatio(1, contentMode: .fit)
+    } else {
+      TabView {
+        ForEach(Array(symbols.enumerated()), id: \.offset) { _, symbol in
+          photoTile(symbol)
+        }
+      }
+      .tabViewStyle(.page(indexDisplayMode: .automatic))
+      .aspectRatio(1, contentMode: .fit)
+    }
   }
 
-  var body: some View {
-    LazyVGrid(columns: columns, spacing: 8) {
-      ForEach(Array(symbols.enumerated()), id: \.offset) { _, symbol in
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-          .fill(Brand.charcoal.opacity(0.06))
-          .aspectRatio(symbols.count == 1 ? 16.0 / 10.0 : 1, contentMode: .fit)
-          .overlay(
-            Image(systemName: symbol)
-              .font(.system(size: 34))
-              .foregroundStyle(Brand.olive.opacity(0.6))
-          )
-          .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-              .stroke(Brand.hairline, lineWidth: 1)
-          )
-      }
+  private func photoTile(_ symbol: String) -> some View {
+    ZStack {
+      LinearGradient(
+        colors: [Brand.lightGreen, Brand.charcoal.opacity(0.08)],
+        startPoint: .topLeading, endPoint: .bottomTrailing)
+      Image(systemName: symbol)
+        .font(.system(size: 46))
+        .foregroundStyle(Brand.olive.opacity(0.7))
     }
+    .frame(maxWidth: .infinity)
+    .clipped()
   }
 }
 
