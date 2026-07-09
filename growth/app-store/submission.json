@@ -3,7 +3,7 @@
     "confirmedFields" : {
       "asc_setup.ageRating" : true,
       "asc_setup.appAvailability" : true,
-      "asc_setup.appPrivacy" : false,
+      "asc_setup.appPrivacy" : true,
       "asc_setup.regulatedMedicalDevice" : true
     },
     "manualReviewNotes" : [
