@@ -21,8 +21,9 @@
 - [x] Go-live prep: support URL confirmed (https://my-project.co.uk)
 - [x] Fix: Supabase config falls back to shipped Info.plist values so installed builds connect
 - [x] Demo Sign-in exposed on device (ungated) so Admin login works without a real account while accounts are set up
+- [x] Publishing: ASC API key credential validated (asc CLI symlinked to /usr/local/bin, key suffix MSZSCR)
 - [ ] User: add OPENAI_API_KEY in Integrations → Hosted Keys so AI receipt scan works live
 - [ ] Before final App Store submit: re-gate or replace demo sign-in with password-protected admin auth
 - [ ] User: add Supabase Site URL + Redirect URL (mpgsiterecords://auth-callback) and Google Cloud web OAuth client ID/secret
-- [ ] Publishing: Credentials (ASC API key) → Prefill → App Store Connect setup → Submission
+- [ ] Publishing: Prefill → attach build → Submission (type SUBMIT to unlock)
 - [ ] Sync new sites + staff records to Supabase (currently local-only writes)
