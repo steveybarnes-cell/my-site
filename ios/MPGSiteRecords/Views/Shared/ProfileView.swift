@@ -124,19 +124,19 @@ struct ProfileView: View {
       } label: {
         HStack(spacing: 8) {
           if auth.isWorking {
-            ProgressView().tint(Brand.rust)
+            ProgressView().tint(Brand.red)
           } else {
             Image(systemName: "trash")
           }
           Text("Delete my account")
         }
         .font(.subheadline.weight(.semibold))
-        .foregroundStyle(Brand.rust)
+        .foregroundStyle(Brand.red)
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
         .background(
           RoundedRectangle(cornerRadius: 14, style: .continuous)
-            .stroke(Brand.rust.opacity(0.5), lineWidth: 1)
+            .stroke(Brand.red.opacity(0.5), lineWidth: 1)
         )
       }
       .disabled(auth.isWorking)
@@ -158,9 +158,13 @@ struct ProfileView: View {
 }
 
 #Preview {
-  let s = AppStore()
-  s.login(as: s.tradesmen().first!)
-  return ProfileView()
-    .environment(s)
-    .environment(AuthManager(store: s))
+  ProfileView()
+    .environment(
+      {
+        let s = AppStore()
+        s.login(as: s.tradesmen().first!)
+        return s
+      }()
+    )
+    .environment(AuthManager(store: AppStore()))
 }
