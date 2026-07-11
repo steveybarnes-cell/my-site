@@ -1,8 +1,4 @@
 name: MYSite
-packages:
-  Supabase:
-    url: 'https://github.com/supabase/supabase-swift'
-    from: '2.0.0'
 targets:
   MYSite:
     type: application
@@ -11,9 +7,7 @@ targets:
     sources:
       - path: MYSite
 
-    dependencies:
-          - package: Supabase
-            product: Supabase
+
     settings:
       base:
         PRODUCT_NAME: MYSite
