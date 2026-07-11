@@ -47,7 +47,8 @@ struct TradesmanMoreView: View {
           title: "Invoices & Timesheets",
           subtitle: "Submit and track weekly pay",
           symbol: "sterlingsign.circle.fill",
-          tint: Brand.blue
+          tint: Brand.blue,
+          badge: store.invoiceActionCount
         ) { TradesmanSubmissionsView() },
         MoreHubItem(
           title: "Profile",

@@ -15,6 +15,7 @@ struct SiteManagerRootView: View {
         Tab("Records", systemImage: "list.clipboard.fill") {
           SiteManagerRecordsView()
         }
+        .badge(store.invoiceActionCount)
         Tab("Alerts", systemImage: "bell.fill") {
           NotificationsView()
         }

@@ -15,6 +15,7 @@ struct AdminRootView: View {
         Tab("Invoices", systemImage: "doc.text.fill") {
           AdminSubmissionsView()
         }
+        .badge(store.invoiceActionCount)
         Tab("Alerts", systemImage: "bell.fill") {
           NotificationsView()
         }

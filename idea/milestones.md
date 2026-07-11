@@ -17,13 +17,13 @@
 - [x] Team feed is the default/first tab on app open across all three roles
 - [x] Team feed: uniform fixed-height feed photos + tighter top spacing for more feed room
 - [x] Streamline navigation: consistent 5-tab layout per role + reusable More hub
+- [x] Streamline pass 2: global "+" create menu, "Needs action" feed filter, invoice/query tab badges
 - [x] Demo Mode: always-available role-picker entry from login
 - [x] Rebrand: MYSite logo + seamless blend
 - [x] Calls: in-app 1:1 + group call overlay (CallService)
 - [x] Feed: per-site filter chips + pull-to-refresh
 - [x] Admin: "Work by Trade" section
 - [x] Advertise AI receipt scanning → Hubdoc/Xero across login, demo mode, Add Materials
-- [ ] Streamline pass 2: global "+" create button, "Needs action" feed filter, invoice/query tab badges
 - [ ] Calls: wire real telephony (CallKit + VoIP provider)
 - [ ] Team feed: wire to Supabase (feed_posts/feed_comments + RLS) + real photo uploads
 - [ ] User: select development Team in Xcode Signing & Capabilities to build to device

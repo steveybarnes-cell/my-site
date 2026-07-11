@@ -358,6 +358,46 @@ final class AppStore {
     return notifications.filter { $0.userId == u.id && !$0.read }.count
   }
 
+  // MARK: - Action badge counts (streamline pass 2)
+
+  /// Invoice/timesheet items that need the current user's attention, shown as a
+  /// tab badge on the Invoices / Records tab. Role-aware:
+  /// - Admin: submissions submitted or awaiting sign-off that Steve must move on.
+  /// - Site Manager: submissions awaiting site-manager approval on their sites.
+  /// - Tradesman: their own submissions that have been queried or put on hold.
+  var invoiceActionCount: Int {
+    guard let me = currentUser else { return 0 }
+    switch me.role {
+    case .admin:
+      return submissions.filter {
+        [.submitted, .approvedSM, .queryRaised, .onHold].contains($0.status)
+      }.count
+    case .siteManager:
+      let mySiteUserIds = Set(
+        allocations
+          .filter { alloc in sitesManaged(by: me.id).contains { $0.id == alloc.siteId } }
+          .map { $0.tradesmanId })
+      return submissions.filter {
+        $0.status == .awaitingSM && mySiteUserIds.contains($0.userId)
+      }.count
+    case .tradesman:
+      return submissions.filter {
+        $0.userId == me.id && [.queryRaised, .onHold, .rejected].contains($0.status)
+      }.count
+    }
+  }
+
+  // MARK: - Needs-action feed filter (streamline pass 2)
+
+  /// Feed posts that likely need the current user's attention: posts the user
+  /// has not yet acknowledged, plus any tagged to a site they are involved with.
+  func needsActionFeed(siteId: UUID?) -> [FeedPost] {
+    guard let me = currentUser else { return feed(siteId: siteId) }
+    return feed(siteId: siteId).filter { post in
+      post.authorId != me.id && !post.likedBy.contains(me.id)
+    }
+  }
+
   // MARK: - Mutations
 
   func markAllNotificationsRead() {

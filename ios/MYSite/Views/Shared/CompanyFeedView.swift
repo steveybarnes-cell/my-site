@@ -8,12 +8,17 @@ struct CompanyFeedView: View {
   @State private var showComposer = false
   @State private var showCall = false
   @State private var selectedSiteId: UUID?
+  @State private var needsActionOnly = false
   /// Ticks every few seconds to keep relative timestamps fresh (live feel).
   @State private var liveTick = Date()
 
   private let liveTimer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
 
-  private var visiblePosts: [FeedPost] { store.feed(siteId: selectedSiteId) }
+  private var visiblePosts: [FeedPost] {
+    needsActionOnly
+      ? store.needsActionFeed(siteId: selectedSiteId)
+      : store.feed(siteId: selectedSiteId)
+  }
 
   var body: some View {
     NavigationStack {
@@ -40,10 +45,12 @@ struct CompanyFeedView: View {
 
                 if visiblePosts.isEmpty {
                   EmptyStateView(
-                    symbol: "line.3.horizontal.decrease.circle",
-                    title: "Nothing for this site yet",
-                    message:
-                      "No posts have been tagged to this site. Switch to All to see everything."
+                    symbol: needsActionOnly
+                      ? "checkmark.circle" : "line.3.horizontal.decrease.circle",
+                    title: needsActionOnly ? "You're all caught up" : "Nothing for this site yet",
+                    message: needsActionOnly
+                      ? "No posts are waiting on you. Turn off the filter to see the whole feed."
+                      : "No posts have been tagged to this site. Switch to All to see everything."
                   )
                   .mpgCard()
                   .padding(.horizontal, 14)
@@ -66,6 +73,16 @@ struct CompanyFeedView: View {
       }
       .navigationTitle("Team")
       .toolbar {
+        ToolbarItem(placement: .topBarLeading) {
+          Button {
+            withAnimation(.snappy) { needsActionOnly.toggle() }
+          } label: {
+            Image(
+              systemName: needsActionOnly
+                ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+          }
+          .tint(needsActionOnly ? Brand.olive : nil)
+        }
         ToolbarItem(placement: .topBarTrailing) {
           Button {
             showCall = true
@@ -74,10 +91,19 @@ struct CompanyFeedView: View {
           }
         }
         ToolbarItem(placement: .topBarTrailing) {
-          Button {
-            showComposer = true
+          Menu {
+            Button {
+              showComposer = true
+            } label: {
+              Label("New post", systemImage: "square.and.pencil")
+            }
+            Button {
+              showCall = true
+            } label: {
+              Label("Start a call", systemImage: "phone.fill")
+            }
           } label: {
-            Image(systemName: "square.and.pencil")
+            Image(systemName: "plus")
           }
         }
       }
