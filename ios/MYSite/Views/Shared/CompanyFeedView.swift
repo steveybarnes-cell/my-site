@@ -5,6 +5,14 @@ import SwiftUI
 struct CompanyFeedView: View {
   @Environment(AppStore.self) private var store
   @State private var showComposer = false
+  @State private var showCall = false
+  @State private var selectedSiteId: UUID?
+  /// Ticks every few seconds to keep relative timestamps fresh (live feel).
+  @State private var liveTick = Date()
+
+  private let liveTimer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
+
+  private var visiblePosts: [FeedPost] { store.feed(siteId: selectedSiteId) }
 
   var body: some View {
     NavigationStack {
@@ -26,17 +34,46 @@ struct CompanyFeedView: View {
           } else {
             ScrollView {
               LazyVStack(spacing: 22) {
-                ForEach(store.feed) { post in
-                  FeedPostCard(post: post)
+                SiteFilterBar(selectedSiteId: $selectedSiteId)
+                  .padding(.top, 4)
+
+                if visiblePosts.isEmpty {
+                  EmptyStateView(
+                    symbol: "line.3.horizontal.decrease.circle",
+                    title: "Nothing for this site yet",
+                    message:
+                      "No posts have been tagged to this site. Switch to All to see everything."
+                  )
+                  .mpgCard()
+                  .padding(.horizontal, 14)
+                } else {
+                  ForEach(visiblePosts) { post in
+                    FeedPostCard(post: post)
+                      .id("\(post.id)-\(liveTick.timeIntervalSince1970)")
+                  }
                 }
               }
               .padding(.vertical, 12)
+            }
+            .refreshable {
+              if store.isLiveBackend { await store.loadLiveData() }
+              liveTick = Date()
             }
           }
         }
       }
       .navigationTitle("Team")
       .toolbar {
+        ToolbarItem(placement: .topBarLeading) {
+          LivePill()
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+          Button {
+            showCall = true
+          } label: {
+            Image(systemName: "phone.fill")
+          }
+        }
         ToolbarItem(placement: .topBarTrailing) {
           Button {
             showComposer = true
@@ -48,8 +85,82 @@ struct CompanyFeedView: View {
       .sheet(isPresented: $showComposer) {
         FeedComposerView()
       }
+      .sheet(isPresented: $showCall) {
+        StartCallView()
+      }
+      .onReceive(liveTimer) { _ in liveTick = Date() }
     }
     .__tenxTrackView("CompanyFeedView")
+  }
+}
+
+// MARK: - Live indicator
+
+struct LivePill: View {
+  @State private var pulse = false
+
+  var body: some View {
+    HStack(spacing: 5) {
+      Circle()
+        .fill(Brand.paidGreen)
+        .frame(width: 7, height: 7)
+        .opacity(pulse ? 0.35 : 1)
+      Text("LIVE")
+        .font(.caption2.weight(.bold))
+        .foregroundStyle(Brand.oliveDark)
+    }
+    .padding(.horizontal, 9)
+    .padding(.vertical, 4)
+    .background(Capsule().fill(Brand.lightGreen))
+    .onAppear {
+      withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) {
+        pulse = true
+      }
+    }
+  }
+}
+
+// MARK: - Site filter bar
+
+struct SiteFilterBar: View {
+  @Environment(AppStore.self) private var store
+  @Binding var selectedSiteId: UUID?
+
+  var body: some View {
+    ScrollView(.horizontal, showsIndicators: false) {
+      HStack(spacing: 8) {
+        FilterChip(title: "All sites", selected: selectedSiteId == nil) {
+          selectedSiteId = nil
+        }
+        ForEach(store.sitesWithFeedActivity) { site in
+          FilterChip(title: site.name, selected: selectedSiteId == site.id) {
+            selectedSiteId = site.id
+          }
+        }
+      }
+      .padding(.horizontal, 14)
+    }
+  }
+}
+
+struct FilterChip: View {
+  let title: String
+  let selected: Bool
+  let action: () -> Void
+
+  var body: some View {
+    Button(action: action) {
+      Text(title)
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(selected ? .white : Brand.ink)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .background(
+          Capsule().fill(selected ? Brand.olive : Brand.surface)
+            .overlay(Capsule().stroke(Brand.hairline, lineWidth: selected ? 0 : 1))
+        )
+    }
+    .buttonStyle(.plain)
   }
 }
 

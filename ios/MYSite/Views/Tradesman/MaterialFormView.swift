@@ -138,7 +138,10 @@ struct MaterialFormView: View {
 
   private var receiptSection: some View {
     VStack(alignment: .leading, spacing: 12) {
-      SectionHeader(title: "Receipt / supplier invoice")
+      SectionHeader(
+        title: "Receipt / supplier invoice",
+        subtitle:
+          "Photograph it — AI reads the details and it uploads to Hubdoc / Xero automatically")
 
       if isScanning {
         Label("Reading receipt with AI…", systemImage: "sparkles")

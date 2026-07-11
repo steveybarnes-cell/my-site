@@ -21,6 +21,7 @@ struct DemoModeView: View {
         ScrollView {
           VStack(spacing: 18) {
             banner
+            aiReceiptCard
 
             VStack(alignment: .leading, spacing: 14) {
               SectionHeader(
@@ -64,6 +65,48 @@ struct DemoModeView: View {
       }
     }
     .__tenxTrackView("DemoModeView")
+  }
+
+  private var aiReceiptCard: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      HStack(spacing: 10) {
+        Image(systemName: "doc.text.viewfinder")
+          .font(.title3)
+          .foregroundStyle(.white)
+          .frame(width: 38, height: 38)
+          .background(Brand.olive, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+        VStack(alignment: .leading, spacing: 2) {
+          Text("AI receipt scanning")
+            .font(.subheadline.weight(.bold))
+            .foregroundStyle(Brand.ink)
+          Text("Photograph a receipt and it's read automatically.")
+            .font(.caption)
+            .foregroundStyle(Brand.inkSoft)
+        }
+        Spacer(minLength: 0)
+      }
+      HStack(spacing: 8) {
+        Image(systemName: "sparkles").font(.caption2).foregroundStyle(Brand.olive)
+        Text("Photograph").font(.caption2.weight(.medium)).foregroundStyle(Brand.ink)
+        Image(systemName: "arrow.right").font(.caption2).foregroundStyle(Brand.inkSoft)
+        Text("AI reads it").font(.caption2.weight(.medium)).foregroundStyle(Brand.ink)
+        Image(systemName: "arrow.right").font(.caption2).foregroundStyle(Brand.inkSoft)
+        Text("Hubdoc / Xero").font(.caption2.weight(.bold)).foregroundStyle(Brand.olive)
+      }
+      Text(
+        "Approved receipts upload to Hubdoc and Xero automatically — no lost paperwork or manual entry."
+      )
+      .font(.caption2)
+      .foregroundStyle(Brand.inkSoft)
+      .fixedSize(horizontal: false, vertical: true)
+    }
+    .padding(14)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(Brand.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    .overlay(
+      RoundedRectangle(cornerRadius: 16, style: .continuous)
+        .stroke(Brand.olive.opacity(0.3), lineWidth: 1)
+    )
   }
 
   private var banner: some View {

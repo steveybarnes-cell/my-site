@@ -28,33 +28,41 @@ All three role experiences built and navigable end to end.
 - Admin role confirmed (Steve, info@my-project.co.uk).
 - Production Audit complete.
 - Submission details recorded: support email info@my-project.co.uk, legal seller "My Project Group Limited", App Review phone 0117 251 0565.
-- **Device connectivity fix.** `SupabaseConfig` has both public client-safe values baked in (project URL + publishable/anon key), used after env vars / Info.plist. Fully self-contained for device / TestFlight / App Store builds.
+- **Device connectivity fix.** `SupabaseConfig` has both public client-safe values baked in (project URL + publishable/anon key), used after env vars / Info.plist.
 - **Account deletion (Apple Guideline 5.1.1) — DONE.** `delete-account` Edge Function deployed + ACTIVE; app-side flow + confirmation.
-- **Launch watchdog crash (0x8BADF00D) — FIXED.** `SupabaseClient` uses a dedicated `URLSession` (15s request / 25s resource timeout, `waitsForConnectivity = false`); `AuthManager.restore()` wrapped in a hard 12s cap that resolves cleanly to the login screen if the session refresh stalls.
+- **Launch watchdog crash (0x8BADF00D) — FIXED.** Dedicated `URLSession` (15s/25s timeouts); `AuthManager.restore()` wrapped in a hard 12s cap.
 
 ### Blocked on user
-- **App Store Connect fields**: Support URL, Privacy Policy URL, seller, App Review phone (Prefill).
-- **Prefill review confirmations**: five legal sign-offs must be ticked by the user.
-- **Choose build + Contact Information** in App Store Connect, then submit.
-
-### Remaining Publishing stages
-- Prefill → attach build → Submission → Management.
+- App Store Connect fields (Support URL, Privacy Policy URL, seller, App Review phone) + five legal sign-offs.
+- Choose build + Contact Information in App Store Connect, then submit.
 
 ## PHASE 5 — Team feed / company group chat (local demo)
 - **Models:** `FeedPost` + `FeedComment` in `Models/CompanyFeed.swift`.
 - **UI:** `CompanyFeedView`, `FeedComposerView`, `FeedCommentsView`.
-- **Distinct-from-Instagram design.** Brand-green **Acknowledge** tick (`checkmark.seal`) instead of a red heart, labelled **Acknowledge / Reply** pill buttons, "N people acknowledged" wording, and distinct rounded card posts (18pt corners, hairline border, inset rounded photos). Double-tap-to-acknowledge on photos retained (generic gesture).
-- **Authentic rendered photos.** `Components/SiteSceneImage.swift` renders believable construction scenes entirely in SwiftUI (no bundled/copyright images): trench dig-out with hi-vis worker, painted hallway in perspective with step ladder, bonded brick wall, wet screed with trowel lines, scaffolded elevation, kitchen fit-out. Each has a photo vignette + on-site timestamp watermark. Used in feed card carousels and the composer's photo picker (with selected tick). `SiteScene(key:)` maps seed keys (and legacy `photo`/`photo.fill`/`photo.stack`) to scenes.
-- **Navigation:** "Team" tab is the default/first tab on app open in all three role root views.
-- **Scope note:** Currently local/in-memory only — resets on relaunch, no cross-device sync yet.
+- Distinct-from-Instagram design (Acknowledge tick, pill actions, card posts, rendered/real site photos).
+- **Team** tab is the default/first tab on app open in all three role root views.
+- Currently local/in-memory only — resets on relaunch, no cross-device sync yet.
 
 ## PHASE 6 — Demo Mode (all builds)
-- **Always-available Demo Mode** via "Explore in Demo Mode" on `LoginView` → `Views/DemoModeView.swift` (role picker + sample team-member list). `AuthManager.enterDemo(as:)` starts a session without Supabase.
+- Always-available Demo Mode via "Explore in Demo Mode" on `LoginView` → `Views/DemoModeView.swift`.
+
+## PHASE 7 — Communication + visibility upgrades (local/mock)
+- **In-app calling.** `Models/CallService.swift` (@Observable) drives a modelled VoIP flow (ringing → connected → live timer, mute/speaker/end). `Views/Shared/CallView.swift`: `CallOverlay` (top-level, cross-tab), `CallScreen`, `StartCallView`. Scope note: modelled call, no real telephony yet.
+- **Per-site feed filter.** `AppStore.feed(siteId:)` + `SiteFilterBar`/`FilterChip` chip row scopes feed to one site.
+- **Live feed feel.** `LivePill`, 5s `Timer.publish` tick, pull-to-refresh (reloads Supabase when `isLiveBackend`).
+- **Admin "Work by Trade".** `TradeWorkFeedView` + **Trades** tab; unified `TradeWorkItem` timeline per trade.
+
+## PHASE 8 — Advertise AI receipt automation (NEW)
+- Made the AI receipt scanning + automatic Hubdoc/Xero upload a headline, user-visible value prop:
+  - **LoginView** — charcoal feature card under the logo: "AI receipt scanning", a `Photograph → AI reads it → Hubdoc / Xero` flow row, and supporting copy ("scanned and uploaded to Hubdoc and Xero automatically — no more lost paperwork or manual data entry").
+  - **DemoModeView** — matching light `aiReceiptCard` so demo explorers see the same promise.
+  - **MaterialFormView** — receipt section header subtitle now states the automatic scan + Hubdoc/Xero upload at the point of capture (in addition to the existing live auto-send status label).
+- Copy only; underlying scan (`ReceiptScanService`) and Xero push already exist. Auto-upload fires when Xero is connected; otherwise the "connect Xero" prompt still shows.
 
 ### Deferred / Next
-- Wire Team feed to Supabase (`feed_posts` / `feed_comments` tables + RLS) with real photo uploads.
-- Add Supabase save endpoints for sites + staff so Manage tab writes persist across devices.
-- Optionally extend AI receipt scan to the general Add File / PhotoCaptureView receipt uploads.
+- Wire in-app calling to real telephony (CallKit + VoIP provider).
+- Wire Team feed to Supabase (`feed_posts` / `feed_comments` + RLS) with real photo uploads for cross-device sync.
+- Regenerate app icon from the MY Site mark; decide on remaining "MPG"/"My Project Group" copy.
 - Push notifications, optional branded web portal.
 
 ### Design

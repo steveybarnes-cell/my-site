@@ -15,6 +15,9 @@ struct AdminRootView: View {
         Tab("Manage", systemImage: "square.and.pencil") {
           ManageView()
         }
+        Tab("Trades", systemImage: "hammer.fill") {
+          TradeWorkFeedView()
+        }
         Tab("Invoices", systemImage: "doc.text.fill") {
           AdminSubmissionsView()
         }

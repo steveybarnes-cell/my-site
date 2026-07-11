@@ -25,6 +25,7 @@ struct LoginView: View {
         ScrollView {
           VStack(spacing: 24) {
             header
+            aiReceiptBanner
             signInCard
             demoButton
             // Demo sign-in lets you run and demonstrate the app (including as
@@ -48,6 +49,52 @@ struct LoginView: View {
     .sheet(isPresented: $showDemo) {
       DemoModeView()
     }
+  }
+
+  private var aiReceiptBanner: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      HStack(spacing: 10) {
+        Image(systemName: "doc.text.viewfinder")
+          .font(.title3)
+          .foregroundStyle(.white)
+          .frame(width: 40, height: 40)
+          .background(Brand.olive, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        VStack(alignment: .leading, spacing: 2) {
+          Text("AI receipt scanning")
+            .font(.subheadline.weight(.bold))
+            .foregroundStyle(.white)
+          Text("Snap a receipt on site — no typing.")
+            .font(.caption)
+            .foregroundStyle(.white.opacity(0.7))
+        }
+        Spacer(minLength: 0)
+      }
+
+      HStack(spacing: 8) {
+        Image(systemName: "sparkles").font(.caption2).foregroundStyle(Brand.olive)
+        Text("Photograph").font(.caption2.weight(.medium)).foregroundStyle(.white.opacity(0.85))
+        Image(systemName: "arrow.right").font(.caption2).foregroundStyle(.white.opacity(0.4))
+        Text("AI reads it").font(.caption2.weight(.medium)).foregroundStyle(.white.opacity(0.85))
+        Image(systemName: "arrow.right").font(.caption2).foregroundStyle(.white.opacity(0.4))
+        Text("Hubdoc / Xero").font(.caption2.weight(.bold)).foregroundStyle(Brand.olive)
+      }
+
+      Text(
+        "Receipts are scanned and uploaded to Hubdoc and Xero automatically — no more lost paperwork or manual data entry."
+      )
+      .font(.caption2)
+      .foregroundStyle(.white.opacity(0.6))
+      .fixedSize(horizontal: false, vertical: true)
+    }
+    .padding(16)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(
+      Brand.charcoalDeep, in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: 18, style: .continuous)
+        .stroke(Brand.olive.opacity(0.35), lineWidth: 1)
+    )
   }
 
   private var demoButton: some View {

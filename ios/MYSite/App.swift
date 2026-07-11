@@ -5,6 +5,7 @@ struct MPGSiteRecordsApp: App {
   @State private var store: AppStore
   @State private var auth: AuthManager
   @State private var location = LocationService()
+  @State private var call = CallService()
 
   init() {
     let store = AppStore()
@@ -18,7 +19,9 @@ struct MPGSiteRecordsApp: App {
         .environment(store)
         .environment(auth)
         .environment(location)
+        .environment(call)
         .tint(Brand.olive)
+        .overlay { CallOverlay() }
     }
   }
 }

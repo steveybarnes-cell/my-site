@@ -228,6 +228,74 @@ final class AppStore {
     guard post.authorId == me.id || me.role == .admin else { return }
     feedPosts.removeAll { $0.id == postId }
   }
+
+  /// The feed filtered to a single site (nil = whole company).
+  func feed(siteId: UUID?) -> [FeedPost] {
+    guard let siteId else { return feed }
+    return feed.filter { $0.siteId == siteId }
+  }
+
+  /// Sites that currently have at least one feed post, newest activity first.
+  var sitesWithFeedActivity: [Site] {
+    let ids = Set(feedPosts.compactMap { $0.siteId })
+    return sites.filter { ids.contains($0.id) }
+  }
+
+  // MARK: - Work by trade (admin overview)
+
+  /// All distinct trades in use across allocations + tradesman profiles, sorted.
+  func distinctTrades() -> [String] {
+    var set = Set<String>()
+    for a in allocations where !a.trade.isEmpty { set.insert(a.trade) }
+    for p in profiles where !p.mainTrade.isEmpty { set.insert(p.mainTrade) }
+    for r in dailyRecords where !r.trade.isEmpty { set.insert(r.trade) }
+    return set.sorted()
+  }
+
+  /// Tradesmen whose main trade (or allocated trade) matches the given trade.
+  func tradesmen(inTrade trade: String) -> [AppUser] {
+    let ids = Set(
+      profiles.filter { $0.mainTrade == trade }.map { $0.userId }
+        + allocations.filter { $0.trade == trade }.map { $0.tradesmanId })
+    return users.filter { $0.role == .tradesman && ids.contains($0.id) }
+  }
+
+  /// A combined, newest-first timeline of work for a given trade: daily records,
+  /// allocations, materials and photos, projected into unified rows.
+  func workTimeline(forTrade trade: String) -> [TradeWorkItem] {
+    var items: [TradeWorkItem] = []
+    let people = Set(tradesmen(inTrade: trade).map { $0.id })
+
+    for r in dailyRecords where r.trade == trade || people.contains(r.userId) {
+      items.append(
+        TradeWorkItem(
+          id: r.id, date: r.date, kind: .record,
+          userName: user(r.userId)?.name ?? "Tradesman",
+          siteName: site(r.siteId)?.name ?? "Site",
+          title: r.description.isEmpty ? r.category.rawValue : r.description,
+          subtitle: "\(Fmt.hours(r.totalHours)) • \(r.category.rawValue)"))
+    }
+    for a in allocations where a.trade == trade {
+      items.append(
+        TradeWorkItem(
+          id: a.id, date: a.date, kind: .allocation,
+          userName: user(a.tradesmanId)?.name ?? "Tradesman",
+          siteName: site(a.siteId)?.name ?? "Site",
+          title: a.taskDescription.isEmpty ? a.category.rawValue : a.taskDescription,
+          subtitle: "\(a.status.rawValue) • \(a.startTime)–\(a.expectedFinish)"))
+    }
+    for p in photos where people.contains(p.userId) {
+      items.append(
+        TradeWorkItem(
+          id: p.id, date: p.timestamp, kind: .photo,
+          userName: user(p.userId)?.name ?? "Tradesman",
+          siteName: site(p.siteId)?.name ?? "Site",
+          title: p.description.isEmpty ? p.type.rawValue : p.description,
+          subtitle: p.type.rawValue))
+    }
+    return items.sorted { $0.date > $1.date }
+  }
+
   func siteManagers() -> [AppUser] { users.filter { $0.role == .siteManager } }
 
   // Privacy-aware queries
