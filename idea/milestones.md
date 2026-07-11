@@ -25,7 +25,8 @@
 - [x] Launch stability: fixed 0x8BADF00D watchdog crash — short URLSession timeouts + 12s cap on restore()
 - [x] User: add OPENAI_API_KEY in Backend > Secrets so AI receipt scan works live
 - [x] Rebrand: MPGLogo rebuilt as stacked MY Site lockup (hard-hat-on-roofline mark, heavy green MY, wide-tracked SITE) matching the brand sheet
-- [x] Rebrand: MPGLogo now renders the real bundled MYSiteLogo image asset everywhere (login/header/loading/feed), with drawn vector as fallback
+- [x] Rebrand: MPGLogo renders the real bundled logo image asset everywhere (login/header/loading/feed), with drawn vector as fallback
+- [x] Rebrand: fixed logo asset name mismatch — code now references the exact case-sensitive asset name "MYSiteLOGO"
 - [x] Calls: in-app call a team member + group call (CallService + full-screen CallOverlay/CallScreen, mute/speaker/timer)
 - [x] Calls: fixed "No Observable object of type CallService found" launch crash — CallOverlay now lives inside the .environment(call) scope via RootContainer
 - [x] Calls: fixed CallService crash when opening the call sheet from the feed — CompanyFeedView re-injects CallService into the presented StartCallView sheet

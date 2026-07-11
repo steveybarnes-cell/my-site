@@ -89,14 +89,14 @@ struct MPGLogo: View {
 
   /// True when the real "MYSiteLogo" image asset is present in the bundle.
   private var hasImageAsset: Bool {
-    UIImage(named: "MYSiteLogo") != nil
+    UIImage(named: "MYSiteLOGO") != nil
   }
 
   var body: some View {
     if hasImageAsset {
       // Your exact uploaded artwork. The lockup is ~1.7x tall relative to the
       // requested cap `height`, so size the frame from that.
-      Image("MYSiteLogo")
+      Image("MYSiteLOGO")
         .resizable()
         .scaledToFit()
         .frame(height: height * 1.7)
