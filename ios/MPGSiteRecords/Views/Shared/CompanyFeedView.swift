@@ -253,12 +253,12 @@ struct FeedPhotoGrid: View {
 
   var body: some View {
     if scenes.count == 1, let scene = scenes.first {
-      SiteSceneImage(scene: scene)
+      SitePhotoImage(scene: scene)
         .aspectRatio(1, contentMode: .fit)
     } else {
       TabView {
         ForEach(Array(scenes.enumerated()), id: \.offset) { _, scene in
-          SiteSceneImage(scene: scene)
+          SitePhotoImage(scene: scene)
         }
       }
       .tabViewStyle(.page(indexDisplayMode: .automatic))

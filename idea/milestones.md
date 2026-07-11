@@ -18,6 +18,7 @@
 - [x] Team feed (company group chat): posts, photos, acknowledgements, comments across all roles (local/in-memory)
 - [x] Team feed: distinct-from-Instagram design (Acknowledge tick, pill actions, card layout)
 - [x] Team feed: authentic rendered site photos (SiteSceneImage) in feed cards + composer
+- [x] Team feed: real construction photographs loaded from the internet at runtime (SitePhotoImage) with rendered-scene placeholder/offline fallback
 - [x] Team feed is the default/first tab on app open across all three roles
 - [x] Demo Mode: always-available role-picker entry from login
 - [x] Device connectivity: baked-in client-safe Supabase URL + publishable key fallbacks

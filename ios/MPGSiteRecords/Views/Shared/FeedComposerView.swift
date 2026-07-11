@@ -58,7 +58,7 @@ struct FeedComposerView: View {
                         photoSymbols.append(key)
                       }
                     } label: {
-                      SiteSceneImage(scene: SiteScene(key: key))
+                      SitePhotoImage(scene: SiteScene(key: key))
                         .frame(height: 66)
                         .frame(maxWidth: .infinity)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))

@@ -101,6 +101,69 @@ enum SiteScene: String, CaseIterable {
       colors: [Color.scene(a), Color.scene(b)],
       startPoint: .top, endPoint: .bottom)
   }
+
+  /// Real construction photograph loaded at runtime for the demo feed.
+  /// The rendered SwiftUI scene acts as the instant placeholder and offline
+  /// fallback if the network image cannot be fetched.
+  var photoURL: URL? {
+    let raw: String
+    switch self {
+    case .digOut:
+      raw = "https://images.unsplash.com/photo-1503387762-592deb58ef4e"
+    case .hallwayPaint:
+      raw = "https://images.unsplash.com/photo-1562259949-e8e7689d7828"
+    case .brickwork:
+      raw = "https://images.unsplash.com/photo-1590274853856-f22d5ee3d228"
+    case .screed:
+      raw = "https://images.unsplash.com/photo-1581093458791-9f3c3900df4b"
+    case .scaffold:
+      raw = "https://images.unsplash.com/photo-1541888946425-d81bb19240f5"
+    case .kitchenFit:
+      raw = "https://images.unsplash.com/photo-1556909212-d5b604d0c90d"
+    }
+    return URL(string: "\(raw)?auto=format&fit=crop&w=900&q=70")
+  }
+}
+
+/// Displays a genuine construction photograph fetched from the internet, with
+/// the rendered `SiteSceneImage` shown instantly as a placeholder and used as
+/// the offline fallback. Also overlays the on-site timestamp watermark so it
+/// reads like a real captured site photo.
+struct SitePhotoImage: View {
+  let scene: SiteScene
+
+  var body: some View {
+    ZStack {
+      AsyncImage(
+        url: scene.photoURL, transaction: Transaction(animation: .easeInOut(duration: 0.25))
+      ) { phase in
+        switch phase {
+        case .success(let image):
+          image
+            .resizable()
+            .scaledToFill()
+            .overlay(
+              LinearGradient(
+                colors: [.black.opacity(0.0), .black.opacity(0.22)],
+                startPoint: .center, endPoint: .bottom)
+            )
+            .overlay(alignment: .bottomLeading) {
+              Text(scene.stamp)
+                .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                .foregroundStyle(.white.opacity(0.9))
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(.black.opacity(0.35), in: RoundedRectangle(cornerRadius: 4))
+                .padding(8)
+            }
+        default:
+          // Loading or failed: show the rendered scene as placeholder/fallback.
+          SiteSceneImage(scene: scene)
+        }
+      }
+    }
+    .clipped()
+  }
 }
 
 // MARK: - Individual scenes
