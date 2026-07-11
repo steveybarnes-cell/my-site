@@ -21,6 +21,10 @@ final class AppStore {
   var siteFiles: [SiteFile] = []
   var feedPosts: [FeedPost] = []
 
+  /// Non-destructive photo markups keyed by post + photo index. The underlying
+  /// photo is never modified; annotations are drawn as an overlay.
+  var photoMarkups: [PhotoMarkupKey: PhotoMarkup] = [:]
+
   /// Whether the company Xero organisation is connected (modelled — real flow is Xero OAuth).
   var xeroConnected: Bool = false
 
@@ -218,6 +222,21 @@ final class AppStore {
     guard !trimmed.isEmpty else { return }
     feedPosts[i].comments.append(
       FeedComment(authorId: me.id, authorName: me.name, text: trimmed))
+  }
+
+  // MARK: - Photo markup
+
+  func markup(postId: UUID, photoIndex: Int) -> PhotoMarkup {
+    photoMarkups[PhotoMarkupKey(postId: postId, photoIndex: photoIndex)] ?? PhotoMarkup()
+  }
+
+  func saveMarkup(_ markup: PhotoMarkup, postId: UUID, photoIndex: Int) {
+    let key = PhotoMarkupKey(postId: postId, photoIndex: photoIndex)
+    if markup.isEmpty {
+      photoMarkups.removeValue(forKey: key)
+    } else {
+      photoMarkups[key] = markup
+    }
   }
 
   func deleteFeedPost(_ postId: UUID) {

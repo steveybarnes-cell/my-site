@@ -36,7 +36,7 @@ struct CompanyFeedView: View {
             ScrollView {
               LazyVStack(spacing: 22) {
                 SiteFilterBar(selectedSiteId: $selectedSiteId)
-                  .padding(.top, 4)
+                  .padding(.top, 0)
 
                 if visiblePosts.isEmpty {
                   EmptyStateView(
@@ -54,7 +54,8 @@ struct CompanyFeedView: View {
                   }
                 }
               }
-              .padding(.vertical, 12)
+              .padding(.top, 2)
+              .padding(.bottom, 12)
             }
             .refreshable {
               if store.isLiveBackend { await store.loadLiveData() }
@@ -65,9 +66,6 @@ struct CompanyFeedView: View {
       }
       .navigationTitle("Team")
       .toolbar {
-        ToolbarItem(placement: .topBarLeading) {
-          LivePill()
-        }
         ToolbarItem(placement: .topBarTrailing) {
           Button {
             showCall = true
@@ -362,20 +360,28 @@ struct FeedAuthorHeader: View {
 struct FeedPhotoGrid: View {
   let symbols: [String]
 
+  /// Every feed photo renders at this fixed height so all posts are uniform and
+  /// nothing overflows the card, regardless of the source image dimensions.
+  private let photoHeight: CGFloat = 300
+
   private var scenes: [SiteScene] { symbols.map { SiteScene(key: $0) } }
 
   var body: some View {
     if scenes.count == 1, let scene = scenes.first {
       SitePhotoImage(scene: scene)
-        .aspectRatio(1, contentMode: .fit)
+        .frame(maxWidth: .infinity)
+        .frame(height: photoHeight)
+        .clipped()
     } else {
       TabView {
         ForEach(Array(scenes.enumerated()), id: \.offset) { _, scene in
           SitePhotoImage(scene: scene)
+            .frame(maxWidth: .infinity)
+            .clipped()
         }
       }
       .tabViewStyle(.page(indexDisplayMode: .automatic))
-      .aspectRatio(1, contentMode: .fit)
+      .frame(height: photoHeight)
     }
   }
 }

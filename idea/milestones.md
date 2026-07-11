@@ -15,11 +15,13 @@
 - [x] Apple 5.1.1: in-app Delete my account flow
 - [x] Team feed (company group chat): posts, photos, acknowledgements, comments across all roles
 - [x] Team feed is the default/first tab on app open across all three roles
+- [x] Team feed: removed top-left LIVE pill so the feed uses the full width
+- [x] Team feed: uniform fixed-height feed photos (no overflow) + tighter top spacing for more feed room
 - [x] Demo Mode: always-available role-picker entry from login
-- [x] Demo Mode: richer content — extra seeded feed posts (photos + comments), live stats row, real site-photo strip, and "what's inside" info card
-- [x] Rebrand: MYSite logo + seamless blend (screen blend on dark, ambient halo)
+- [x] Demo Mode: richer content — extra seeded feed posts, live stats row, site-photo strip, info card
+- [x] Rebrand: MYSite logo + seamless blend
 - [x] Calls: in-app 1:1 + group call overlay (CallService)
-- [x] Feed: per-site filter chips + LIVE pill + pull-to-refresh
+- [x] Feed: per-site filter chips + pull-to-refresh
 - [x] Admin: "Work by Trade" tab
 - [x] Advertise AI receipt scanning → Hubdoc/Xero across login, demo mode, Add Materials
 - [ ] Calls: wire real telephony (CallKit + VoIP provider)
