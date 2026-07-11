@@ -16,8 +16,10 @@
 - [x] Team feed (company group chat): posts, photos, acknowledgements, comments across all roles
 - [x] Team feed is the default/first tab on app open across all three roles
 - [x] Team feed: uniform fixed-height feed photos + tighter top spacing for more feed room
+- [x] Team feed: author header truncates long names/site labels so posts stay within screen width
 - [x] Streamline navigation: consistent 5-tab layout per role + reusable More hub
 - [x] Streamline pass 2: global "+" create menu, "Needs action" feed filter, invoice/query tab badges
+- [x] Fix invalid SF Symbol: replaced hard.hat with person.bust so site-manager icons render
 - [x] Demo Mode: always-available role-picker entry from login
 - [x] Rebrand: MYSite logo + seamless blend
 - [x] Calls: in-app 1:1 + group call overlay (CallService)

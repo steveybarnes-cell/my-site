@@ -140,7 +140,7 @@ struct AdminDashboardView: View {
           }
           Text(site.address).font(.caption).foregroundStyle(Brand.inkSoft)
           if let sm = site.siteManagerId.flatMap(store.user) {
-            Label(sm.name, systemImage: "hard.hat").font(.caption).foregroundStyle(Brand.inkSoft)
+            Label(sm.name, systemImage: "person.bust").font(.caption).foregroundStyle(Brand.inkSoft)
           }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

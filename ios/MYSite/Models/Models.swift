@@ -10,7 +10,7 @@ enum UserRole: String, Codable, CaseIterable, Identifiable {
   var icon: String {
     switch self {
     case .admin: return "shield.lefthalf.filled"
-    case .siteManager: return "hard.hat"
+    case .siteManager: return "person.bust"
     case .tradesman: return "hammer.fill"
     }
   }

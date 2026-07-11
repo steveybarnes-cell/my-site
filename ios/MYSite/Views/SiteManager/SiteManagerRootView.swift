@@ -155,7 +155,7 @@ struct SiteManagerMoreView: View {
   var body: some View {
     MoreHubView(
       roleTitle: "Site Manager",
-      roleSymbol: "hard.hat",
+      roleSymbol: "person.bust",
       items: [
         MoreHubItem(
           title: "Dashboard",
@@ -194,7 +194,7 @@ struct SiteManagerProfileView: View {
         ScrollView {
           VStack(spacing: 16) {
             VStack(spacing: 8) {
-              Image(systemName: "hard.hat").font(.system(size: 40)).foregroundStyle(.white)
+              Image(systemName: "person.bust").font(.system(size: 40)).foregroundStyle(.white)
               Text(store.currentUser?.name ?? "").font(.title3.bold()).foregroundStyle(.white)
               Text("Site Manager").font(.subheadline).foregroundStyle(.white.opacity(0.75))
             }

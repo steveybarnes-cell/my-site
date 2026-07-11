@@ -116,7 +116,7 @@ struct ManageView: View {
             Brand.inkSoft)
         }
         if let sm = site.siteManagerId.flatMap(store.user) {
-          Label(sm.name, systemImage: "hard.hat").font(.caption2).foregroundStyle(Brand.inkSoft)
+          Label(sm.name, systemImage: "person.bust").font(.caption2).foregroundStyle(Brand.inkSoft)
         }
       }
       HStack {

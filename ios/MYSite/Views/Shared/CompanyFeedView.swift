@@ -350,19 +350,29 @@ struct FeedAuthorHeader: View {
 
       VStack(alignment: .leading, spacing: 2) {
         HStack(spacing: 6) {
-          Text(name).font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
+          Text(name)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(Brand.ink)
+            .lineLimit(1)
+            .truncationMode(.tail)
           StatusChip(text: role.rawValue, color: Brand.olive)
+            .layoutPriority(1)
         }
         HStack(spacing: 6) {
           Text(timestamp.relativeShort)
           if let siteName {
             Text("•")
-            Label(siteName, systemImage: "mappin.and.ellipse").labelStyle(.titleAndIcon)
+            Label(siteName, systemImage: "mappin.and.ellipse")
+              .labelStyle(.titleAndIcon)
+              .lineLimit(1)
+              .truncationMode(.tail)
           }
         }
         .font(.caption)
         .foregroundStyle(Brand.inkSoft)
+        .lineLimit(1)
       }
+      .frame(maxWidth: .infinity, alignment: .leading)
       Spacer(minLength: 8)
 
       if canDelete {

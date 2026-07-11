@@ -60,7 +60,7 @@ struct AllocationDetailView: View {
         InfoRow(label: "Trade", value: live.trade, symbol: "hammer")
         InfoRow(label: "Category", value: live.category.rawValue, symbol: "square.grid.2x2")
         if let sm = live.siteManagerId.flatMap(store.user) {
-          InfoRow(label: "Site manager", value: sm.name, symbol: "hard.hat")
+          InfoRow(label: "Site manager", value: sm.name, symbol: "person.bust")
         }
         if !live.requiredMaterials.isEmpty {
           InfoRow(label: "Materials", value: live.requiredMaterials, symbol: "shippingbox")
