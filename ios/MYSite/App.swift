@@ -16,12 +16,12 @@ struct MPGSiteRecordsApp: App {
   var body: some Scene {
     WindowGroup {
       ContentView()
+        .overlay { CallOverlay() }
         .environment(store)
         .environment(auth)
         .environment(location)
         .environment(call)
         .tint(Brand.olive)
-        .overlay { CallOverlay() }
     }
   }
 }
