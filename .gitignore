@@ -1,10 +1,7 @@
 # 10x:generated-gitignore
 # 10x internal state (chats, snapshots, settings) — kept local; not
-# tracked. The manifest is the single committed marker that lets
-# cloned repos identify themselves as 10x projects.
+# tracked. Root tenx.yaml is the source-controlled project marker.
 .tenx/*
-!.tenx/
-!.tenx/manifest.json
 tenx/
 
 # Generated chat transcript — rewritten on every assistant turn,

@@ -1,0 +1,12 @@
+schemaVersion: 1
+
+project:
+  artifacts:
+    ios:
+      path: ios
+
+appServices:
+  enabled: false
+
+backend:
+  enabled: false
