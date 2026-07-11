@@ -15,8 +15,9 @@
 - [x] Apple 5.1.1: in-app Delete my account flow
 - [x] Launch-safety: demo sign-in re-gated behind #if DEBUG (hidden in App Store build)
 - [x] Launch-safety: Admin site + team-member writes now persist to Supabase (offline-queued)
-- [x] Team feed (company group chat): posts, photos, likes, comments across all roles (local/in-memory)
-- [x] Team feed: Instagram-style layout
+- [x] Team feed (company group chat): posts, photos, acknowledgements, comments across all roles (local/in-memory)
+- [x] Team feed: distinct-from-Instagram design (Acknowledge tick, pill actions, card layout)
+- [x] Team feed: authentic rendered site photos (SiteSceneImage) in feed cards + composer
 - [x] Team feed is the default/first tab on app open across all three roles
 - [x] Demo Mode: always-available role-picker entry from login
 - [x] Device connectivity: baked-in client-safe Supabase URL + publishable key fallbacks

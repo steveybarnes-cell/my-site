@@ -10,7 +10,9 @@ struct FeedComposerView: View {
   @State private var selectedSiteId: UUID?
   @State private var photoSymbols: [String] = []
 
-  private let demoPhotos = ["photo", "photo.fill", "photo.stack", "camera.fill"]
+  private let demoPhotos = [
+    "digOut", "hallwayPaint", "brickwork", "screed", "scaffold", "kitchenFit",
+  ]
 
   var body: some View {
     Group {
@@ -45,25 +47,32 @@ struct FeedComposerView: View {
               VStack(alignment: .leading, spacing: 10) {
                 SectionHeader(title: "Attach photos", subtitle: "Add site photos to your post")
                 LazyVGrid(
-                  columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8
+                  columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8
                 ) {
-                  ForEach(demoPhotos, id: \.self) { symbol in
-                    let on = photoSymbols.contains(symbol)
+                  ForEach(demoPhotos, id: \.self) { key in
+                    let on = photoSymbols.contains(key)
                     Button {
                       if on {
-                        photoSymbols.removeAll { $0 == symbol }
+                        photoSymbols.removeAll { $0 == key }
                       } else {
-                        photoSymbols.append(symbol)
+                        photoSymbols.append(key)
                       }
                     } label: {
-                      Image(systemName: symbol)
-                        .font(.title2)
+                      SiteSceneImage(scene: SiteScene(key: key))
+                        .frame(height: 66)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 58)
-                        .foregroundStyle(on ? .white : Brand.olive)
-                        .background(
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(
                           RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(on ? Brand.olive : Brand.lightGreen.opacity(0.6)))
+                            .stroke(on ? Brand.olive : Brand.hairline, lineWidth: on ? 3 : 1)
+                        )
+                        .overlay(alignment: .topTrailing) {
+                          if on {
+                            Image(systemName: "checkmark.circle.fill")
+                              .foregroundStyle(.white, Brand.olive)
+                              .padding(5)
+                          }
+                        }
                     }
                     .buttonStyle(.plain)
                   }

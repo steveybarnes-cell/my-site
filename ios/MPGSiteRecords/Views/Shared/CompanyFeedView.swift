@@ -76,40 +76,59 @@ struct FeedPostCard: View {
 
       if !post.photoSymbols.isEmpty {
         FeedPhotoGrid(symbols: post.photoSymbols)
+          .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+          .padding(.horizontal, 16)
           .onTapGesture(count: 2) {
             if !liked { withAnimation(.snappy) { store.toggleLike(post.id) } }
           }
       }
 
-      // Instagram-style action bar
-      HStack(spacing: 18) {
+      // Work-team action bar: acknowledge (tick) + reply, styled as pill buttons
+      HStack(spacing: 10) {
         Button {
           withAnimation(.snappy) { store.toggleLike(post.id) }
         } label: {
-          Image(systemName: liked ? "heart.fill" : "heart")
-            .foregroundStyle(liked ? Brand.red : Brand.ink)
-            .symbolEffect(.bounce, value: liked)
+          HStack(spacing: 6) {
+            Image(systemName: liked ? "checkmark.seal.fill" : "checkmark.seal")
+              .symbolEffect(.bounce, value: liked)
+            Text(liked ? "Acknowledged" : "Acknowledge")
+          }
+          .font(.subheadline.weight(.semibold))
+          .foregroundStyle(liked ? .white : Brand.olive)
+          .padding(.horizontal, 14)
+          .padding(.vertical, 8)
+          .background(Capsule().fill(liked ? Brand.olive : Brand.lightGreen))
         }
 
         Button {
           showComments = true
         } label: {
-          Image(systemName: "bubble.right")
-            .foregroundStyle(Brand.ink)
+          HStack(spacing: 6) {
+            Image(systemName: "text.bubble")
+            Text("Reply")
+          }
+          .font(.subheadline.weight(.semibold))
+          .foregroundStyle(Brand.ink)
+          .padding(.horizontal, 14)
+          .padding(.vertical, 8)
+          .background(Capsule().fill(Brand.hairline.opacity(0.4)))
         }
 
         Spacer()
       }
-      .font(.system(size: 22))
       .buttonStyle(.plain)
       .padding(.horizontal, 16)
       .padding(.top, 12)
 
       VStack(alignment: .leading, spacing: 6) {
         if !post.likedBy.isEmpty {
-          Text("\(post.likedBy.count) \(post.likedBy.count == 1 ? "like" : "likes")")
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(Brand.ink)
+          Label(
+            "\(post.likedBy.count) \(post.likedBy.count == 1 ? "person" : "people") acknowledged",
+            systemImage: "checkmark.seal.fill"
+          )
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(Brand.olive)
+          .padding(.top, 4)
         }
 
         if !post.text.isEmpty {
@@ -151,10 +170,16 @@ struct FeedPostCard: View {
       .padding(.horizontal, 16)
       .padding(.top, 8)
     }
-    .padding(.vertical, 14)
-    .background(Brand.surface)
-    .overlay(alignment: .top) { Divider().overlay(Brand.hairline) }
-    .overlay(alignment: .bottom) { Divider().overlay(Brand.hairline) }
+    .padding(.vertical, 16)
+    .background(
+      RoundedRectangle(cornerRadius: 18, style: .continuous)
+        .fill(Brand.surface)
+        .overlay(
+          RoundedRectangle(cornerRadius: 18, style: .continuous)
+            .stroke(Brand.hairline, lineWidth: 1)
+        )
+    )
+    .padding(.horizontal, 14)
     .sheet(isPresented: $showComments) {
       FeedCommentsView(postId: post.id)
     }
@@ -224,32 +249,21 @@ struct FeedAuthorHeader: View {
 struct FeedPhotoGrid: View {
   let symbols: [String]
 
+  private var scenes: [SiteScene] { symbols.map { SiteScene(key: $0) } }
+
   var body: some View {
-    if symbols.count == 1, let symbol = symbols.first {
-      photoTile(symbol)
+    if scenes.count == 1, let scene = scenes.first {
+      SiteSceneImage(scene: scene)
         .aspectRatio(1, contentMode: .fit)
     } else {
       TabView {
-        ForEach(Array(symbols.enumerated()), id: \.offset) { _, symbol in
-          photoTile(symbol)
+        ForEach(Array(scenes.enumerated()), id: \.offset) { _, scene in
+          SiteSceneImage(scene: scene)
         }
       }
       .tabViewStyle(.page(indexDisplayMode: .automatic))
       .aspectRatio(1, contentMode: .fit)
     }
-  }
-
-  private func photoTile(_ symbol: String) -> some View {
-    ZStack {
-      LinearGradient(
-        colors: [Brand.lightGreen, Brand.charcoal.opacity(0.08)],
-        startPoint: .topLeading, endPoint: .bottomTrailing)
-      Image(systemName: symbol)
-        .font(.system(size: 46))
-        .foregroundStyle(Brand.olive.opacity(0.7))
-    }
-    .frame(maxWidth: .infinity)
-    .clipped()
   }
 }
 

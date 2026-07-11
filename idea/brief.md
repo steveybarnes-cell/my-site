@@ -30,7 +30,7 @@ All three role experiences built and navigable end to end.
 - Submission details recorded: support email info@my-project.co.uk, legal seller "My Project Group Limited", App Review phone 0117 251 0565.
 - **Device connectivity fix.** `SupabaseConfig` has both public client-safe values baked in (project URL + publishable/anon key), used after env vars / Info.plist. Fully self-contained for device / TestFlight / App Store builds.
 - **Account deletion (Apple Guideline 5.1.1) — DONE.** `delete-account` Edge Function deployed + ACTIVE; app-side flow + confirmation.
-- **Launch watchdog crash (0x8BADF00D) — FIXED.** Crash report decoded to the iOS watchdog kill with 0% app CPU = main flow blocked on a hanging launch network call. `SupabaseClient` now uses a dedicated `URLSession` (15s request / 25s resource timeout, `waitsForConnectivity = false`); `AuthManager.restore()` is wrapped in a hard 12s cap that resolves cleanly to the login screen if the session refresh stalls, so launch can never freeze on the "restoring" spinner and get killed on background.
+- **Launch watchdog crash (0x8BADF00D) — FIXED.** `SupabaseClient` uses a dedicated `URLSession` (15s request / 25s resource timeout, `waitsForConnectivity = false`); `AuthManager.restore()` wrapped in a hard 12s cap that resolves cleanly to the login screen if the session refresh stalls.
 
 ### Blocked on user
 - **App Store Connect fields**: Support URL, Privacy Policy URL, seller, App Review phone (Prefill).
@@ -42,7 +42,9 @@ All three role experiences built and navigable end to end.
 
 ## PHASE 5 — Team feed / company group chat (local demo)
 - **Models:** `FeedPost` + `FeedComment` in `Models/CompanyFeed.swift`.
-- **UI:** `CompanyFeedView` (Instagram-style), `FeedComposerView`, `FeedCommentsView`.
+- **UI:** `CompanyFeedView`, `FeedComposerView`, `FeedCommentsView`.
+- **Distinct-from-Instagram design.** Brand-green **Acknowledge** tick (`checkmark.seal`) instead of a red heart, labelled **Acknowledge / Reply** pill buttons, "N people acknowledged" wording, and distinct rounded card posts (18pt corners, hairline border, inset rounded photos). Double-tap-to-acknowledge on photos retained (generic gesture).
+- **Authentic rendered photos.** `Components/SiteSceneImage.swift` renders believable construction scenes entirely in SwiftUI (no bundled/copyright images): trench dig-out with hi-vis worker, painted hallway in perspective with step ladder, bonded brick wall, wet screed with trowel lines, scaffolded elevation, kitchen fit-out. Each has a photo vignette + on-site timestamp watermark. Used in feed card carousels and the composer's photo picker (with selected tick). `SiteScene(key:)` maps seed keys (and legacy `photo`/`photo.fill`/`photo.stack`) to scenes.
 - **Navigation:** "Team" tab is the default/first tab on app open in all three role root views.
 - **Scope note:** Currently local/in-memory only — resets on relaunch, no cross-device sync yet.
 

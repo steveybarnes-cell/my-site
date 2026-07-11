@@ -336,7 +336,7 @@ extension AppStore {
         authorId: dan.id, authorName: dan.name, authorRole: .tradesman,
         text:
           "Rear utility dig-out done at Clifton Village. Ready for the sub-base tomorrow. Photos attached for the variation.",
-        photoSymbols: ["photo.fill", "photo.stack"], siteId: clifton.id, timestamp: hrsAgo(20),
+        photoSymbols: ["digOut", "screed"], siteId: clifton.id, timestamp: hrsAgo(20),
         likedBy: [paulSM.id, steve.id],
         comments: [
           FeedComment(
@@ -353,7 +353,8 @@ extension AppStore {
       FeedPost(
         authorId: brandon.id, authorName: brandon.name, authorRole: .tradesman,
         text: "Communal hallway second coat finished at Marlborough. Looking clean ✨",
-        photoSymbols: ["photo", "photo.fill"], siteId: marlborough.id, timestamp: minsAgo(45),
+        photoSymbols: ["hallwayPaint", "kitchenFit"], siteId: marlborough.id,
+        timestamp: minsAgo(45),
         likedBy: [jenny.id, steve.id, mike.id],
         comments: [
           FeedComment(
