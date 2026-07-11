@@ -21,7 +21,10 @@ struct DemoModeView: View {
         ScrollView {
           VStack(spacing: 18) {
             banner
+            statsRow
+            photoStrip
             aiReceiptCard
+            insideCard
 
             VStack(alignment: .leading, spacing: 14) {
               SectionHeader(
@@ -107,6 +110,93 @@ struct DemoModeView: View {
       RoundedRectangle(cornerRadius: 16, style: .continuous)
         .stroke(Brand.olive.opacity(0.3), lineWidth: 1)
     )
+  }
+
+  private var statsRow: some View {
+    HStack(spacing: 10) {
+      demoStat(value: "\(store.sites.count)", label: "Live sites", icon: "building.2.fill")
+      demoStat(
+        value: "\(store.users.filter { $0.active }.count)", label: "Team", icon: "person.2.fill")
+      demoStat(
+        value: "\(store.feedPosts.count)", label: "Feed posts",
+        icon: "bubble.left.and.bubble.right.fill")
+      demoStat(value: "\(store.photos.count)", label: "Site photos", icon: "photo.fill")
+    }
+  }
+
+  private func demoStat(value: String, label: String, icon: String) -> some View {
+    VStack(spacing: 5) {
+      Image(systemName: icon)
+        .font(.callout)
+        .foregroundStyle(Brand.olive)
+      Text(value)
+        .font(.title3.weight(.bold))
+        .foregroundStyle(Brand.ink)
+      Text(label)
+        .font(.caption2)
+        .foregroundStyle(Brand.inkSoft)
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
+    }
+    .frame(maxWidth: .infinity)
+    .padding(.vertical, 14)
+    .background(Brand.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Brand.hairline, lineWidth: 1))
+  }
+
+  private var photoStrip: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      SectionHeader(
+        title: "Real site photos",
+        subtitle: "The kind of evidence the team logs every day")
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 10) {
+          ForEach(SiteScene.allCases, id: \.self) { scene in
+            SiteSceneImage(scene: scene)
+              .frame(width: 150, height: 104)
+              .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+          }
+        }
+      }
+    }
+    .mpgCard()
+  }
+
+  private var insideCard: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      SectionHeader(
+        title: "What's inside the demo",
+        subtitle: "Fully working with sample company data")
+      insideRow(
+        "bubble.left.and.bubble.right.fill", "Team feed",
+        "Post updates, photos, comments and acknowledgements")
+      insideRow(
+        "list.clipboard.fill", "Daily site records", "Log allocated work, hours and materials")
+      insideRow(
+        "sterlingsign.circle.fill", "Weekly invoices",
+        "Standard invoice + timesheet submission and approvals")
+      insideRow(
+        "folder.fill", "Site files hub", "Drawings, certificates, receipts and handover packs")
+      insideRow(
+        "chart.bar.fill", "Admin dashboard", "Company-wide stats, work by trade and sign-off")
+    }
+    .mpgCard()
+  }
+
+  private func insideRow(_ icon: String, _ title: String, _ subtitle: String) -> some View {
+    HStack(alignment: .top, spacing: 12) {
+      Image(systemName: icon)
+        .font(.callout)
+        .foregroundStyle(Brand.olive)
+        .frame(width: 30, height: 30)
+        .background(Brand.lightGreen, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+      VStack(alignment: .leading, spacing: 2) {
+        Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
+        Text(subtitle).font(.caption).foregroundStyle(Brand.inkSoft)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      Spacer(minLength: 0)
+    }
   }
 
   private var banner: some View {

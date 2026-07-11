@@ -361,6 +361,50 @@ extension AppStore {
             authorId: jenny.id, authorName: jenny.name, text: "Looks brilliant 👏",
             timestamp: minsAgo(30))
         ]),
+      FeedPost(
+        authorId: mike.id, authorName: mike.name, authorRole: .tradesman,
+        text:
+          "Brickwork to the rear extension up to DPC at Clifton. Blockwork inner leaf going in this afternoon. On programme.",
+        photoSymbols: ["brickwork", "screed"], siteId: clifton.id, timestamp: hrsAgo(9),
+        likedBy: [steve.id, paulSM.id, jenny.id],
+        comments: [
+          FeedComment(
+            authorId: steve.id, authorName: steve.name,
+            text: "Good progress Mike 👌 keep the photos coming for the handover file.",
+            timestamp: hrsAgo(8)),
+          FeedComment(
+            authorId: paulSM.id, authorName: paulSM.name,
+            text: "Sand & cement delivery booked for 7am tomorrow.", timestamp: hrsAgo(7)),
+        ]),
+      FeedPost(
+        authorId: paulSM.id, authorName: paulSM.name, authorRole: .siteManager,
+        text:
+          "Scaffold inspection tag updated on Redcliffe — signed off and safe to use. Weekly check due next Friday.",
+        photoSymbols: ["scaffold"], siteId: redcliffe.id, timestamp: hrsAgo(4),
+        likedBy: [steve.id, mike.id, dan.id],
+        comments: []),
+      FeedPost(
+        authorId: steve.id, authorName: steve.name, authorRole: .admin,
+        text:
+          "Reminder 📋 weekly invoices + timesheets in by Friday 5pm please so I can get everyone paid Monday. Receipts through the scanner as you go — don't let them pile up!",
+        photoSymbols: [], siteId: nil, timestamp: hrsAgo(3),
+        likedBy: [mike.id, dan.id, brandon.id, jenny.id, paulSM.id],
+        comments: [
+          FeedComment(
+            authorId: dan.id, authorName: dan.name,
+            text: "Mine's already in 👍", timestamp: hrsAgo(2))
+        ]),
+      FeedPost(
+        authorId: brandon.id, authorName: brandon.name, authorRole: .tradesman,
+        text:
+          "New kitchen units landed at Marlborough — carcasses in, worktops templated. Should be finished by end of week.",
+        photoSymbols: ["kitchenFit"], siteId: marlborough.id, timestamp: minsAgo(20),
+        likedBy: [jenny.id, steve.id],
+        comments: [
+          FeedComment(
+            authorId: jenny.id, authorName: jenny.name,
+            text: "Client will be made up with that 🙌", timestamp: minsAgo(12))
+        ]),
     ]
   }
 }

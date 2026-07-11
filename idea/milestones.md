@@ -13,31 +13,17 @@
 - [x] Admin Manage tab: add/edit sites, team members, and work allocations in-app
 - [x] AI receipt scan LIVE + take-off review sheet (graceful manual-entry fallback if scan fails)
 - [x] Apple 5.1.1: in-app Delete my account flow
-- [x] Launch-safety: demo sign-in re-gated behind #if DEBUG (hidden in App Store build)
-- [x] Launch-safety: Admin site + team-member writes now persist to Supabase (offline-queued)
-- [x] Team feed (company group chat): posts, photos, acknowledgements, comments across all roles (local/in-memory)
-- [x] Team feed: distinct-from-Instagram design (Acknowledge tick, pill actions, card layout)
-- [x] Team feed: authentic rendered site photos (SiteSceneImage) in feed cards + composer
-- [x] Team feed: real construction photographs loaded from the internet at runtime (SitePhotoImage) with rendered-scene placeholder/offline fallback
+- [x] Team feed (company group chat): posts, photos, acknowledgements, comments across all roles
 - [x] Team feed is the default/first tab on app open across all three roles
 - [x] Demo Mode: always-available role-picker entry from login
-- [x] Device connectivity: baked-in client-safe Supabase URL + publishable key fallbacks
-- [x] Launch stability: fixed 0x8BADF00D watchdog crash — short URLSession timeouts + 12s cap on restore()
-- [x] User: add OPENAI_API_KEY in Backend > Secrets so AI receipt scan works live
-- [x] Rebrand: MPGLogo rebuilt as stacked MY Site lockup (hard-hat-on-roofline mark, heavy green MY, wide-tracked SITE) matching the brand sheet
-- [x] Rebrand: MPGLogo renders the real bundled logo image asset everywhere (login/header/loading/feed), with drawn vector as fallback
-- [x] Rebrand: fixed logo asset name mismatch — code now references the exact case-sensitive asset name "MYSiteLOGO"
-- [x] Rebrand: logo blends seamlessly into the app — screen blend on dark surfaces (no box/border) + soft ambient halo
-- [x] Calls: in-app call a team member + group call (CallService + full-screen CallOverlay/CallScreen, mute/speaker/timer)
-- [x] Calls: fixed "No Observable object of type CallService found" launch crash — CallOverlay now lives inside the .environment(call) scope via RootContainer
-- [x] Calls: fixed CallService crash when opening the call sheet from the feed — CompanyFeedView re-injects CallService into the presented StartCallView sheet
-- [x] Feed: per-site filter chip bar (photos + updates scoped to a selected site)
-- [x] Feed: LIVE pill + 5s timestamp tick + pull-to-refresh (live reload when backend connected)
-- [x] Admin: "Work by Trade" tab — pick a trade, see the crew + combined records/allocations/photos timeline
-- [x] Advertise AI receipt scanning → Hubdoc/Xero across login, demo mode, and the Add Materials form
-- [ ] Rebrand follow-up: decide whether to update visible "MPG"/"My Project Group" copy
-- [ ] Calls: wire real telephony (CallKit + VoIP provider) behind CallService.start/end — currently a modelled in-app call
-- [ ] Team feed: wire to Supabase (feed_posts/feed_comments + RLS) + real photo uploads for cross-device sync
+- [x] Demo Mode: richer content — extra seeded feed posts (photos + comments), live stats row, real site-photo strip, and "what's inside" info card
+- [x] Rebrand: MYSite logo + seamless blend (screen blend on dark, ambient halo)
+- [x] Calls: in-app 1:1 + group call overlay (CallService)
+- [x] Feed: per-site filter chips + LIVE pill + pull-to-refresh
+- [x] Admin: "Work by Trade" tab
+- [x] Advertise AI receipt scanning → Hubdoc/Xero across login, demo mode, Add Materials
+- [ ] Calls: wire real telephony (CallKit + VoIP provider)
+- [ ] Team feed: wire to Supabase (feed_posts/feed_comments + RLS) + real photo uploads
 - [ ] User: select development Team in Xcode Signing & Capabilities to build to device
 - [ ] Publishing: attach build + Contact Info in App Store Connect, then submit
 - [ ] Post-launch: push notifications (New work / Invoice queried / Timesheet paid)
