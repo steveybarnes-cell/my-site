@@ -27,6 +27,7 @@
 - [x] Rebrand: MPGLogo rebuilt as stacked MY Site lockup (hard-hat-on-roofline mark, heavy green MY, wide-tracked SITE) matching the brand sheet
 - [x] Rebrand: MPGLogo renders the real bundled logo image asset everywhere (login/header/loading/feed), with drawn vector as fallback
 - [x] Rebrand: fixed logo asset name mismatch — code now references the exact case-sensitive asset name "MYSiteLOGO"
+- [x] Rebrand: logo blends seamlessly into the app — screen blend on dark surfaces (no box/border) + soft ambient halo
 - [x] Calls: in-app call a team member + group call (CallService + full-screen CallOverlay/CallScreen, mute/speaker/timer)
 - [x] Calls: fixed "No Observable object of type CallService found" launch crash — CallOverlay now lives inside the .environment(call) scope via RootContainer
 - [x] Calls: fixed CallService crash when opening the call sheet from the feed — CompanyFeedView re-injects CallService into the presented StartCallView sheet

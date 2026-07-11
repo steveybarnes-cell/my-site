@@ -94,16 +94,38 @@ struct MPGLogo: View {
 
   var body: some View {
     if hasImageAsset {
-      // Your exact uploaded artwork. The lockup is ~1.7x tall relative to the
-      // requested cap `height`, so size the frame from that.
-      Image("MYSiteLOGO")
-        .resizable()
-        .scaledToFit()
-        .frame(height: height * 1.7)
-        .accessibilityLabel("MY Site")
+      brandedImage
     } else {
       drawnLockup
     }
+  }
+
+  /// Your exact uploaded artwork, styled to blend seamlessly into the app.
+  /// The lockup is ~1.7x tall relative to the requested cap `height`.
+  private var brandedImage: some View {
+    let displayHeight = height * 1.7
+    return Image("MYSiteLOGO")
+      .resizable()
+      .scaledToFit()
+      .frame(height: displayHeight)
+      // On dark surfaces, `.screen` lets a dark image background dissolve into
+      // the charcoal so there is no visible box/border around the mark.
+      .blendMode(onDark ? .screen : .normal)
+      // Soft ambient halo so the mark feels integrated, not pasted on.
+      .background(
+        RadialGradient(
+          colors: [
+            (onDark ? Brand.logoGreen : Brand.olive).opacity(onDark ? 0.28 : 0.14),
+            .clear,
+          ],
+          center: .center,
+          startRadius: 0,
+          endRadius: displayHeight * 0.85
+        )
+        .blur(radius: displayHeight * 0.22)
+        .allowsHitTesting(false)
+      )
+      .accessibilityLabel("MY Site")
   }
 
   /// Hand-drawn vector fallback used until the "MYSiteLogo" asset is added.
