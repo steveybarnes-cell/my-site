@@ -25,6 +25,7 @@
 - [x] Launch stability: fixed 0x8BADF00D watchdog crash — short URLSession timeouts + 12s cap on restore()
 - [x] User: add OPENAI_API_KEY in Backend > Secrets so AI receipt scan works live
 - [x] Rebrand: MPGLogo rebuilt as stacked MY Site lockup (hard-hat-on-roofline mark, heavy green MY, wide-tracked SITE) matching the brand sheet
+- [x] Rebrand: MPGLogo now renders the real bundled MYSiteLogo image asset everywhere (login/header/loading/feed), with drawn vector as fallback
 - [x] Calls: in-app call a team member + group call (CallService + full-screen CallOverlay/CallScreen, mute/speaker/timer)
 - [x] Calls: fixed "No Observable object of type CallService found" launch crash — CallOverlay now lives inside the .environment(call) scope via RootContainer
 - [x] Calls: fixed CallService crash when opening the call sheet from the feed — CompanyFeedView re-injects CallService into the presented StartCallView sheet
@@ -32,7 +33,7 @@
 - [x] Feed: LIVE pill + 5s timestamp tick + pull-to-refresh (live reload when backend connected)
 - [x] Admin: "Work by Trade" tab — pick a trade, see the crew + combined records/allocations/photos timeline
 - [x] Advertise AI receipt scanning → Hubdoc/Xero across login, demo mode, and the Add Materials form
-- [ ] Rebrand follow-up: regenerate app icon from MY Site mark; decide whether to update visible "MPG"/"My Project Group" copy
+- [ ] Rebrand follow-up: decide whether to update visible "MPG"/"My Project Group" copy
 - [ ] Calls: wire real telephony (CallKit + VoIP provider) behind CallService.start/end — currently a modelled in-app call
 - [ ] Team feed: wire to Supabase (feed_posts/feed_comments + RLS) + real photo uploads for cross-device sync
 - [ ] User: select development Team in Xcode Signing & Capabilities to build to device

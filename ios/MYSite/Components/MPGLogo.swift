@@ -87,9 +87,29 @@ struct MPGLogo: View {
 
   private var inkColor: Color { onDark ? .white : Brand.ink }
 
+  /// True when the real "MYSiteLogo" image asset is present in the bundle.
+  private var hasImageAsset: Bool {
+    UIImage(named: "MYSiteLogo") != nil
+  }
+
   var body: some View {
+    if hasImageAsset {
+      // Your exact uploaded artwork. The lockup is ~1.7x tall relative to the
+      // requested cap `height`, so size the frame from that.
+      Image("MYSiteLogo")
+        .resizable()
+        .scaledToFit()
+        .frame(height: height * 1.7)
+        .accessibilityLabel("MY Site")
+    } else {
+      drawnLockup
+    }
+  }
+
+  /// Hand-drawn vector fallback used until the "MYSiteLogo" asset is added.
+  private var drawnLockup: some View {
     let s = height
-    VStack(spacing: s * 0.06) {
+    return VStack(spacing: s * 0.06) {
       MYSiteMark(stroke: inkColor)
         .frame(width: s * 1.5, height: s * 0.72)
 
