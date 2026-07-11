@@ -15,13 +15,23 @@ struct MPGSiteRecordsApp: App {
 
   var body: some Scene {
     WindowGroup {
-      ContentView()
-        .overlay { CallOverlay() }
+      RootContainer()
         .environment(store)
         .environment(auth)
         .environment(location)
         .environment(call)
         .tint(Brand.olive)
+    }
+  }
+}
+
+/// Hosts the app content and the cross-tab call overlay together, so the overlay
+/// is guaranteed to be a descendant of the `.environment(call)` injection above.
+private struct RootContainer: View {
+  var body: some View {
+    ZStack {
+      ContentView()
+      CallOverlay()
     }
   }
 }

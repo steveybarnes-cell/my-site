@@ -26,6 +26,8 @@
 - [x] User: add OPENAI_API_KEY in Backend > Secrets so AI receipt scan works live
 - [x] Rebrand: new "MY Site" in-app logo (green MY, hard-hat-on-roofline mark, "Site") in MPGLogo, dark/light adaptable
 - [x] Calls: in-app call a team member + group call (CallService + full-screen CallOverlay/CallScreen, mute/speaker/timer)
+- [x] Calls: fixed "No Observable object of type CallService found" launch crash — CallOverlay now lives inside the .environment(call) scope via RootContainer
+- [x] Calls: fixed CallService crash when opening the call sheet from the feed — CompanyFeedView re-injects CallService into the presented StartCallView sheet
 - [x] Feed: per-site filter chip bar (photos + updates scoped to a selected site)
 - [x] Feed: LIVE pill + 5s timestamp tick + pull-to-refresh (live reload when backend connected)
 - [x] Admin: "Work by Trade" tab — pick a trade, see the crew + combined records/allocations/photos timeline
