@@ -12,24 +12,15 @@ struct SiteManagerRootView: View {
         Tab("My Sites", systemImage: "mappin.and.ellipse") {
           SiteManagerSitesView()
         }
-        Tab("Dashboard", systemImage: "square.grid.2x2.fill") {
-          DashboardView()
-        }
         Tab("Records", systemImage: "list.clipboard.fill") {
           SiteManagerRecordsView()
-        }
-        Tab("Attendance", systemImage: "location.fill.viewfinder") {
-          AttendanceView()
-        }
-        Tab("Files", systemImage: "folder.fill") {
-          FilesView()
         }
         Tab("Alerts", systemImage: "bell.fill") {
           NotificationsView()
         }
         .badge(store.unreadCount)
-        Tab("Profile", systemImage: "person.crop.circle.fill") {
-          SiteManagerProfileView()
+        Tab("More", systemImage: "ellipsis.circle.fill") {
+          SiteManagerMoreView()
         }
       }
     }
@@ -154,6 +145,41 @@ struct SiteManagerRecordsView: View {
       }
       .navigationTitle("Site Records")
     }
+  }
+}
+
+// MARK: - More hub
+
+struct SiteManagerMoreView: View {
+  var body: some View {
+    MoreHubView(
+      roleTitle: "Site Manager",
+      roleSymbol: "hard.hat",
+      items: [
+        MoreHubItem(
+          title: "Dashboard",
+          subtitle: "Site metrics & overview",
+          symbol: "square.grid.2x2.fill"
+        ) { DashboardView() },
+        MoreHubItem(
+          title: "Attendance",
+          subtitle: "Clock-ins, geofence & approvals",
+          symbol: "location.fill.viewfinder",
+          tint: Brand.blue
+        ) { AttendanceView() },
+        MoreHubItem(
+          title: "Files",
+          subtitle: "Site file hub & registers",
+          symbol: "folder.fill"
+        ) { FilesView() },
+        MoreHubItem(
+          title: "Profile",
+          subtitle: "Contact details & log out",
+          symbol: "person.crop.circle.fill",
+          tint: Brand.charcoal
+        ) { SiteManagerProfileView() },
+      ]
+    )
   }
 }
 

@@ -28,9 +28,7 @@ All three role experiences built and navigable end to end.
 - Admin role confirmed (Steve, info@my-project.co.uk).
 - Production Audit complete.
 - Submission details recorded: support email info@my-project.co.uk, legal seller "My Project Group Limited", App Review phone 0117 251 0565.
-- **Device connectivity fix.** `SupabaseConfig` has both public client-safe values baked in (project URL + publishable/anon key), used after env vars / Info.plist.
-- **Account deletion (Apple Guideline 5.1.1) — DONE.** `delete-account` Edge Function deployed + ACTIVE; app-side flow + confirmation.
-- **Launch watchdog crash (0x8BADF00D) — FIXED.** Dedicated `URLSession` (15s/25s timeouts); `AuthManager.restore()` wrapped in a hard 12s cap.
+- Device connectivity fix; account deletion (5.1.1); launch watchdog crash fixed.
 
 ### Blocked on user
 - App Store Connect fields (Support URL, Privacy Policy URL, seller, App Review phone) + five legal sign-offs.
@@ -38,8 +36,7 @@ All three role experiences built and navigable end to end.
 
 ## PHASE 5 — Team feed / company group chat (local demo)
 - **Models:** `FeedPost` + `FeedComment` in `Models/CompanyFeed.swift`.
-- **UI:** `CompanyFeedView`, `FeedComposerView`, `FeedCommentsView`.
-- Distinct-from-Instagram design (Acknowledge tick, pill actions, card posts, rendered/real site photos).
+- **UI:** `CompanyFeedView`, `FeedComposerView`, `FeedCommentsView`. Per-site filter chips, pull-to-refresh, uniform fixed-height feed photos.
 - **Team** tab is the default/first tab on app open in all three role root views.
 - Currently local/in-memory only — resets on relaunch, no cross-device sync yet.
 
@@ -47,22 +44,28 @@ All three role experiences built and navigable end to end.
 - Always-available Demo Mode via "Explore in Demo Mode" on `LoginView` → `Views/DemoModeView.swift`.
 
 ## PHASE 7 — Communication + visibility upgrades (local/mock)
-- **In-app calling.** `Models/CallService.swift` (@Observable) drives a modelled VoIP flow (ringing → connected → live timer, mute/speaker/end). `Views/Shared/CallView.swift`: `CallOverlay` (top-level, cross-tab), `CallScreen`, `StartCallView`. Scope note: modelled call, no real telephony yet.
-- **Per-site feed filter.** `AppStore.feed(siteId:)` + `SiteFilterBar`/`FilterChip` chip row scopes feed to one site.
-- **Live feed feel.** `LivePill`, 5s `Timer.publish` tick, pull-to-refresh (reloads Supabase when `isLiveBackend`).
-- **Admin "Work by Trade".** `TradeWorkFeedView` + **Trades** tab; unified `TradeWorkItem` timeline per trade.
+- **In-app calling** (`CallService`), **per-site feed filter**, **live feed feel**, **Admin Work by Trade**.
 
-## PHASE 8 — Advertise AI receipt automation (NEW)
-- Made the AI receipt scanning + automatic Hubdoc/Xero upload a headline, user-visible value prop:
-  - **LoginView** — charcoal feature card under the logo: "AI receipt scanning", a `Photograph → AI reads it → Hubdoc / Xero` flow row, and supporting copy ("scanned and uploaded to Hubdoc and Xero automatically — no more lost paperwork or manual data entry").
-  - **DemoModeView** — matching light `aiReceiptCard` so demo explorers see the same promise.
-  - **MaterialFormView** — receipt section header subtitle now states the automatic scan + Hubdoc/Xero upload at the point of capture (in addition to the existing live auto-send status label).
-- Copy only; underlying scan (`ReceiptScanService`) and Xero push already exist. Auto-upload fires when Xero is connected; otherwise the "connect Xero" prompt still shows.
+## PHASE 8 — Advertise AI receipt automation
+- AI receipt scanning + auto Hubdoc/Xero upload surfaced across LoginView, DemoModeView, MaterialFormView.
 
-### Deferred / Next
+## PHASE 9 — Navigation streamlining (NEW — done)
+- **Problem:** each role had 7-9 tabs, overflowing into iOS's auto-generated "More" list and making the app hard to navigate.
+- **Fix:** consolidated every role to a consistent **5-tab** layout so muscle memory carries across roles. Team is always first; Alerts (with unread badge) is always fourth; More is always fifth.
+  - **Tradesman:** Team · Today · Files · Alerts · More
+  - **Admin:** Team · Dashboard · Invoices · Alerts · More
+  - **Site Manager:** Team · My Sites · Records · Alerts · More
+- **New reusable `MoreHubView`** (`Views/Shared/MoreHubView.swift`) with `MoreHubItem` — a scannable secondary-navigation hub (icon, title, subtitle, optional badge, chevron) collecting less-frequent areas in one predictable place:
+  - Tradesman More → My Records, Invoices & Timesheets, Profile
+  - Admin More → Manage, Work by Trade, Attendance, Files, Profile & Integrations
+  - Site Manager More → Dashboard, Attendance, Files, Profile
+
+### Deferred / Next (streamline pass 2, recommended)
+- Global "+" create action (New post / Photo / Receipt / Daily record / Timesheet).
+- Feed "Needs action / Unread" filter + pin queried invoices/urgent items.
+- Tab badge counts for invoices to approve, timesheets to pay, open queries.
 - Wire in-app calling to real telephony (CallKit + VoIP provider).
 - Wire Team feed to Supabase (`feed_posts` / `feed_comments` + RLS) with real photo uploads for cross-device sync.
-- Regenerate app icon from the MY Site mark; decide on remaining "MPG"/"My Project Group" copy.
 - Push notifications, optional branded web portal.
 
 ### Design

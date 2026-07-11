@@ -12,25 +12,51 @@ struct TradesmanRootView: View {
         Tab("Today", systemImage: "sun.max.fill") {
           TradesmanTodayView()
         }
-        Tab("Records", systemImage: "list.clipboard.fill") {
-          TradesmanRecordsView()
-        }
         Tab("Files", systemImage: "folder.fill") {
           FilesView()
-        }
-        Tab("Invoices", systemImage: "sterlingsign.circle.fill") {
-          TradesmanSubmissionsView()
         }
         Tab("Alerts", systemImage: "bell.fill") {
           NotificationsView()
         }
         .badge(store.unreadCount)
-        Tab("Profile", systemImage: "person.crop.circle.fill") {
-          ProfileView()
+        Tab("More", systemImage: "ellipsis.circle.fill") {
+          TradesmanMoreView()
         }
       }
     }
     .__tenxTrackView("TradesmanRootView")
+  }
+}
+
+// MARK: - More hub
+
+struct TradesmanMoreView: View {
+  @Environment(AppStore.self) private var store
+
+  var body: some View {
+    MoreHubView(
+      roleTitle: "Tradesman",
+      roleSymbol: "hammer.fill",
+      items: [
+        MoreHubItem(
+          title: "My Records",
+          subtitle: "Daily records, photos & materials",
+          symbol: "list.clipboard.fill"
+        ) { TradesmanRecordsView() },
+        MoreHubItem(
+          title: "Invoices & Timesheets",
+          subtitle: "Submit and track weekly pay",
+          symbol: "sterlingsign.circle.fill",
+          tint: Brand.blue
+        ) { TradesmanSubmissionsView() },
+        MoreHubItem(
+          title: "Profile",
+          subtitle: "Account, contact & log out",
+          symbol: "person.crop.circle.fill",
+          tint: Brand.charcoal
+        ) { ProfileView() },
+      ]
+    )
   }
 }
 

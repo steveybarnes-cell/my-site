@@ -12,31 +12,62 @@ struct AdminRootView: View {
         Tab("Dashboard", systemImage: "square.grid.2x2.fill") {
           DashboardView()
         }
-        Tab("Manage", systemImage: "square.and.pencil") {
-          ManageView()
-        }
-        Tab("Trades", systemImage: "hammer.fill") {
-          TradeWorkFeedView()
-        }
         Tab("Invoices", systemImage: "doc.text.fill") {
           AdminSubmissionsView()
-        }
-        Tab("Attendance", systemImage: "location.fill.viewfinder") {
-          AttendanceView()
-        }
-        Tab("Files", systemImage: "folder.fill") {
-          FilesView()
         }
         Tab("Alerts", systemImage: "bell.fill") {
           NotificationsView()
         }
         .badge(store.unreadCount)
-        Tab("Profile", systemImage: "person.crop.circle.fill") {
-          AdminProfileView()
+        Tab("More", systemImage: "ellipsis.circle.fill") {
+          AdminMoreView()
         }
       }
     }
     .__tenxTrackView("AdminRootView")
+  }
+}
+
+// MARK: - More hub
+
+struct AdminMoreView: View {
+  @Environment(AppStore.self) private var store
+
+  var body: some View {
+    MoreHubView(
+      roleTitle: "Office / Admin",
+      roleSymbol: "shield.lefthalf.filled",
+      items: [
+        MoreHubItem(
+          title: "Manage",
+          subtitle: "Sites, team & work allocations",
+          symbol: "square.and.pencil"
+        ) { ManageView() },
+        MoreHubItem(
+          title: "Work by Trade",
+          subtitle: "Unified timeline per trade",
+          symbol: "hammer.fill",
+          tint: Brand.amber
+        ) { TradeWorkFeedView() },
+        MoreHubItem(
+          title: "Attendance",
+          subtitle: "Clock-ins, geofence & approvals",
+          symbol: "location.fill.viewfinder",
+          tint: Brand.blue
+        ) { AttendanceView() },
+        MoreHubItem(
+          title: "Files",
+          subtitle: "Site file hub & registers",
+          symbol: "folder.fill"
+        ) { FilesView() },
+        MoreHubItem(
+          title: "Profile & Integrations",
+          subtitle: "Xero, team & log out",
+          symbol: "person.crop.circle.fill",
+          tint: Brand.charcoal
+        ) { AdminProfileView() },
+      ]
+    )
   }
 }
 
