@@ -1,12 +1,12 @@
 {
-  "bundleIdentifier" : "app.10x.mpg-site-records",
+  "bundleIdentifier" : "app.10x.my-site",
   "createdWith" : "10x",
-  "icon" : "ios\/MPGSiteRecords\/Assets.xcassets\/AppIcon.appiconset",
-  "name" : "MPG Site Records",
+  "icon" : "ios\/MYSite\/Assets.xcassets\/AppIcon.appiconset",
+  "name" : "MY Site",
   "projectType" : "ios",
   "schemaVersion" : 1,
-  "scheme" : "MPGSiteRecords",
-  "workspaceRoot" : "ios\/MPGSiteRecords",
+  "scheme" : "MYSite",
+  "workspaceRoot" : "ios\/MYSite",
   "xcodeGenSpec" : "ios\/project.yml",
-  "xcodeProject" : "ios\/MPGSiteRecords.xcodeproj"
+  "xcodeProject" : "ios\/MYSite.xcodeproj"
 }
