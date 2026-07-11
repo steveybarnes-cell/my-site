@@ -24,7 +24,7 @@
 - [x] Device connectivity: baked-in client-safe Supabase URL + publishable key fallbacks
 - [x] Launch stability: fixed 0x8BADF00D watchdog crash — short URLSession timeouts + 12s cap on restore()
 - [x] User: add OPENAI_API_KEY in Backend > Secrets so AI receipt scan works live
-- [x] Rebrand: new "MY Site" in-app logo (green MY, hard-hat-on-roofline mark, "Site") in MPGLogo, dark/light adaptable
+- [x] Rebrand: MPGLogo rebuilt as stacked MY Site lockup (hard-hat-on-roofline mark, heavy green MY, wide-tracked SITE) matching the brand sheet
 - [x] Calls: in-app call a team member + group call (CallService + full-screen CallOverlay/CallScreen, mute/speaker/timer)
 - [x] Calls: fixed "No Observable object of type CallService found" launch crash — CallOverlay now lives inside the .environment(call) scope via RootContainer
 - [x] Calls: fixed CallService crash when opening the call sheet from the feed — CompanyFeedView re-injects CallService into the presented StartCallView sheet

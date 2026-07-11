@@ -1,21 +1,22 @@
 import SwiftUI
 
-/// The "MY Site" brand mark: a builder's hard hat resting on a pitched
-/// roofline slash. Drawn as stroked/filled paths so it stays crisp at any
-/// size and needs no bundled image asset.
+/// The "MY Site" brand mark: a builder's hard hat sitting on a pitched
+/// roofline. Drawn as vector paths so it stays crisp at any size and needs
+/// no bundled image asset. Matches the company brand sheet.
 struct MYSiteMark: View {
   /// Colour of the hard hat + roofline.
   var stroke: Color = .black
+
   var body: some View {
     GeometryReader { geo in
       let w = geo.size.width
       let h = geo.size.height
-      let lw = max(2, h * 0.09)
+      let lw = max(2, h * 0.14)
       ZStack {
-        // Pitched roofline: a slash rising to the right, sitting under the hat.
+        // Pitched roofline: an apex peak spanning under the hat.
         RooflineShape()
           .stroke(stroke, style: StrokeStyle(lineWidth: lw, lineCap: .round, lineJoin: .round))
-        // Hard hat.
+        // Hard hat, tilted slightly, resting on the roof apex.
         HardHatShape()
           .fill(stroke)
       }
@@ -24,8 +25,8 @@ struct MYSiteMark: View {
   }
 }
 
-/// A single pitched roof edge (diagonal), rising left→right with a short
-/// eave return at the top, echoing the brand sheet's roof slash.
+/// A pitched roof: rises from the lower-left up to an apex, then a short
+/// slope down to the right — the roofline the hard hat rests on.
 private struct RooflineShape: Shape {
   func path(in rect: CGRect) -> Path {
     let w = rect.width
@@ -34,16 +35,15 @@ private struct RooflineShape: Shape {
       CGPoint(x: rect.minX + x * w, y: rect.minY + y * h)
     }
     var path = Path()
-    // Long roof slope from lower-left up to the apex under the hat.
-    path.move(to: p(0.04, 0.92))
-    path.addLine(to: p(0.62, 0.30))
-    // Short right-hand eave kick.
-    path.addLine(to: p(0.78, 0.44))
+    path.move(to: p(0.02, 0.94))
+    path.addLine(to: p(0.40, 0.42))
+    path.addLine(to: p(0.60, 0.60))
     return path
   }
 }
 
-/// A builder's hard hat: rounded dome, front peak, and a wide brim.
+/// A builder's hard hat: rounded dome with a front peak and a wide brim,
+/// tilted slightly to the right like the brand sheet mark.
 private struct HardHatShape: Shape {
   func path(in rect: CGRect) -> Path {
     let w = rect.width
@@ -53,52 +53,57 @@ private struct HardHatShape: Shape {
     }
     var path = Path()
 
-    // Dome
-    path.move(to: p(0.44, 0.34))
-    path.addCurve(to: p(0.86, 0.34), control1: p(0.46, 0.06), control2: p(0.84, 0.06))
-    // Right brim
-    path.addLine(to: p(0.96, 0.36))
-    path.addQuadCurve(to: p(0.90, 0.42), control: p(0.96, 0.42))
-    path.addLine(to: p(0.40, 0.42))
-    path.addQuadCurve(to: p(0.34, 0.36), control: p(0.34, 0.42))
-    // Left brim back up to dome start
-    path.addLine(to: p(0.44, 0.34))
+    // Dome (rounded top).
+    path.move(to: p(0.42, 0.44))
+    path.addCurve(
+      to: p(0.86, 0.30),
+      control1: p(0.44, 0.10),
+      control2: p(0.82, 0.04))
+    // Down the right side into the brim.
+    path.addLine(to: p(0.90, 0.34))
+    // Right brim tip.
+    path.addQuadCurve(to: p(0.98, 0.40), control: p(0.97, 0.36))
+    path.addQuadCurve(to: p(0.90, 0.46), control: p(0.98, 0.46))
+    // Under-brim back across to the left.
+    path.addLine(to: p(0.40, 0.56))
+    // Left brim tip.
+    path.addQuadCurve(to: p(0.32, 0.52), control: p(0.31, 0.57))
+    path.addQuadCurve(to: p(0.42, 0.44), control: p(0.34, 0.46))
     path.closeSubpath()
     return path
   }
 }
 
-/// "MY Site" logo lockup: green "MY", hard-hat-on-roofline mark, then "Site".
+/// "MY Site" stacked logo lockup: hard-hat-on-roofline mark on top, a heavy
+/// green "MY", then wide-tracked "SITE" underneath — matching the brand sheet.
 /// Kept named `MPGLogo` so existing call sites continue to work.
 struct MPGLogo: View {
-  /// Overall height of the wordmark row.
+  /// Cap height of the large "MY" wordmark. Everything scales from this.
   var height: CGFloat = 72
-  /// Render for a dark background (light text) when true.
+  /// Render for a dark background (light mark + light "SITE") when true.
   var onDark: Bool = true
-  /// Unused now, retained for source compatibility with older call sites.
+  /// Retained for source compatibility with older call sites.
   var showTagline: Bool = false
 
-  private var siteColor: Color { onDark ? .white : Brand.ink }
-  private var markColor: Color { onDark ? .white : Brand.ink }
+  private var inkColor: Color { onDark ? .white : Brand.ink }
 
   var body: some View {
     let s = height
-    HStack(alignment: .firstTextBaseline, spacing: s * 0.16) {
-      Text("MY")
-        .font(.system(size: s * 0.92, weight: .heavy, design: .rounded))
-        .foregroundStyle(Brand.logoGreen)
-        .overlay(alignment: .top) {
-          // Hard-hat + roofline mark sitting above/across the "MY".
-          MYSiteMark(stroke: markColor)
-            .frame(width: s * 1.15, height: s * 0.66)
-            .offset(x: s * 0.18, y: -s * 0.46)
-        }
+    VStack(spacing: s * 0.06) {
+      MYSiteMark(stroke: inkColor)
+        .frame(width: s * 1.5, height: s * 0.72)
 
-      Text("Site")
-        .font(.system(size: s * 0.82, weight: .semibold, design: .rounded))
-        .foregroundStyle(siteColor)
+      Text("MY")
+        .font(.system(size: s, weight: .heavy, design: .rounded))
+        .foregroundStyle(Brand.logoGreen)
+        .kerning(-s * 0.02)
+
+      Text("SITE")
+        .font(.system(size: s * 0.34, weight: .bold, design: .rounded))
+        .kerning(s * 0.22)
+        .foregroundStyle(inkColor)
+        .padding(.top, -s * 0.04)
     }
-    .padding(.top, s * 0.42)
     .fixedSize()
   }
 }
