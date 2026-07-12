@@ -56,10 +56,14 @@ All three role experiences built and navigable end to end.
   - **Site Manager:** Team · My Sites · Records · Alerts · More
 
 ## PHASE 10 — Branding: logo matched to app icon — DONE
-- **Problem:** the in-app `MPGLogo` mark didn't match the real "MY Site" app icon and earlier vector attempts read as generic/photo-like.
-- **Fix:** redrew `MYSiteMark` in `Components/MPGLogo.swift` to match the icon exactly — an open house gable roofline (^) with a rounded black hard hat resting on the peak; hard hat now fills the ink colour (black on light, white on dark) instead of green. Wordmark keeps "MY" green over "SITE" charcoal.
-- Removed the temporary `LogoGalleryView` + `LogoOptions` selection scaffolding and restored the normal login flow in `ContentView`.
-- The updated mark propagates to every `MPGLogo` call site (login, splash, headers).
+- Redrew `MYSiteMark` to the clean roofline gable + "MY" green / "SITE" charcoal wordmark; hard hat removed. Propagates to every `MPGLogo` call site.
+
+## PHASE 11 — Team feed redesign — DONE
+- **Problem:** the main Team feed stretched too wide on screen and did not read as a proper phone feed.
+- **Fix (`Views/Shared/CompanyFeedView.swift`):**
+  - Whole feed constrained to a centred single column (max width 500pt), so it no longer stretches full-bleed on iPad/landscape.
+  - Post card reframed edge-to-edge inside a 20pt rounded card with a tighter 12pt outer margin; media fills the card cleanly with no overflow.
+  - **Unique MPG identity** (distinct from Instagram for copyright): olive accent rail down the leading edge (solid once acknowledged), site tag shown as an olive "location" ribbon capsule, and a square checkmark-seal acknowledge burst on double-tap instead of a heart.
 
 ### Deferred / Next
 - Global "+" create action; feed "Needs action / Unread" filter; tab badge counts.

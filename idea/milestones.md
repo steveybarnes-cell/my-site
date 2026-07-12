@@ -20,6 +20,7 @@
 - [x] Seed data: renamed demo sites to the seven real MPG site addresses
 - [x] Seed data: real MPG team members + sub-contractors
 - [x] Logo: in-app MPGLogo simplified to clean roofline gable + wordmark (hard hat removed)
+- [x] Team feed redesign: centered phone-width column + Instagram-style card with unique MPG identity
 - [ ] Calls: wire real telephony (CallKit + VoIP provider)
 - [ ] Team feed: wire to Supabase (feed_posts/feed_comments + RLS) + real photo uploads
 - [ ] User: select development Team in Xcode Signing & Capabilities to build to device

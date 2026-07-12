@@ -1,7 +1,13 @@
 import SwiftUI
 
 /// Company-wide social feed / group chat. Every role shares the same wall:
-/// text posts, photos (SF Symbol stand-ins), likes and comments.
+/// text posts, photos (SF Symbol stand-ins), acknowledgements and comments.
+///
+/// The whole feed is constrained to a single readable phone-width column that
+/// stays centred on any device, so it never stretches too wide on iPad or in
+/// landscape. Cards are framed edge-to-edge (Instagram-style) but wear MPG's
+/// own identity: an olive accent rail, a site "location" ribbon and a
+/// square-tick acknowledgement action instead of a heart.
 struct CompanyFeedView: View {
   @Environment(AppStore.self) private var store
   @Environment(CallService.self) private var call
@@ -11,6 +17,10 @@ struct CompanyFeedView: View {
   @State private var needsActionOnly = false
   /// Ticks every few seconds to keep relative timestamps fresh (live feel).
   @State private var liveTick = Date()
+
+  /// Maximum content width. Keeps the feed a comfortable single column even on
+  /// wide iPad / landscape layouts rather than stretching full-bleed.
+  private let columnWidth: CGFloat = 500
 
   private let liveTimer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
 
@@ -24,52 +34,7 @@ struct CompanyFeedView: View {
     NavigationStack {
       ZStack {
         MPGBackground()
-        Group {
-          if store.feed.isEmpty {
-            ScrollView {
-              EmptyStateView(
-                symbol: "bubble.left.and.bubble.right",
-                title: "No posts yet",
-                message: "Share an update, a photo from site, or a message for the whole team.",
-                actionTitle: "Create the first post",
-                action: { showComposer = true }
-              )
-              .mpgCard()
-              .padding(16)
-            }
-          } else {
-            ScrollView {
-              LazyVStack(spacing: 22) {
-                SiteFilterBar(selectedSiteId: $selectedSiteId)
-                  .padding(.top, 0)
-
-                if visiblePosts.isEmpty {
-                  EmptyStateView(
-                    symbol: needsActionOnly
-                      ? "checkmark.circle" : "line.3.horizontal.decrease.circle",
-                    title: needsActionOnly ? "You're all caught up" : "Nothing for this site yet",
-                    message: needsActionOnly
-                      ? "No posts are waiting on you. Turn off the filter to see the whole feed."
-                      : "No posts have been tagged to this site. Switch to All to see everything."
-                  )
-                  .mpgCard()
-                  .padding(.horizontal, 14)
-                } else {
-                  ForEach(visiblePosts) { post in
-                    FeedPostCard(post: post)
-                      .id("\(post.id)-\(liveTick.timeIntervalSince1970)")
-                  }
-                }
-              }
-              .padding(.top, 2)
-              .padding(.bottom, 12)
-            }
-            .refreshable {
-              if store.isLiveBackend { await store.loadLiveData() }
-              liveTick = Date()
-            }
-          }
-        }
+        content
       }
       .navigationTitle("Team")
       .toolbar {
@@ -117,6 +82,56 @@ struct CompanyFeedView: View {
       .onReceive(liveTimer) { _ in liveTick = Date() }
     }
     .__tenxTrackView("CompanyFeedView")
+  }
+
+  @ViewBuilder private var content: some View {
+    if store.feed.isEmpty {
+      ScrollView {
+        EmptyStateView(
+          symbol: "bubble.left.and.bubble.right",
+          title: "No posts yet",
+          message: "Share an update, a photo from site, or a message for the whole team.",
+          actionTitle: "Create the first post",
+          action: { showComposer = true }
+        )
+        .mpgCard()
+        .frame(maxWidth: columnWidth)
+        .frame(maxWidth: .infinity)
+        .padding(16)
+      }
+    } else {
+      ScrollView {
+        LazyVStack(spacing: 16) {
+          SiteFilterBar(selectedSiteId: $selectedSiteId)
+
+          if visiblePosts.isEmpty {
+            EmptyStateView(
+              symbol: needsActionOnly
+                ? "checkmark.circle" : "line.3.horizontal.decrease.circle",
+              title: needsActionOnly ? "You're all caught up" : "Nothing for this site yet",
+              message: needsActionOnly
+                ? "No posts are waiting on you. Turn off the filter to see the whole feed."
+                : "No posts have been tagged to this site. Switch to All to see everything."
+            )
+            .mpgCard()
+            .padding(.horizontal, 14)
+          } else {
+            ForEach(visiblePosts) { post in
+              FeedPostCard(post: post)
+                .id("\(post.id)-\(liveTick.timeIntervalSince1970)")
+            }
+          }
+        }
+        .frame(maxWidth: columnWidth)
+        .frame(maxWidth: .infinity)
+        .padding(.top, 6)
+        .padding(.bottom, 16)
+      }
+      .refreshable {
+        if store.isLiveBackend { await store.loadLiveData() }
+        liveTick = Date()
+      }
+    }
   }
 }
 
@@ -179,6 +194,7 @@ struct FilterChip: View {
       Text(title)
         .font(.subheadline.weight(.semibold))
         .foregroundStyle(selected ? .white : Brand.ink)
+        .lineLimit(1)
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
         .background(
@@ -196,6 +212,7 @@ struct FeedPostCard: View {
   @Environment(AppStore.self) private var store
   let post: FeedPost
   @State private var showComments = false
+  @State private var burst = false
 
   private var liked: Bool { store.isLiked(post) }
   private var siteName: String? { post.siteId.flatMap { store.site($0)?.name } }
@@ -208,19 +225,32 @@ struct FeedPostCard: View {
         canDelete: canDelete,
         onDelete: { store.deleteFeedPost(post.id) }
       )
-      .padding(.horizontal, 16)
+      .padding(.horizontal, 14)
+      .padding(.top, 14)
       .padding(.bottom, 12)
 
       if !post.photoSymbols.isEmpty {
-        FeedPhotoGrid(symbols: post.photoSymbols)
-          .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-          .padding(.horizontal, 16)
-          .onTapGesture(count: 2) {
-            if !liked { withAnimation(.snappy) { store.toggleLike(post.id) } }
+        ZStack {
+          FeedPhotoGrid(symbols: post.photoSymbols)
+          // Double-tap acknowledge burst, Instagram-style.
+          Image(systemName: "checkmark.seal.fill")
+            .font(.system(size: 84, weight: .bold))
+            .foregroundStyle(.white)
+            .shadow(radius: 8)
+            .scaleEffect(burst ? 1 : 0.4)
+            .opacity(burst ? 0.9 : 0)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture(count: 2) {
+          if !liked { store.toggleLike(post.id) }
+          withAnimation(.spring(response: 0.35, dampingFraction: 0.5)) { burst = true }
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            withAnimation(.easeOut(duration: 0.25)) { burst = false }
           }
+        }
       }
 
-      // Work-team action bar: acknowledge (tick) + reply, styled as pill buttons
+      // Work-team action bar: acknowledge (tick) + reply.
       HStack(spacing: 10) {
         Button {
           withAnimation(.snappy) { store.toggleLike(post.id) }
@@ -254,7 +284,7 @@ struct FeedPostCard: View {
         Spacer()
       }
       .buttonStyle(.plain)
-      .padding(.horizontal, 16)
+      .padding(.horizontal, 14)
       .padding(.top, 12)
 
       VStack(alignment: .leading, spacing: 6) {
@@ -308,19 +338,24 @@ struct FeedPostCard: View {
           .foregroundStyle(Brand.inkSoft)
           .padding(.top, 2)
       }
-      .padding(.horizontal, 16)
+      .padding(.horizontal, 14)
       .padding(.top, 8)
+      .padding(.bottom, 16)
     }
-    .padding(.vertical, 16)
-    .background(
-      RoundedRectangle(cornerRadius: 18, style: .continuous)
-        .fill(Brand.surface)
-        .overlay(
-          RoundedRectangle(cornerRadius: 18, style: .continuous)
-            .stroke(Brand.hairline, lineWidth: 1)
-        )
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(Brand.surface)
+    // MPG identity: an olive accent rail down the leading edge of every card.
+    .overlay(alignment: .leading) {
+      Rectangle()
+        .fill(liked ? Brand.olive : Brand.hairline)
+        .frame(width: 4)
+    }
+    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+    .overlay(
+      RoundedRectangle(cornerRadius: 20, style: .continuous)
+        .stroke(Brand.hairline, lineWidth: 1)
     )
-    .padding(.horizontal, 14)
+    .padding(.horizontal, 12)
     .sheet(isPresented: $showComments) {
       FeedCommentsView(postId: post.id)
     }
@@ -352,7 +387,7 @@ struct FeedAuthorHeader: View {
       }
       .frame(width: 40, height: 40)
 
-      VStack(alignment: .leading, spacing: 2) {
+      VStack(alignment: .leading, spacing: 3) {
         HStack(spacing: 6) {
           Text(name)
             .font(.subheadline.weight(.semibold))
@@ -362,19 +397,17 @@ struct FeedAuthorHeader: View {
           StatusChip(text: role.rawValue, color: Brand.olive)
             .layoutPriority(1)
         }
-        HStack(spacing: 6) {
-          Text(timestamp.relativeShort)
-          if let siteName {
-            Text("•")
-            Label(siteName, systemImage: "mappin.and.ellipse")
-              .labelStyle(.titleAndIcon)
-              .lineLimit(1)
-              .truncationMode(.tail)
-          }
+        if let siteName {
+          Label(siteName, systemImage: "mappin.and.ellipse")
+            .labelStyle(.titleAndIcon)
+            .font(.caption.weight(.medium))
+            .foregroundStyle(Brand.oliveDark)
+            .lineLimit(1)
+            .truncationMode(.tail)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(Capsule().fill(Brand.lightGreen))
         }
-        .font(.caption)
-        .foregroundStyle(Brand.inkSoft)
-        .lineLimit(1)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       Spacer(minLength: 8)
