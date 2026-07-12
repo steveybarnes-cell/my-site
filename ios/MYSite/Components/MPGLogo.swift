@@ -1,24 +1,26 @@
 import SwiftUI
 
 /// The "MY Site" brand mark: a builder's hard hat sitting on a pitched
-/// roofline. Drawn as vector paths so it stays crisp at any size and needs
-/// no bundled image asset. Matches the company brand sheet.
+/// roofline. Drawn entirely as vector paths in the app's own Brand colours so
+/// it reads as part of the interface — never a pasted-on photo.
 struct MYSiteMark: View {
-  /// Colour of the hard hat + roofline.
-  var stroke: Color = .black
+  /// Colour of the roofline stroke.
+  var stroke: Color = Brand.ink
+  /// Fill colour of the hard hat.
+  var accent: Color = Brand.logoGreen
 
   var body: some View {
     GeometryReader { geo in
       let w = geo.size.width
       let h = geo.size.height
-      let lw = max(2, h * 0.14)
+      let lw = max(2, h * 0.13)
       ZStack {
-        // Pitched roofline: an apex peak spanning under the hat.
         RooflineShape()
-          .stroke(stroke, style: StrokeStyle(lineWidth: lw, lineCap: .round, lineJoin: .round))
-        // Hard hat, tilted slightly, resting on the roof apex.
+          .stroke(
+            stroke.opacity(0.85),
+            style: StrokeStyle(lineWidth: lw, lineCap: .round, lineJoin: .round))
         HardHatShape()
-          .fill(stroke)
+          .fill(accent)
       }
       .frame(width: w, height: h)
     }
@@ -74,77 +76,61 @@ private struct HardHatShape: Shape {
   }
 }
 
-/// "MY Site" stacked logo lockup: hard-hat-on-roofline mark on top, a heavy
-/// green "MY", then wide-tracked "SITE" underneath — matching the brand sheet.
+/// "MY Site" logo lockup rendered purely with vector shapes and text tinted
+/// from the `Brand` palette, so it blends into whatever surface it sits on.
 /// Kept named `MPGLogo` so existing call sites continue to work.
 struct MPGLogo: View {
   /// Cap height of the large "MY" wordmark. Everything scales from this.
   var height: CGFloat = 72
-  /// Render for a dark background (light mark + light "SITE") when true.
+  /// Render for a dark background (light ink) when true.
   var onDark: Bool = true
+  /// Lay the mark and wordmark side-by-side instead of stacked.
+  var horizontal: Bool = false
   /// Retained for source compatibility with older call sites.
   var showTagline: Bool = false
 
   private var inkColor: Color { onDark ? .white : Brand.ink }
-
-  /// True when the real "MYSiteLogo" image asset is present in the bundle.
-  private var hasImageAsset: Bool {
-    UIImage(named: "MYSiteLOGO") != nil
-  }
+  private var accentColor: Color { onDark ? Brand.logoGreen : Brand.oliveDark }
 
   var body: some View {
-    if hasImageAsset {
-      brandedImage
+    if horizontal {
+      horizontalLockup
     } else {
-      drawnLockup
+      stackedLockup
     }
   }
 
-  /// Your exact uploaded artwork, styled to blend seamlessly into the app.
-  /// The lockup is ~1.7x tall relative to the requested cap `height`.
-  private var brandedImage: some View {
-    let displayHeight = height * 1.7
-    return Image("MYSiteLOGO")
-      .resizable()
-      .scaledToFit()
-      .frame(height: displayHeight)
-      // On dark surfaces, `.screen` lets a dark image background dissolve into
-      // the charcoal so there is no visible box/border around the mark.
-      .blendMode(onDark ? .screen : .normal)
-      // Soft ambient halo so the mark feels integrated, not pasted on.
-      .background(
-        RadialGradient(
-          colors: [
-            (onDark ? Brand.logoGreen : Brand.olive).opacity(onDark ? 0.28 : 0.14),
-            .clear,
-          ],
-          center: .center,
-          startRadius: 0,
-          endRadius: displayHeight * 0.85
-        )
-        .blur(radius: displayHeight * 0.22)
-        .allowsHitTesting(false)
-      )
-      .accessibilityLabel("MY Site")
-  }
-
-  /// Hand-drawn vector fallback used until the "MYSiteLogo" asset is added.
-  private var drawnLockup: some View {
+  private var wordmark: some View {
     let s = height
-    return VStack(spacing: s * 0.06) {
-      MYSiteMark(stroke: inkColor)
-        .frame(width: s * 1.5, height: s * 0.72)
-
+    return VStack(alignment: .leading, spacing: -s * 0.02) {
       Text("MY")
         .font(.system(size: s, weight: .heavy, design: .rounded))
-        .foregroundStyle(Brand.logoGreen)
+        .foregroundStyle(accentColor)
         .kerning(-s * 0.02)
-
       Text("SITE")
-        .font(.system(size: s * 0.34, weight: .bold, design: .rounded))
+        .font(.system(size: s * 0.32, weight: .bold, design: .rounded))
         .kerning(s * 0.22)
-        .foregroundStyle(inkColor)
-        .padding(.top, -s * 0.04)
+        .foregroundStyle(inkColor.opacity(0.9))
+    }
+  }
+
+  private var stackedLockup: some View {
+    let s = height
+    return VStack(spacing: s * 0.08) {
+      MYSiteMark(stroke: inkColor, accent: accentColor)
+        .frame(width: s * 1.45, height: s * 0.68)
+      wordmark
+        .multilineTextAlignment(.center)
+    }
+    .fixedSize()
+  }
+
+  private var horizontalLockup: some View {
+    let s = height
+    return HStack(spacing: s * 0.28) {
+      MYSiteMark(stroke: inkColor, accent: accentColor)
+        .frame(width: s * 1.2, height: s * 0.62)
+      wordmark
     }
     .fixedSize()
   }
@@ -154,11 +140,11 @@ struct MPGLogo: View {
   VStack(spacing: 0) {
     ZStack {
       Brand.charcoal.ignoresSafeArea()
-      MPGLogo(height: 72)
+      MPGLogo(height: 64)
     }
     ZStack {
-      Color.white.ignoresSafeArea()
-      MPGLogo(height: 72, onDark: false)
+      Brand.lightGreen.opacity(0.5).ignoresSafeArea()
+      MPGLogo(height: 56, onDark: false, horizontal: true)
     }
   }
 }

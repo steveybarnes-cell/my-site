@@ -18,61 +18,128 @@ extension AppStore {
       id: UUID(), name: "Paul Hendry", email: "paul@myprojectgroup.co.uk", role: .siteManager,
       phone: "07700 900244", active: true)
 
+    // Team members
     let brandon = AppUser(
-      id: UUID(), name: "Brandon Reeves", email: "brandon@trade.com", role: .tradesman,
+      id: UUID(), name: "Dave Barnes", email: "dave@trade.com", role: .tradesman,
       phone: "07700 900301", active: true)
     let mike = AppUser(
-      id: UUID(), name: "Mike Dolan", email: "mike@trade.com", role: .tradesman,
+      id: UUID(), name: "Brandon Cummings", email: "brandon@trade.com", role: .tradesman,
       phone: "07700 900302", active: true)
     let dan = AppUser(
-      id: UUID(), name: "Dan Whitlock", email: "dan@trade.com", role: .tradesman,
+      id: UUID(), name: "Rhys Hill", email: "rhys@trade.com", role: .tradesman,
       phone: "07700 900303", active: true)
+    let kieren = AppUser(
+      id: UUID(), name: "Kieren Parker (apprentice)", email: "kieren@trade.com", role: .tradesman,
+      phone: "07700 900304", active: true)
+    let liam = AppUser(
+      id: UUID(), name: "Liam", email: "liam@trade.com", role: .tradesman,
+      phone: "07700 900305", active: true)
+    let loui = AppUser(
+      id: UUID(), name: "Loui Putterill", email: "loui@trade.com", role: .tradesman,
+      phone: "07700 900306", active: true)
+    let louie = AppUser(
+      id: UUID(), name: "Louie Castles (new)", email: "louie@trade.com", role: .tradesman,
+      phone: "07700 900307", active: true)
+    let steveJones = AppUser(
+      id: UUID(), name: "Steve Jones", email: "stevej@trade.com", role: .tradesman,
+      phone: "07700 900308", active: true)
 
-    users = [steve, jenny, paulSM, brandon, mike, dan]
+    // Sub-contractors
+    let chaz = AppUser(
+      id: UUID(), name: "Chaz Atfield", email: "chaz@sub.com", role: .tradesman,
+      phone: "07700 900401", active: true)
+    let chris = AppUser(
+      id: UUID(), name: "Chris Lion", email: "chris@sub.com", role: .tradesman,
+      phone: "07700 900402", active: true)
+    let masticMan = AppUser(
+      id: UUID(), name: "Mastic Man", email: "mastic@sub.com", role: .tradesman,
+      phone: "07700 900403", active: true)
+    let nathan = AppUser(
+      id: UUID(), name: "Nathan", email: "nathan@sub.com", role: .tradesman,
+      phone: "07700 900404", active: true)
+    let markG = AppUser(
+      id: UUID(), name: "Mark G", email: "markg@sub.com", role: .tradesman,
+      phone: "07700 900405", active: true)
+    let avomech = AppUser(
+      id: UUID(), name: "Avomech", email: "avomech@sub.com", role: .tradesman,
+      phone: "07700 900406", active: true)
+    let propperBrick = AppUser(
+      id: UUID(), name: "Propper Brick", email: "propper@sub.com", role: .tradesman,
+      phone: "07700 900407", active: true)
+
+    users = [
+      steve, jenny, paulSM,
+      brandon, mike, dan, kieren, liam, loui, louie, steveJones,
+      chaz, chris, masticMan, nathan, markG, avomech, propperBrick,
+    ]
 
     // Profiles
     profiles = [
       TradesmanProfile(
-        id: UUID(), userId: brandon.id, company: "Reeves Decorating Ltd",
+        id: UUID(), userId: brandon.id, company: "D Barnes Decorating",
         address: "14 Kingsdown Parade, Bristol BS6 5UD", utr: "1234567890", niNumber: "AB123456C",
         cisStatus: "Registered (20%)", mainTrade: "Painter & Decorator", vehicleReg: "BD68 KLM",
-        bankName: "B Reeves", sortCode: "20-45-11", accountNumber: "•••• 4471", hourlyRate: 22,
+        bankName: "D Barnes", sortCode: "20-45-11", accountNumber: "•••• 4471", hourlyRate: 22,
         dayRate: 175, vatRegistered: false, vatNumber: "", notes: "Reliable, provides own tools.",
         bankChangePending: false),
       TradesmanProfile(
-        id: UUID(), userId: mike.id, company: "Dolan Plumbing",
+        id: UUID(), userId: mike.id, company: "Cummings Plumbing",
         address: "3 Elm Court, Clifton BS8 2AA", utr: "2233445566", niNumber: "CD654321B",
         cisStatus: "Registered (20%)", mainTrade: "Plumber", vehicleReg: "WK19 TRV",
-        bankName: "M Dolan", sortCode: "09-01-27", accountNumber: "•••• 8820", hourlyRate: 28,
+        bankName: "B Cummings", sortCode: "09-01-27", accountNumber: "•••• 8820", hourlyRate: 28,
         dayRate: 220, vatRegistered: true, vatNumber: "GB998877665", notes: "Gas Safe registered.",
         bankChangePending: true),
       TradesmanProfile(
-        id: UUID(), userId: dan.id, company: "Whitlock Groundworks",
+        id: UUID(), userId: dan.id, company: "Hill Groundworks",
         address: "88 Fishponds Rd, Bristol BS5 6SA", utr: "5566778899", niNumber: "EF112233A",
         cisStatus: "Registered (20%)", mainTrade: "Groundworker", vehicleReg: "YE20 GRW",
-        bankName: "D Whitlock", sortCode: "40-22-09", accountNumber: "•••• 1290", hourlyRate: 24,
+        bankName: "R Hill", sortCode: "40-22-09", accountNumber: "•••• 1290", hourlyRate: 24,
         dayRate: 190, vatRegistered: false, vatNumber: "", notes: "", bankChangePending: false),
     ]
 
     // Sites
     let marlborough = Site(
-      id: UUID(), name: "Marlborough Street", address: "42 Marlborough St, Bristol BS1 3NT",
-      client: "Bristol City Developments", siteManagerId: jenny.id, status: .active,
-      notes: "Occupied building — mind residents.", whatsappLink: "wa.me/marlborough",
+      id: UUID(), name: "19 Victoria Avenue", address: "19 Victoria Avenue, Bristol BS5 9BG",
+      client: "My Project Group Ltd", siteManagerId: jenny.id, status: .active,
+      notes: "Occupied building — mind residents.", whatsappLink: "wa.me/victoriaave",
       defaultStart: "08:00", defaultFinish: "16:30",
-      latitude: 51.4562, longitude: -2.5901, geofenceRadius: 150)
+      latitude: 51.4630, longitude: -2.5580, geofenceRadius: 150)
     let clifton = Site(
-      id: UUID(), name: "Clifton Village", address: "7 The Mall, Clifton BS8 4DP",
-      client: "Harbour Living", siteManagerId: paulSM.id, status: .active,
-      notes: "Parking is limited, use rear access.", whatsappLink: "wa.me/clifton",
+      id: UUID(), name: "1 All Saints Rd", address: "1 All Saints Rd, Bristol BS8 2JJ",
+      client: "My Project Group Ltd", siteManagerId: paulSM.id, status: .active,
+      notes: "Parking is limited, use rear access.", whatsappLink: "wa.me/allsaints",
       defaultStart: "08:00", defaultFinish: "17:00",
-      latitude: 51.4550, longitude: -2.6199, geofenceRadius: 120)
+      latitude: 51.4602, longitude: -2.6055, geofenceRadius: 120)
     let redcliffe = Site(
-      id: UUID(), name: "Redcliffe Wharf", address: "12 Redcliffe Way, Bristol BS1 6NL",
-      client: "Waterside Homes", siteManagerId: jenny.id, status: .paused,
-      notes: "On hold pending drawings.", whatsappLink: "", defaultStart: "07:30",
-      defaultFinish: "16:00", latitude: 51.4478, longitude: -2.5875, geofenceRadius: 150)
-    sites = [marlborough, clifton, redcliffe]
+      id: UUID(), name: "Lodge Causeway", address: "Lodge Causeway, Fishponds, Bristol BS16 3JB",
+      client: "My Project Group Ltd", siteManagerId: jenny.id, status: .active,
+      notes: "", whatsappLink: "wa.me/lodgecauseway", defaultStart: "07:30",
+      defaultFinish: "16:00", latitude: 51.4740, longitude: -2.5350, geofenceRadius: 150)
+    let bodium = Site(
+      id: UUID(), name: "35 Bodium Avenue", address: "35 Bodium Avenue, Bristol BS31 2GD",
+      client: "My Project Group Ltd", siteManagerId: paulSM.id, status: .active,
+      notes: "New build plot — deliveries to front.", whatsappLink: "wa.me/bodium",
+      defaultStart: "08:00", defaultFinish: "16:30",
+      latitude: 51.4110, longitude: -2.4880, geofenceRadius: 150)
+    let woodhill = Site(
+      id: UUID(), name: "2 Woodhill Rd", address: "2 Woodhill Rd, Portishead, Bristol BS20 7EL",
+      client: "My Project Group Ltd", siteManagerId: jenny.id, status: .active,
+      notes: "", whatsappLink: "wa.me/woodhill", defaultStart: "08:00",
+      defaultFinish: "17:00", latitude: 51.4840, longitude: -2.7620, geofenceRadius: 130)
+    let egerton = Site(
+      id: UUID(), name: "61-63 Egerton Rd",
+      address: "61-63 Egerton Rd, Bishopston, Bristol BS7 8HL",
+      client: "My Project Group Ltd", siteManagerId: paulSM.id, status: .active,
+      notes: "Two adjoining properties.", whatsappLink: "wa.me/egerton",
+      defaultStart: "08:00", defaultFinish: "16:30",
+      latitude: 51.4720, longitude: -2.5920, geofenceRadius: 140)
+    let caerleon = Site(
+      id: UUID(), name: "220 Caerleon Rd", address: "220 Caerleon Rd, Newport NP19 7GH",
+      client: "My Project Group Ltd", siteManagerId: jenny.id, status: .paused,
+      notes: "On hold pending drawings.", whatsappLink: "wa.me/caerleon",
+      defaultStart: "07:30", defaultFinish: "16:00",
+      latitude: 51.5940, longitude: -2.9720, geofenceRadius: 160)
+    sites = [marlborough, clifton, redcliffe, bodium, woodhill, egerton, caerleon]
 
     // Allocations
     allocations = [
