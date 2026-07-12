@@ -20,15 +20,16 @@ struct MYSiteMark: View {
             stroke.opacity(0.85),
             style: StrokeStyle(lineWidth: lw, lineCap: .round, lineJoin: .round))
         HardHatShape()
-          .fill(accent)
+          .fill(stroke)
       }
       .frame(width: w, height: h)
     }
   }
 }
 
-/// A pitched roof: rises from the lower-left up to an apex, then a short
-/// slope down to the right — the roofline the hard hat rests on.
+/// A house gable: an open "^" roofline rising from the lower-left to a peak
+/// then down to the lower-right — the roofline the hard hat rests on, matching
+/// the app icon.
 private struct RooflineShape: Shape {
   func path(in rect: CGRect) -> Path {
     let w = rect.width
@@ -37,9 +38,11 @@ private struct RooflineShape: Shape {
       CGPoint(x: rect.minX + x * w, y: rect.minY + y * h)
     }
     var path = Path()
-    path.move(to: p(0.02, 0.94))
-    path.addLine(to: p(0.40, 0.42))
-    path.addLine(to: p(0.60, 0.60))
+    // Left eave up to the peak.
+    path.move(to: p(0.04, 0.92))
+    path.addLine(to: p(0.46, 0.30))
+    // Peak down to the right eave.
+    path.addLine(to: p(0.88, 0.92))
     return path
   }
 }
@@ -55,22 +58,22 @@ private struct HardHatShape: Shape {
     }
     var path = Path()
 
-    // Dome (rounded top).
-    path.move(to: p(0.42, 0.44))
+    // Rounded dome across the top.
+    path.move(to: p(0.30, 0.50))
     path.addCurve(
-      to: p(0.86, 0.30),
-      control1: p(0.44, 0.10),
-      control2: p(0.82, 0.04))
-    // Down the right side into the brim.
-    path.addLine(to: p(0.90, 0.34))
+      to: p(0.86, 0.34),
+      control1: p(0.34, 0.10),
+      control2: p(0.78, 0.06))
+    // Right side down into the brim.
+    path.addLine(to: p(0.90, 0.40))
     // Right brim tip.
-    path.addQuadCurve(to: p(0.98, 0.40), control: p(0.97, 0.36))
-    path.addQuadCurve(to: p(0.90, 0.46), control: p(0.98, 0.46))
+    path.addQuadCurve(to: p(0.99, 0.50), control: p(0.99, 0.42))
+    path.addQuadCurve(to: p(0.90, 0.58), control: p(0.99, 0.58))
     // Under-brim back across to the left.
-    path.addLine(to: p(0.40, 0.56))
+    path.addLine(to: p(0.30, 0.66))
     // Left brim tip.
-    path.addQuadCurve(to: p(0.32, 0.52), control: p(0.31, 0.57))
-    path.addQuadCurve(to: p(0.42, 0.44), control: p(0.34, 0.46))
+    path.addQuadCurve(to: p(0.20, 0.58), control: p(0.19, 0.66))
+    path.addQuadCurve(to: p(0.30, 0.50), control: p(0.21, 0.51))
     path.closeSubpath()
     return path
   }

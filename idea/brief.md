@@ -49,21 +49,20 @@ All three role experiences built and navigable end to end.
 ## PHASE 8 — Advertise AI receipt automation
 - AI receipt scanning + auto Hubdoc/Xero upload surfaced across LoginView, DemoModeView, MaterialFormView.
 
-## PHASE 9 — Navigation streamlining (NEW — done)
-- **Problem:** each role had 7-9 tabs, overflowing into iOS's auto-generated "More" list and making the app hard to navigate.
-- **Fix:** consolidated every role to a consistent **5-tab** layout so muscle memory carries across roles. Team is always first; Alerts (with unread badge) is always fourth; More is always fifth.
+## PHASE 9 — Navigation streamlining — done
+- Consolidated every role to a consistent **5-tab** layout with a reusable `MoreHubView`.
   - **Tradesman:** Team · Today · Files · Alerts · More
   - **Admin:** Team · Dashboard · Invoices · Alerts · More
   - **Site Manager:** Team · My Sites · Records · Alerts · More
-- **New reusable `MoreHubView`** (`Views/Shared/MoreHubView.swift`) with `MoreHubItem` — a scannable secondary-navigation hub (icon, title, subtitle, optional badge, chevron) collecting less-frequent areas in one predictable place:
-  - Tradesman More → My Records, Invoices & Timesheets, Profile
-  - Admin More → Manage, Work by Trade, Attendance, Files, Profile & Integrations
-  - Site Manager More → Dashboard, Attendance, Files, Profile
 
-### Deferred / Next (streamline pass 2, recommended)
-- Global "+" create action (New post / Photo / Receipt / Daily record / Timesheet).
-- Feed "Needs action / Unread" filter + pin queried invoices/urgent items.
-- Tab badge counts for invoices to approve, timesheets to pay, open queries.
+## PHASE 10 — Branding: logo matched to app icon — DONE
+- **Problem:** the in-app `MPGLogo` mark didn't match the real "MY Site" app icon and earlier vector attempts read as generic/photo-like.
+- **Fix:** redrew `MYSiteMark` in `Components/MPGLogo.swift` to match the icon exactly — an open house gable roofline (^) with a rounded black hard hat resting on the peak; hard hat now fills the ink colour (black on light, white on dark) instead of green. Wordmark keeps "MY" green over "SITE" charcoal.
+- Removed the temporary `LogoGalleryView` + `LogoOptions` selection scaffolding and restored the normal login flow in `ContentView`.
+- The updated mark propagates to every `MPGLogo` call site (login, splash, headers).
+
+### Deferred / Next
+- Global "+" create action; feed "Needs action / Unread" filter; tab badge counts.
 - Wire in-app calling to real telephony (CallKit + VoIP provider).
 - Wire Team feed to Supabase (`feed_posts` / `feed_comments` + RLS) with real photo uploads for cross-device sync.
 - Push notifications, optional branded web portal.
