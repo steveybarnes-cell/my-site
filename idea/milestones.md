@@ -19,7 +19,7 @@
 - [x] Demo Mode: always-available role-picker entry from login
 - [x] Seed data: renamed demo sites to the seven real MPG site addresses
 - [x] Seed data: real MPG team members + sub-contractors
-- [x] Logo: in-app MPGLogo redrawn to match the real app icon (house gable + black hard hat, MY green / SITE charcoal); temporary gallery + options removed; login flow restored
+- [x] Logo: in-app MPGLogo simplified to clean roofline gable + wordmark (hard hat removed)
 - [ ] Calls: wire real telephony (CallKit + VoIP provider)
 - [ ] Team feed: wire to Supabase (feed_posts/feed_comments + RLS) + real photo uploads
 - [ ] User: select development Team in Xcode Signing & Capabilities to build to device

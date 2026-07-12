@@ -1,12 +1,12 @@
 import SwiftUI
 
-/// The "MY Site" brand mark: a builder's hard hat sitting on a pitched
-/// roofline. Drawn entirely as vector paths in the app's own Brand colours so
-/// it reads as part of the interface — never a pasted-on photo.
+/// The "MY Site" brand mark: a clean pitched house gable, drawn entirely as a
+/// vector path in the app's own Brand colours so it reads as part of the
+/// interface — never a pasted-on photo.
 struct MYSiteMark: View {
   /// Colour of the roofline stroke.
   var stroke: Color = Brand.ink
-  /// Fill colour of the hard hat.
+  /// Retained for source compatibility with older call sites.
   var accent: Color = Brand.logoGreen
 
   var body: some View {
@@ -14,22 +14,18 @@ struct MYSiteMark: View {
       let w = geo.size.width
       let h = geo.size.height
       let lw = max(2, h * 0.13)
-      ZStack {
-        RooflineShape()
-          .stroke(
-            stroke.opacity(0.85),
-            style: StrokeStyle(lineWidth: lw, lineCap: .round, lineJoin: .round))
-        HardHatShape()
-          .fill(stroke)
-      }
-      .frame(width: w, height: h)
+      RooflineShape()
+        .stroke(
+          stroke.opacity(0.85),
+          style: StrokeStyle(lineWidth: lw, lineCap: .round, lineJoin: .round)
+        )
+        .frame(width: w, height: h)
     }
   }
 }
 
 /// A house gable: an open "^" roofline rising from the lower-left to a peak
-/// then down to the lower-right — the roofline the hard hat rests on, matching
-/// the app icon.
+/// then down to the lower-right, matching the app icon.
 private struct RooflineShape: Shape {
   func path(in rect: CGRect) -> Path {
     let w = rect.width
@@ -43,38 +39,6 @@ private struct RooflineShape: Shape {
     path.addLine(to: p(0.46, 0.30))
     // Peak down to the right eave.
     path.addLine(to: p(0.88, 0.92))
-    return path
-  }
-}
-
-/// A builder's hard hat: rounded dome with a front peak and a wide brim,
-/// tilted slightly to the right like the brand sheet mark.
-private struct HardHatShape: Shape {
-  func path(in rect: CGRect) -> Path {
-    let w = rect.width
-    let h = rect.height
-    func p(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
-      CGPoint(x: rect.minX + x * w, y: rect.minY + y * h)
-    }
-    var path = Path()
-
-    // Rounded dome across the top.
-    path.move(to: p(0.30, 0.50))
-    path.addCurve(
-      to: p(0.86, 0.34),
-      control1: p(0.34, 0.10),
-      control2: p(0.78, 0.06))
-    // Right side down into the brim.
-    path.addLine(to: p(0.90, 0.40))
-    // Right brim tip.
-    path.addQuadCurve(to: p(0.99, 0.50), control: p(0.99, 0.42))
-    path.addQuadCurve(to: p(0.90, 0.58), control: p(0.99, 0.58))
-    // Under-brim back across to the left.
-    path.addLine(to: p(0.30, 0.66))
-    // Left brim tip.
-    path.addQuadCurve(to: p(0.20, 0.58), control: p(0.19, 0.66))
-    path.addQuadCurve(to: p(0.30, 0.50), control: p(0.21, 0.51))
-    path.closeSubpath()
     return path
   }
 }
