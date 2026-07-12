@@ -5,6 +5,11 @@ struct ContentView: View {
   @Environment(AuthManager.self) private var auth
 
   var body: some View {
+    // TEMP: showing logo options for selection. Remove to restore normal flow.
+    return LogoGalleryView()
+  }
+
+  var realBody: some View {
     Group {
       switch auth.phase {
       case .restoring:
