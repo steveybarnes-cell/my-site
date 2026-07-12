@@ -273,6 +273,8 @@ struct FeedPostCard: View {
             "\(Text(post.authorName).font(.subheadline.weight(.semibold)))  \(Text(post.text).font(.subheadline))"
           )
           .foregroundStyle(Brand.ink)
+          .multilineTextAlignment(.leading)
+          .fixedSize(horizontal: false, vertical: true)
           .frame(maxWidth: .infinity, alignment: .leading)
         }
 
@@ -294,7 +296,9 @@ struct FeedPostCard: View {
               "\(Text(last.authorName).font(.subheadline.weight(.semibold)))  \(Text(last.text).font(.subheadline))"
             )
             .foregroundStyle(Brand.ink)
+            .multilineTextAlignment(.leading)
             .lineLimit(2)
+            .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
           }
         }
