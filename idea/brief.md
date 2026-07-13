@@ -56,14 +56,26 @@ All three role experiences built and navigable end to end.
   - **Site Manager:** Team · My Sites · Records · Alerts · More
 
 ## PHASE 10 — Branding: logo matched to app icon — DONE
-- Redrew `MYSiteMark` to the clean roofline gable + "MY" green / "SITE" charcoal wordmark; hard hat removed. Propagates to every `MPGLogo` call site.
+- Redrew `MYSiteMark` to the clean roofline gable + "MY" green / "SITE" charcoal wordmark; hard hat removed.
 
 ## PHASE 11 — Team feed redesign — DONE
-- **Problem:** the main Team feed stretched too wide on screen and did not read as a proper phone feed.
-- **Fix (`Views/Shared/CompanyFeedView.swift`):**
-  - Whole feed constrained to a centred single column (max width 500pt), so it no longer stretches full-bleed on iPad/landscape.
-  - Post card reframed edge-to-edge inside a 20pt rounded card with a tighter 12pt outer margin; media fills the card cleanly with no overflow.
-  - **Unique MPG identity** (distinct from Instagram for copyright): olive accent rail down the leading edge (solid once acknowledged), site tag shown as an olive "location" ribbon capsule, and a square checkmark-seal acknowledge burst on double-tap instead of a heart.
+- Centred single column (max width 500pt), edge-to-edge card, olive accent rail, location ribbon, square-tick acknowledge burst.
+
+## PHASE 12 — AI Invoice Auditor — DONE
+- **Goal:** turn Steve's approval job from reading every invoice into reviewing only flagged exceptions.
+- **Engine (`Models/InvoiceAuditor.swift`):** fully local, deterministic, explainable. Runs on the real data the app already holds. Produces a scored `InvoiceAudit` (0–100 risk) from weighted `AuditFinding`s across six checks:
+  1. Claimed hours vs geofenced GPS time on site (±20% tolerance).
+  2. Attendance events outside geofence / no location that are not yet approved.
+  3. Materials billed without a receipt (or billed with none logged).
+  4. Labour claimed with no before/during/completed photos.
+  5. Submitted after the Monday 13:00 deadline.
+  6. Duplicate invoice number across submissions.
+- **UI (`Views/Admin/InvoiceAuditView.swift`):** ring-gauge score + verdict, worst-first findings list, disclaimer that the decision stays with the office. Each `AdminSubmissionRow` shows a compact sparkles risk badge + "Review AI audit / clear" button opening the sheet.
+- **Future enrichment:** an optional LLM pass (via the existing `scan-receipt` Edge Function pattern) could rephrase flags into a friendly office note; numbers stay grounded in real data.
+
+### AI roadmap (proposed next)
+- **Voice-to-daily-record** (tradesman mic → structured site record) — biggest adoption lever.
+- AI photo captions/tagging; weekly plain-English spend summary; smart Xero line descriptions; "Ask MPG" natural-language search.
 
 ### Deferred / Next
 - Global "+" create action; feed "Needs action / Unread" filter; tab badge counts.

@@ -207,9 +207,14 @@ struct AdminSubmissionsView: View {
 struct AdminSubmissionRow: View {
   @Environment(AppStore.self) private var store
   let submission: WeeklySubmission
+  @State private var showAudit = false
 
   private var live: WeeklySubmission {
     store.submissions.first { $0.id == submission.id } ?? submission
+  }
+
+  private var audit: InvoiceAudit {
+    InvoiceAuditor.audit(live, store: store)
   }
 
   var body: some View {
@@ -228,6 +233,23 @@ struct AdminSubmissionRow: View {
         Spacer()
         Text("W/E \(Fmt.date(live.weekEnding))").font(.caption).foregroundStyle(Brand.inkSoft)
       }
+
+      Button {
+        showAudit = true
+      } label: {
+        HStack(spacing: 8) {
+          AuditRiskBadge(audit: audit)
+          Text(audit.topSeverity >= .warning ? "Review AI audit" : "AI audit — clear")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(Brand.ink)
+          Spacer()
+          Image(systemName: "chevron.right").font(.caption2).foregroundStyle(Brand.inkSoft)
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
+        .background(Brand.lightGreen.opacity(0.6), in: RoundedRectangle(cornerRadius: 10))
+      }
+      .buttonStyle(.plain)
       if live.status == .submitted || live.status == .approvedSM {
         HStack(spacing: 10) {
           Button {
@@ -262,6 +284,9 @@ struct AdminSubmissionRow: View {
       }
     }
     .mpgCard()
+    .sheet(isPresented: $showAudit) {
+      InvoiceAuditView(submission: live).environment(store)
+    }
   }
 }
 

@@ -12,6 +12,7 @@
 - [x] Phase 3: Xero LIVE — OAuth connect + push approved invoice to Xero
 - [x] Admin Manage tab: add/edit sites, team members, and work allocations in-app
 - [x] AI receipt scan LIVE + take-off review sheet (graceful manual-entry fallback if scan fails)
+- [x] AI Invoice Auditor: pre-approval risk score + flags (hours vs GPS, receipts, photos, deadline, duplicates)
 - [x] Apple 5.1.1: in-app Delete my account flow
 - [x] Team feed (company group chat): posts, photos, acknowledgements, comments across all roles
 - [x] Team feed is the default/first tab on app open across all three roles
@@ -21,6 +22,7 @@
 - [x] Seed data: real MPG team members + sub-contractors
 - [x] Logo: in-app MPGLogo simplified to clean roofline gable + wordmark (hard hat removed)
 - [x] Team feed redesign: centered phone-width column + Instagram-style card with unique MPG identity
+- [ ] AI voice-to-daily-record for tradesmen (mic → structured site record)
 - [ ] Calls: wire real telephony (CallKit + VoIP provider)
 - [ ] Team feed: wire to Supabase (feed_posts/feed_comments + RLS) + real photo uploads
 - [ ] User: select development Team in Xcode Signing & Capabilities to build to device
