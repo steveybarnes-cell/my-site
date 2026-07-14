@@ -93,11 +93,6 @@ struct WeeklySpendSummaryView: View {
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .mpgCard()
-    .overlay(alignment: .topTrailing) {
-      RoundedRectangle(cornerRadius: 4).fill(toneColor)
-        .frame(width: 4).padding(.vertical, 14).padding(.trailing, 2)
-        .opacity(0)  // reserved; rail drawn via leading accent below
-    }
   }
 
   private var toneColor: Color {

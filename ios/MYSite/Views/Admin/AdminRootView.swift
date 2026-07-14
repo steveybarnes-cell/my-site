@@ -45,6 +45,12 @@ struct AdminMoreView: View {
           symbol: "square.and.pencil"
         ) { ManageView() },
         MoreHubItem(
+          title: "Weekly Recap",
+          subtitle: "AI spend summary per week",
+          symbol: "sparkles",
+          tint: Brand.olive
+        ) { WeeklySpendSummaryView() },
+        MoreHubItem(
           title: "Work by Trade",
           subtitle: "Unified timeline per trade",
           symbol: "hammer.fill",
