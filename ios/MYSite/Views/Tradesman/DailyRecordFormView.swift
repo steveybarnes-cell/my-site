@@ -13,6 +13,7 @@ struct DailyRecordFormView: View {
   @State private var delay: DelayReason = .none
   @State private var delayNote = ""
   @State private var instructedBy = ""
+  @State private var showVoice = false
 
   private var totalHours: Double {
     let s = minutes(startTime)
@@ -29,6 +30,7 @@ struct DailyRecordFormView: View {
           ScrollView {
             VStack(spacing: 16) {
               siteHeader
+              voicePrompt
               timesSection
               workSection
               if category == .variation { variationSection }
@@ -46,6 +48,9 @@ struct DailyRecordFormView: View {
         .toolbar {
           ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
         }
+        .sheet(isPresented: $showVoice) {
+          VoiceDailyRecordView { result in apply(result) }
+        }
         .onAppear {
           startTime = allocation.startTime
           finishTime = allocation.expectedFinish
@@ -55,6 +60,45 @@ struct DailyRecordFormView: View {
       }
     }
     .__tenxTrackView("DailyRecordFormView")
+  }
+
+  private var voicePrompt: some View {
+    Button {
+      showVoice = true
+    } label: {
+      HStack(spacing: 12) {
+        ZStack {
+          Circle().fill(Brand.olive).frame(width: 40, height: 40)
+          Image(systemName: "waveform.badge.mic")
+            .font(.headline).foregroundStyle(.white)
+        }
+        VStack(alignment: .leading, spacing: 1) {
+          Text("Speak your record")
+            .font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
+          Text("Talk through your day — we'll fill it in")
+            .font(.caption).foregroundStyle(Brand.inkSoft)
+        }
+        Spacer()
+        Image(systemName: "chevron.right").font(.caption.weight(.bold))
+          .foregroundStyle(Brand.inkSoft)
+      }
+      .mpgCard(padding: 12)
+    }
+    .buttonStyle(.plain)
+  }
+
+  private func apply(_ r: DailyRecordParser.Result) {
+    if let s = r.startTime { startTime = s }
+    if let f = r.finishTime { finishTime = f }
+    if let b = r.breakMinutes { breakMinutes = b }
+    if let c = r.category { category = c }
+    if let d = r.delay, d != .none {
+      delay = d
+      if delayNote.isEmpty { delayNote = r.delayNote ?? "" }
+    }
+    if !r.description.isEmpty {
+      description = description.isEmpty ? r.description : description + "\n" + r.description
+    }
   }
 
   private var siteHeader: some View {
