@@ -50,8 +50,10 @@ struct WeeklySpendSummaryView: View {
             Text("W/E \(Fmt.date(week))")
               .font(.caption.weight(.semibold))
               .padding(.vertical, 8).padding(.horizontal, 12)
-              .background(selected ? Brand.olive : Brand.lightGreen.opacity(0.7),
-                in: Capsule())
+              .background(
+                selected ? Brand.olive : Brand.lightGreen.opacity(0.7),
+                in: Capsule()
+              )
               .foregroundStyle(selected ? .white : Brand.ink)
           }
           .buttonStyle(.plain)

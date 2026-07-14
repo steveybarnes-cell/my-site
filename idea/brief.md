@@ -62,20 +62,17 @@ All three role experiences built and navigable end to end.
 - Centred single column (max width 500pt), edge-to-edge card, olive accent rail, location ribbon, square-tick acknowledge burst.
 
 ## PHASE 12 — AI Invoice Auditor — DONE
-- **Goal:** turn Steve's approval job from reading every invoice into reviewing only flagged exceptions.
-- **Engine (`Models/InvoiceAuditor.swift`):** fully local, deterministic, explainable. Runs on the real data the app already holds. Produces a scored `InvoiceAudit` (0–100 risk) from weighted `AuditFinding`s across six checks:
-  1. Claimed hours vs geofenced GPS time on site (±20% tolerance).
-  2. Attendance events outside geofence / no location that are not yet approved.
-  3. Materials billed without a receipt (or billed with none logged).
-  4. Labour claimed with no before/during/completed photos.
-  5. Submitted after the Monday 13:00 deadline.
-  6. Duplicate invoice number across submissions.
-- **UI (`Views/Admin/InvoiceAuditView.swift`):** ring-gauge score + verdict, worst-first findings list, disclaimer that the decision stays with the office. Each `AdminSubmissionRow` shows a compact sparkles risk badge + "Review AI audit / clear" button opening the sheet.
-- **Future enrichment:** an optional LLM pass (via the existing `scan-receipt` Edge Function pattern) could rephrase flags into a friendly office note; numbers stay grounded in real data.
+- Deterministic, explainable pre-approval risk score (`Models/InvoiceAuditor.swift`) from six checks (hours vs GPS, unapproved attendance, receipts, photos, deadline, duplicate invoice no). Surfaced in `Views/Admin/InvoiceAuditView.swift` + compact risk badge on each `AdminSubmissionRow`.
+
+## PHASE 13 — AI Weekly Recap — DONE
+- **Goal:** turn raw dashboard numbers into an office-ready plain-English spend summary Steve can read in seconds.
+- **Engine (`Models/WeeklySpendSummary.swift`):** fully local + deterministic, built on the existing `DashboardAnalytics`. Per selected week it computes total spend (labour + materials), net to pay, hours on site, invoice pipeline, missing-receipt count/value, late submissions, biggest cost-centre site, busiest tradesman, and week-on-week movement, then assembles them into narrative sentences with a calm/watch/alert tone.
+- **UI (`Views/Admin/WeeklySpendSummaryView.swift`):** week-picker strip, narrative recap card with tone accent, four metric tiles, and a "Where the money went" per-site breakdown with spend bars. Entry point added at the top of the Admin More hub (sparkles).
+- **Future enrichment:** optional hosted LLM phrasing pass via the existing `scan-receipt` Edge Function pattern; numbers stay authoritative, only wording gets richer.
 
 ### AI roadmap (proposed next)
-- **Voice-to-daily-record** (tradesman mic → structured site record) — biggest adoption lever.
-- AI photo captions/tagging; weekly plain-English spend summary; smart Xero line descriptions; "Ask MPG" natural-language search.
+- Optional AI phrasing pass on Weekly Recap.
+- "Ask MPG" natural-language search; AI photo captions/tagging; smart Xero line descriptions.
 
 ### Deferred / Next
 - Global "+" create action; feed "Needs action / Unread" filter; tab badge counts.

@@ -55,7 +55,8 @@ struct WeeklySpendSummary: Identifiable {
     var lines: [String] = []
 
     // Opening line — spend + movement.
-    var opener = "Company spend this week was \(Fmt.gbp(spend)) — "
+    var opener =
+      "Company spend this week was \(Fmt.gbp(spend)) — "
       + "\(Fmt.gbp(labour)) labour and \(Fmt.gbp(materials)) materials"
     if let c = changePct {
       let dir = c >= 0 ? "up" : "down"
@@ -93,7 +94,8 @@ struct WeeklySpendSummary: Identifiable {
     if missingReceipts > 0 {
       lines.append(
         "⚠️ \(missingReceipts) materials line\(missingReceipts == 1 ? "" : "s") "
-          + "(\(Fmt.gbp(missingReceiptValue))) are still missing a receipt — worth chasing before you pay.")
+          + "(\(Fmt.gbp(missingReceiptValue))) are still missing a receipt — worth chasing before you pay."
+      )
     }
     if lateSubmissions > 0 {
       lines.append(
@@ -113,7 +115,9 @@ struct WeeklySpendSummary: Identifiable {
     if let c = changePct {
       s += " (\(c >= 0 ? "+" : "")\(Int(c.rounded()))%)"
     }
-    if missingReceipts > 0 { s += " • \(missingReceipts) receipt\(missingReceipts == 1 ? "" : "s") missing" }
+    if missingReceipts > 0 {
+      s += " • \(missingReceipts) receipt\(missingReceipts == 1 ? "" : "s") missing"
+    }
     return s
   }
 }
@@ -157,7 +161,8 @@ enum WeeklySpendSummarizer {
     prevFilter.weekEnding = prevWeek
     let prevAnalytics = DashboardAnalytics(store: store, filter: prevFilter)
     let prevSpend = prevAnalytics.weekSummary.labourValue + prevAnalytics.weekSummary.materialsValue
-    let prevHadData = prevAnalytics.weekSummary.invoicesSubmitted > 0
+    let prevHadData =
+      prevAnalytics.weekSummary.invoicesSubmitted > 0
       || prevAnalytics.materials.isEmpty == false
 
     return WeeklySpendSummary(
