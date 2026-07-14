@@ -24,7 +24,9 @@ struct AskMPGView: View {
           ScrollViewReader { proxy in
             ScrollView {
               VStack(spacing: 16) {
-                if turns.isEmpty { intro } else {
+                if turns.isEmpty {
+                  intro
+                } else {
                   ForEach(turns) { turn in
                     conversation(turn).id(turn.id)
                   }
@@ -174,7 +176,9 @@ struct AskMPGView: View {
         Image(systemName: "arrow.up")
           .font(.headline.weight(.bold)).foregroundStyle(.white)
           .frame(width: 42, height: 42)
-          .background(query.trimmingCharacters(in: .whitespaces).isEmpty ? Brand.inkSoft : Brand.olive, in: Circle())
+          .background(
+            query.trimmingCharacters(in: .whitespaces).isEmpty ? Brand.inkSoft : Brand.olive,
+            in: Circle())
       }
       .disabled(query.trimmingCharacters(in: .whitespaces).isEmpty)
     }

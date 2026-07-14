@@ -15,6 +15,7 @@
 - [x] AI Invoice Auditor: pre-approval risk score + flags (hours vs GPS, receipts, photos, deadline, duplicates)
 - [x] AI voice-to-daily-record for tradesmen (mic → on-device transcription → structured record)
 - [x] AI Weekly Recap: plain-English per-week spend summary (labour/materials, WoW movement, missing receipts, late invoices, site breakdown)
+- [x] AI Ask MPG: local natural-language query over live company data (spend, invoices, receipts, hours, sites, people) with chat UI
 - [x] Apple 5.1.1: in-app Delete my account flow
 - [x] Team feed (company group chat): posts, photos, acknowledgements, comments across all roles
 - [x] Team feed is the default/first tab on app open across all three roles
@@ -25,7 +26,7 @@
 - [x] Logo: in-app MPGLogo simplified to clean roofline gable + wordmark (hard hat removed)
 - [x] Team feed redesign: centered phone-width column + Instagram-style card with unique MPG identity
 - [ ] Optional AI phrasing pass on Weekly Recap via scan-receipt Edge Function pattern
-- [ ] "Ask MPG" natural-language search for admin
+- [ ] Smart AI Xero line descriptions before push
 - [ ] Calls: wire real telephony (CallKit + VoIP provider)
 - [ ] Team feed: wire to Supabase (feed_posts/feed_comments + RLS) + real photo uploads
 - [ ] User: select development Team in Xcode Signing & Capabilities to build to device

@@ -32,7 +32,10 @@ All three role experiences built and navigable end to end.
 
 ### Blocked on user
 - App Store Connect fields (Support URL, Privacy Policy URL, seller, App Review phone) + five legal sign-offs.
-- Choose build + Contact Information in App Store Connect, then submit.
+- App ID 6789147701, version 1.0, build already uploaded. Remaining: on the 1.0 "Prepare for Submission" page select the uploaded Build, complete App Review Contact Information + demo credentials, fill Support/Privacy URLs, then Add for Review → Submit.
+
+### Build environment note
+- Dev Mac disk was 100% full, which caused compile timeouts and a spurious `PACKAGE-TARGET:Auth` error. Cleared ~1.5 GB of Xcode/TenX DerivedData; now builds clean. Disk still ~88% full — recommend clearing `iOS DeviceSupport` (13 GB), `CoreSimulator` (6.2 GB), `~/Library/Caches` (3.1 GB).
 
 ## PHASE 5 — Team feed / company group chat (local demo)
 - **Models:** `FeedPost` + `FeedComment` in `Models/CompanyFeed.swift`.
@@ -62,17 +65,20 @@ All three role experiences built and navigable end to end.
 - Centred single column (max width 500pt), edge-to-edge card, olive accent rail, location ribbon, square-tick acknowledge burst.
 
 ## PHASE 12 — AI Invoice Auditor — DONE
-- Deterministic, explainable pre-approval risk score (`Models/InvoiceAuditor.swift`) from six checks (hours vs GPS, unapproved attendance, receipts, photos, deadline, duplicate invoice no). Surfaced in `Views/Admin/InvoiceAuditView.swift` + compact risk badge on each `AdminSubmissionRow`.
+- Deterministic, explainable pre-approval risk score (`Models/InvoiceAuditor.swift`) from six checks. Surfaced in `Views/Admin/InvoiceAuditView.swift` + compact risk badge on each `AdminSubmissionRow`.
 
 ## PHASE 13 — AI Weekly Recap — DONE
-- **Goal:** turn raw dashboard numbers into an office-ready plain-English spend summary Steve can read in seconds.
-- **Engine (`Models/WeeklySpendSummary.swift`):** fully local + deterministic, built on the existing `DashboardAnalytics`. Per selected week it computes total spend (labour + materials), net to pay, hours on site, invoice pipeline, missing-receipt count/value, late submissions, biggest cost-centre site, busiest tradesman, and week-on-week movement, then assembles them into narrative sentences with a calm/watch/alert tone.
-- **UI (`Views/Admin/WeeklySpendSummaryView.swift`):** week-picker strip, narrative recap card with tone accent, four metric tiles, and a "Where the money went" per-site breakdown with spend bars. Entry point added at the top of the Admin More hub (sparkles).
-- **Future enrichment:** optional hosted LLM phrasing pass via the existing `scan-receipt` Edge Function pattern; numbers stay authoritative, only wording gets richer.
+- Fully local + deterministic engine (`Models/WeeklySpendSummary.swift`) on top of `DashboardAnalytics`; narrative recap card + metric tiles + per-site breakdown (`Views/Admin/WeeklySpendSummaryView.swift`), entry point in Admin More hub.
+
+## PHASE 14 — AI Ask MPG — DONE
+- **Goal:** let the office interrogate live company data in plain English.
+- **Engine (`Models/AskMPG.swift`):** fully local + deterministic. Parses intent (owed/outstanding, awaiting approval, queried/on-hold, ready-to-pay, paid/unpaid, late, missing receipts, spend, spend-by-site, hours), resolves named sites/tradesmen, applies amount thresholds ("over £500") and "this week" windows, and returns structured `AskAnswer` cards (headline figure + summary + itemised rows). Numbers reuse `DashboardAnalytics`/`AppStore`, so answers stay authoritative and work offline.
+- **UI (`Views/Admin/AskMPGView.swift`):** chat-style stacked Q&A, answer cards, tappable suggestion chips, custom `FlowLayout` for chips. Entry point added to the Admin More hub ("Ask MPG", sparkles.rectangle.stack).
 
 ### AI roadmap (proposed next)
-- Optional AI phrasing pass on Weekly Recap.
-- "Ask MPG" natural-language search; AI photo captions/tagging; smart Xero line descriptions.
+- Optional AI phrasing pass on Weekly Recap via `scan-receipt` Edge Function pattern.
+- Smart AI Xero line descriptions before push.
+- AI photo captions/tagging.
 
 ### Deferred / Next
 - Global "+" create action; feed "Needs action / Unread" filter; tab badge counts.

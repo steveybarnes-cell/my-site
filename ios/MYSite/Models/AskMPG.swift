@@ -64,7 +64,13 @@ enum AskMPG {
     if contains(q, ["missing receipt", "no receipt", "without receipt", "receipt missing"]) {
       return missingReceiptAnswer(store: store, site: site)
     }
-    if contains(q, ["awaiting approval", "to review", "to approve", "needs approval", "pending approval", "review"]) {
+    if contains(
+      q,
+      [
+        "awaiting approval", "to review", "to approve", "needs approval", "pending approval",
+        "review",
+      ])
+    {
       return statusAnswer(
         store: store, statuses: [.submitted, .awaitingSM, .approvedSM, .onHold],
         label: "awaiting approval", symbol: "tray.full", threshold: threshold, site: site)
@@ -72,7 +78,8 @@ enum AskMPG {
     if contains(q, ["query", "queried", "disputed", "on hold", "rejected"]) {
       return statusAnswer(
         store: store, statuses: [.queryRaised, .onHold, .rejected],
-        label: "queried or on hold", symbol: "questionmark.circle", threshold: threshold, site: site)
+        label: "queried or on hold", symbol: "questionmark.circle", threshold: threshold, site: site
+      )
     }
     if contains(q, ["ready to pay", "approved for payment", "to be paid", "ready for payment"]) {
       return statusAnswer(
@@ -90,7 +97,10 @@ enum AskMPG {
     if contains(q, ["hours", "worked most", "who worked"]) {
       return hoursAnswer(store: store, thisWeek: thisWeek, tradesman: tradesman)
     }
-    if contains(q, ["costing", "most expensive", "biggest cost", "cost the most", "spend by site", "which site"]) {
+    if contains(
+      q,
+      ["costing", "most expensive", "biggest cost", "cost the most", "spend by site", "which site"])
+    {
       return siteSpendAnswer(store: store, thisWeek: thisWeek)
     }
     if contains(q, ["spend", "spent", "cost", "total cost"]) {
@@ -235,10 +245,18 @@ enum AskMPG {
       summary:
         "\(thisWeek ? "This week" : "To date")\(site.map { " at \($0.name)" } ?? ""): \(Fmt.gbp(s.labourValue)) labour + \(Fmt.gbp(s.materialsValue)) materials, \(Fmt.gbp(s.netDue)) net to pay.",
       rows: [
-        AskAnswerRow(title: "Labour", detail: "\(Fmt.hours(s.totalHours)) on site", value: Fmt.gbp(s.labourValue), symbol: "hammer"),
-        AskAnswerRow(title: "Materials", detail: "Purchases + supplier invoices", value: Fmt.gbp(s.materialsValue), symbol: "shippingbox"),
-        AskAnswerRow(title: "Net to pay", detail: "After CIS + VAT", value: Fmt.gbp(s.netDue), symbol: "banknote"),
-        AskAnswerRow(title: "Invoices", detail: "\(s.pendingApproval) pending • \(s.paid) paid", value: "\(s.invoicesSubmitted)", symbol: "doc.text"),
+        AskAnswerRow(
+          title: "Labour", detail: "\(Fmt.hours(s.totalHours)) on site",
+          value: Fmt.gbp(s.labourValue), symbol: "hammer"),
+        AskAnswerRow(
+          title: "Materials", detail: "Purchases + supplier invoices",
+          value: Fmt.gbp(s.materialsValue), symbol: "shippingbox"),
+        AskAnswerRow(
+          title: "Net to pay", detail: "After CIS + VAT", value: Fmt.gbp(s.netDue),
+          symbol: "banknote"),
+        AskAnswerRow(
+          title: "Invoices", detail: "\(s.pendingApproval) pending • \(s.paid) paid",
+          value: "\(s.invoicesSubmitted)", symbol: "doc.text"),
       ],
       symbol: "chart.bar.fill")
   }
@@ -247,15 +265,21 @@ enum AskMPG {
     let subs = store.submissions.filter { $0.userId == tradesman.id }
     let outstanding = subs.filter { $0.status != .paid && $0.status != .draft }
       .reduce(0) { $0 + $1.netDue }
-    let hours = store.dailyRecords.filter { $0.userId == tradesman.id }.reduce(0) { $0 + $1.totalHours }
+    let hours = store.dailyRecords.filter { $0.userId == tradesman.id }.reduce(0) {
+      $0 + $1.totalHours
+    }
     let missing = store.missingReceiptMaterials().filter { $0.userId == tradesman.id }.count
     return AskAnswer(
       headline: tradesman.name,
       summary:
         "\(Fmt.gbp(outstanding)) outstanding • \(Fmt.hours(hours)) logged • \(subs.count) invoice\(subs.count == 1 ? "" : "s").",
-      rows: submissionRows(subs, store: store) + (missing > 0 ? [
-        AskAnswerRow(title: "Missing receipts", detail: "Chase before payment", value: "\(missing)", symbol: "doc.badge.ellipsis")
-      ] : []),
+      rows: submissionRows(subs, store: store)
+        + (missing > 0
+          ? [
+            AskAnswerRow(
+              title: "Missing receipts", detail: "Chase before payment", value: "\(missing)",
+              symbol: "doc.badge.ellipsis")
+          ] : []),
       symbol: "person.crop.circle.fill")
   }
 
@@ -266,8 +290,11 @@ enum AskMPG {
       summary:
         "\(site.status.rawValue) • \(row.map { Fmt.gbp($0.total) } ?? "£0") spent • \(row?.missingReceipts ?? 0) missing receipt\((row?.missingReceipts ?? 0) == 1 ? "" : "s").",
       rows: [
-        AskAnswerRow(title: "Labour", detail: site.client, value: Fmt.gbp(row?.labour ?? 0), symbol: "hammer"),
-        AskAnswerRow(title: "Materials", detail: site.address, value: Fmt.gbp(row?.materials ?? 0), symbol: "shippingbox"),
+        AskAnswerRow(
+          title: "Labour", detail: site.client, value: Fmt.gbp(row?.labour ?? 0), symbol: "hammer"),
+        AskAnswerRow(
+          title: "Materials", detail: site.address, value: Fmt.gbp(row?.materials ?? 0),
+          symbol: "shippingbox"),
       ],
       symbol: "mappin.and.ellipse")
   }
@@ -281,12 +308,22 @@ enum AskMPG {
     let missing = store.missingReceiptMaterials().count
     return AskAnswer(
       headline: "Company snapshot",
-      summary: "Here's where things stand. Try asking about spend, invoices, sites or a person by name.",
+      summary:
+        "Here's where things stand. Try asking about spend, invoices, sites or a person by name.",
       rows: [
-        AskAnswerRow(title: "Outstanding", detail: "Not yet paid", value: Fmt.gbp(outstanding), symbol: "sterlingsign.circle"),
-        AskAnswerRow(title: "To review", detail: "Invoices awaiting approval", value: "\(toReview)", symbol: "tray.full"),
-        AskAnswerRow(title: "Active sites", detail: "Currently on the books", value: "\(store.sites.filter { $0.status == .active }.count)", symbol: "mappin.and.ellipse"),
-        AskAnswerRow(title: "Missing receipts", detail: "Chase before payment", value: "\(missing)", symbol: "doc.badge.ellipsis"),
+        AskAnswerRow(
+          title: "Outstanding", detail: "Not yet paid", value: Fmt.gbp(outstanding),
+          symbol: "sterlingsign.circle"),
+        AskAnswerRow(
+          title: "To review", detail: "Invoices awaiting approval", value: "\(toReview)",
+          symbol: "tray.full"),
+        AskAnswerRow(
+          title: "Active sites", detail: "Currently on the books",
+          value: "\(store.sites.filter { $0.status == .active }.count)",
+          symbol: "mappin.and.ellipse"),
+        AskAnswerRow(
+          title: "Missing receipts", detail: "Chase before payment", value: "\(missing)",
+          symbol: "doc.badge.ellipsis"),
       ],
       symbol: "sparkles")
   }
@@ -321,11 +358,12 @@ enum AskMPG {
     store.sites.first { site in
       let name = site.name.lowercased()
       return name.count > 3 && q.contains(name)
-    } ?? store.sites.first { site in
-      // Match on the first significant word of the site name/address.
-      let token = site.name.lowercased().split(separator: " ").first.map(String.init) ?? ""
-      return token.count > 4 && q.contains(token)
     }
+      ?? store.sites.first { site in
+        // Match on the first significant word of the site name/address.
+        let token = site.name.lowercased().split(separator: " ").first.map(String.init) ?? ""
+        return token.count > 4 && q.contains(token)
+      }
   }
 
   private static func matchedTradesman(in q: String, store: AppStore) -> AppUser? {
