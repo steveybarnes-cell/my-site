@@ -51,6 +51,12 @@ struct AdminMoreView: View {
           tint: Brand.olive
         ) { WeeklySpendSummaryView() },
         MoreHubItem(
+          title: "Ask MPG",
+          subtitle: "Ask about spend, invoices & sites",
+          symbol: "sparkles.rectangle.stack",
+          tint: Brand.blue
+        ) { AskMPGView() },
+        MoreHubItem(
           title: "Work by Trade",
           subtitle: "Unified timeline per trade",
           symbol: "hammer.fill",
