@@ -10,7 +10,6 @@ import SwiftUI
 /// square-tick acknowledgement action instead of a heart.
 struct CompanyFeedView: View {
   @Environment(AppStore.self) private var store
-  @Environment(CallService.self) private var call
   @State private var showComposer = false
   @State private var showCall = false
   @State private var selectedSiteId: UUID?
@@ -77,7 +76,6 @@ struct CompanyFeedView: View {
       }
       .sheet(isPresented: $showCall) {
         StartCallView()
-          .environment(call)
       }
       .onReceive(liveTimer) { _ in liveTick = Date() }
     }

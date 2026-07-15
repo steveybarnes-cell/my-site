@@ -5,8 +5,8 @@
 
 **Platform scope note:** 10x builds native iOS (iPhone + iPad) only. PC hub is delivered via Supabase `report_*` views any PC browser can open.
 
-### v1 Status — COMPLETE (mock/local-first)
-All three role experiences built and navigable end to end.
+### v1 Status — COMPLETE (mock/local-first) then backed by Supabase
+All three role experiences built and navigable end to end; core areas read/write live Supabase.
 
 ## PHASE 2 — Supabase backend — COMPLETE
 - Schema, RLS, auto-create-profile trigger, private storage bucket applied.
@@ -14,77 +14,46 @@ All three role experiences built and navigable end to end.
 - Core areas read/write live Supabase. PC-accessible hub via `report_*` views.
 
 ## PHASE 3 — COMPLETE
-- Real photo image uploads to private `site-evidence` Storage bucket.
-- Offline sync queue: disk-backed FIFO, auto-retry, pending-sync banner.
+- Real photo uploads to private `site-evidence` bucket; disk-backed offline sync queue.
 - Dashboard charts (Swift Charts) + branded A4 PDF handover export via ShareLink.
-- **Xero — LIVE.** Two Supabase Edge Functions deployed; app wired with signed-in user's Supabase JWT; Client Secret stays server-side.
-- **Admin Manage tab.** Admin can add/edit sites, staff, and work allocations in-app.
-- **AI receipt scan — LIVE.** `scan-receipt` Edge Function deployed; `ReceiptScanService` calls it with the user's Supabase token. `OPENAI_API_KEY` backend secret is set.
+- **Xero — LIVE** (two Supabase Edge Functions; client secret server-side).
+- **Admin Manage tab** — add/edit sites, staff, allocations in-app.
+- **AI receipt scan — LIVE** (`scan-receipt` Edge Function + `OPENAI_API_KEY`).
 
 ## PHASE 4 — App Store go-live (in progress)
 
 ### Done
-- Demo Sign-in gated for release; Demo Mode always available via login role-picker.
-- Admin role confirmed (Steve, info@my-project.co.uk).
-- Production Audit complete.
-- Submission details recorded: support email info@my-project.co.uk, legal seller "My Project Group Limited", App Review phone 0117 251 0565.
-- Device connectivity fix; account deletion (5.1.1); launch watchdog crash fixed.
+- Demo Sign-in gated behind `#if DEBUG` (absent from Release); Demo Mode always available via role-picker.
+- Production Audit complete; account deletion (5.1.1); launch watchdog crash fixed.
+- Build uploaded: App ID 6789147701, version 1.0, build 1.
 
-### Blocked on user
-- App Store Connect fields (Support URL, Privacy Policy URL, seller, App Review phone) + five legal sign-offs.
-- App ID 6789147701, version 1.0, build already uploaded. Remaining: on the 1.0 "Prepare for Submission" page select the uploaded Build, complete App Review Contact Information + demo credentials, fill Support/Privacy URLs, then Add for Review → Submit.
+### App Review v1.0 REJECTED (submission b7d2dd2a, iPad Air 11" M3) — two issues, both addressed:
+1. **Guideline 2.2 (beta/limited feature set)** — root cause was the **simulated in-app VoIP call screen** (fake ringing/timer). FIXED in code: deleted mock `CallService` + `CallOverlay`; `StartCallView` now places a **real system phone call via `tel://`** using each teammate's stored number, with a clear "no number on file" state. Compiles clean.
+2. **Guideline 5.1.2(i) (privacy/tracking label)** — the app genuinely does **not track** (verified: no IDFA/ATT/SKAdNetwork/AdSupport/analytics/ad SDKs anywhere). This is an **App Store Connect App Privacy label error**, fixable only by the Account Holder/Admin.
 
-### Build environment note
-- Dev Mac disk was 100% full, which caused compile timeouts and a spurious `PACKAGE-TARGET:Auth` error. Cleared ~1.5 GB of Xcode/TenX DerivedData; now builds clean. Disk still ~88% full — recommend clearing `iOS DeviceSupport` (13 GB), `CoreSimulator` (6.2 GB), `~/Library/Caches` (3.1 GB).
+### Blocked on user (resubmission)
+- Correct App Privacy: mark every collected data type (Photos, Name, Email, Precise Location, Messages) as **"not used to track."**
+- Upload a new build (increment build number) with the call fix; add Review Notes documenting (a) `tel:` calling is a real feature, (b) app does not track; keep demo credentials (Steve / info@my-project.co.uk / Admin); Add for Review → Submit.
+- Prefill still Needs Review: support URL, privacy policy URL, seller name, App Review phone, jurisdiction (England & Wales).
 
-## PHASE 5 — Team feed / company group chat (local demo)
-- **Models:** `FeedPost` + `FeedComment` in `Models/CompanyFeed.swift`.
-- **UI:** `CompanyFeedView`, `FeedComposerView`, `FeedCommentsView`. Per-site filter chips, pull-to-refresh, uniform fixed-height feed photos.
-- **Team** tab is the default/first tab on app open in all three role root views.
-- Currently local/in-memory only — resets on relaunch, no cross-device sync yet.
+## PHASE 5-14 — COMPLETE
+- Team feed / company group chat (local, centred phone-width Instagram-style card with MPG identity).
+- Demo Mode; per-site feed filter; Admin Work by Trade.
+- AI Invoice Auditor; AI Weekly Recap; AI Ask MPG (local natural-language query).
+- Consistent 5-tab navigation per role + reusable More hub. Team is the default tab.
+- Branding: MPGLogo simplified to roofline gable + wordmark.
 
-## PHASE 6 — Demo Mode (all builds)
-- Always-available Demo Mode via "Explore in Demo Mode" on `LoginView` → `Views/DemoModeView.swift`.
-
-## PHASE 7 — Communication + visibility upgrades (local/mock)
-- **In-app calling** (`CallService`), **per-site feed filter**, **live feed feel**, **Admin Work by Trade**.
-
-## PHASE 8 — Advertise AI receipt automation
-- AI receipt scanning + auto Hubdoc/Xero upload surfaced across LoginView, DemoModeView, MaterialFormView.
-
-## PHASE 9 — Navigation streamlining — done
-- Consolidated every role to a consistent **5-tab** layout with a reusable `MoreHubView`.
-  - **Tradesman:** Team · Today · Files · Alerts · More
-  - **Admin:** Team · Dashboard · Invoices · Alerts · More
-  - **Site Manager:** Team · My Sites · Records · Alerts · More
-
-## PHASE 10 — Branding: logo matched to app icon — DONE
-- Redrew `MYSiteMark` to the clean roofline gable + "MY" green / "SITE" charcoal wordmark; hard hat removed.
-
-## PHASE 11 — Team feed redesign — DONE
-- Centred single column (max width 500pt), edge-to-edge card, olive accent rail, location ribbon, square-tick acknowledge burst.
-
-## PHASE 12 — AI Invoice Auditor — DONE
-- Deterministic, explainable pre-approval risk score (`Models/InvoiceAuditor.swift`) from six checks. Surfaced in `Views/Admin/InvoiceAuditView.swift` + compact risk badge on each `AdminSubmissionRow`.
-
-## PHASE 13 — AI Weekly Recap — DONE
-- Fully local + deterministic engine (`Models/WeeklySpendSummary.swift`) on top of `DashboardAnalytics`; narrative recap card + metric tiles + per-site breakdown (`Views/Admin/WeeklySpendSummaryView.swift`), entry point in Admin More hub.
-
-## PHASE 14 — AI Ask MPG — DONE
-- **Goal:** let the office interrogate live company data in plain English.
-- **Engine (`Models/AskMPG.swift`):** fully local + deterministic. Parses intent (owed/outstanding, awaiting approval, queried/on-hold, ready-to-pay, paid/unpaid, late, missing receipts, spend, spend-by-site, hours), resolves named sites/tradesmen, applies amount thresholds ("over £500") and "this week" windows, and returns structured `AskAnswer` cards (headline figure + summary + itemised rows). Numbers reuse `DashboardAnalytics`/`AppStore`, so answers stay authoritative and work offline.
-- **UI (`Views/Admin/AskMPGView.swift`):** chat-style stacked Q&A, answer cards, tappable suggestion chips, custom `FlowLayout` for chips. Entry point added to the Admin More hub ("Ask MPG", sparkles.rectangle.stack).
+### Calling — now REAL
+- In-app "Call a Teammate" opens the system dialer (`tel:`) with the selected member's number. No simulated VoIP. (CallKit/VoIP provider deferred and not required for App Review.)
 
 ### AI roadmap (proposed next)
 - Optional AI phrasing pass on Weekly Recap via `scan-receipt` Edge Function pattern.
-- Smart AI Xero line descriptions before push.
-- AI photo captions/tagging.
+- Smart AI Xero line descriptions before push; AI photo captions/tagging.
 
 ### Deferred / Next
-- Global "+" create action; feed "Needs action / Unread" filter; tab badge counts.
-- Wire in-app calling to real telephony (CallKit + VoIP provider).
+- Global "+" create action; tab badge counts.
 - Wire Team feed to Supabase (`feed_posts` / `feed_comments` + RLS) with real photo uploads for cross-device sync.
-- Push notifications, optional branded web portal.
+- Push notifications; optional branded web portal.
 
 ### Design
 Reuse MPG system (charcoal + green, `mpgCard()`, `mpgFormSection()`, `Brand` tokens, shared `Field`/`SectionHeader`/`PrimaryButton`).
