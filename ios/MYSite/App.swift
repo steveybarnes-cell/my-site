@@ -26,5 +26,6 @@ struct MPGSiteRecordsApp: App {
 private struct RootContainer: View {
   var body: some View {
     ContentView()
+      .onAppear { LocalNotificationService.requestAuthorization() }
   }
 }

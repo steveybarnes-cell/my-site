@@ -25,6 +25,7 @@ struct AdminRootView: View {
         }
       }
     }
+    .onAppear { store.notifyPendingReviews() }
     .__tenxTrackView("AdminRootView")
   }
 }
@@ -122,8 +123,7 @@ struct AdminDashboardView: View {
   private var metrics: some View {
     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
       MetricTile(
-        value:
-          "\(store.submissions.filter { $0.status == .submitted || $0.status == .awaitingSM }.count)",
+        value: "\(store.pendingAdminReviewCount)",
         label: "Invoices to review", symbol: "tray.full")
       MetricTile(
         value: "\(store.tradesmen().count)", label: "Active tradesmen", symbol: "person.2",
@@ -222,7 +222,7 @@ struct AdminSubmissionRow: View {
   @State private var showAudit = false
 
   private var live: WeeklySubmission {
-    store.submissions.first { $0.id == submission.id } ?? submission
+    store.submissions.first(where: { $0.id == submission.id }) ?? submission
   }
 
   private var audit: InvoiceAudit {

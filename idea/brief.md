@@ -45,19 +45,27 @@ All three role experiences built and navigable end to end; core areas read/write
 - Calling — REAL system dialer (`tel:`), no simulated VoIP.
 
 ### Offline site record drafts — COMPLETE
-- New `DraftStore` (Models/DraftStore.swift): disk-backed (`mpg-record-drafts.json`), fully local, relaunch-safe, one draft per allocation.
-- `DailyRecordFormView`: "Save draft & finish later" button; auto-restores a saved draft when the same job's form reopens; clears the draft on successful submit.
-- `TradesmanRecordsView` → Site Records: "Saved drafts" card lists unfinished records with site name, preview and save date, plus Resume (reopens pre-filled) and delete actions.
-- Complements the existing `SyncQueue` which replays submitted records to Supabase when connectivity returns.
+- New `DraftStore` (Models/DraftStore.swift): disk-backed, fully local, relaunch-safe, one draft per allocation.
+- `DailyRecordFormView` save-draft/auto-restore; `TradesmanRecordsView` Saved drafts card (resume/delete).
+
+### Notifications & approval alerts — COMPLETE
+- `NotificationPreferencesStore` (Models/NotificationPreferences.swift): disk-backed per-user prefs (master switch + per-event `NotifyCategory` toggles), relaunch-safe, defaults on.
+- `LocalNotificationService`: UNUserNotificationCenter local (on-device) banner delivery; authorization requested at launch.
+- `AppStore.notify(_:category:message:)` + `notifyOffice(...)`: category-aware, respects prefs, records in-app notification and fires a local banner for the signed-in recipient.
+- Triggers wired: invoice/timesheet submitted → admin + all site managers; daily site record submitted → office; invoice queried/held/rejected → subcontractor; invoice paid/approved → subcontractor; new work allocated → tradesman; attendance/file events reuse the routed path.
+- `NotificationSettingsView` (role-aware toggle list) opened from a slider button in the Alerts tab.
+- **Admin pending-review digest — COMPLETE**: `pendingAdminReviewCount` (submitted/approvedSM/queried/on-hold invoices + attendance needing manual approval) drives both the Dashboard "Invoices to review" tile and a proactive `notifyPendingReviews()` reminder fired once per launch when Steve opens the app (`AdminRootView.onAppear`). New `.pendingReview` `NotifyCategory` with its own admin toggle. Respects prefs; in-app alert + local banner.
+- **Scope:** local notifications only today. Real remote delivery when app is fully closed (APNS) needs push certs + server + physical-device validation — deferred (event triggers + prefs already built, so it's a delivery swap not a rebuild).
 
 ### AI roadmap (proposed next)
 - Optional AI phrasing pass on Weekly Recap via `scan-receipt` Edge Function pattern.
 - Smart AI Xero line descriptions before push; AI photo captions/tagging.
 
 ### Deferred / Next
+- Remote push delivery (APNS): push certificates + server, validate on physical device.
 - Global "+" create action; tab badge counts.
 - Wire Team feed to Supabase (`feed_posts` / `feed_comments` + RLS) with real photo uploads.
-- Push notifications; optional branded web portal.
+- Optional branded web portal.
 
 ### Design
 Reuse MPG system (charcoal + green, `mpgCard()`, `mpgFormSection()`, `Brand` tokens, shared `Field`/`SectionHeader`/`PrimaryButton`).

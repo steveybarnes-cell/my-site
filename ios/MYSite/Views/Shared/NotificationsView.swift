@@ -1,5 +1,8 @@
 import SwiftUI
 
+/// Navigation route to the notification-preferences screen.
+struct NotificationSettingsRoute: Hashable {}
+
 struct NotificationsView: View {
   @Environment(AppStore.self) private var store
   private var me: AppUser? { store.currentUser }
@@ -27,7 +30,15 @@ struct NotificationsView: View {
           }
         }
         .navigationTitle("Notifications")
+        .navigationDestination(for: NotificationSettingsRoute.self) { _ in
+          NotificationSettingsView()
+        }
         .toolbar {
+          ToolbarItem(placement: .topBarLeading) {
+            NavigationLink(value: NotificationSettingsRoute()) {
+              Image(systemName: "slider.horizontal.3")
+            }
+          }
           ToolbarItem(placement: .topBarTrailing) {
             Button("Mark read") { store.markAllNotificationsRead() }
               .disabled(store.unreadCount == 0)

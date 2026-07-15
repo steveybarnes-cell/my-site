@@ -427,9 +427,28 @@ final class AppStore {
     if let name { submissions[i].approvedBy = name }
     let sub = submissions[i]
     sync(queued: SupabaseData.operation(for: sub)) { try await SupabaseData.save(sub, token: $0) }
-    notify(
-      sub.userId, type: "Invoice",
-      message: "Your invoice \(sub.invoiceNumber) is now \(status.rawValue).", symbol: "doc.text")
+    // Tell the subcontractor what happened to their invoice.
+    switch status {
+    case .queryRaised, .onHold, .rejected:
+      notify(
+        sub.userId, category: .invoiceQueried,
+        message: "Your invoice \(sub.invoiceNumber) is now \(status.rawValue).")
+    case .paid, .approvedPayment, .approvedSM:
+      notify(
+        sub.userId, category: .invoicePaid,
+        message: "Your invoice \(sub.invoiceNumber) is now \(status.rawValue).")
+    case .submitted:
+      // A subcontractor just submitted — alert the office for approval.
+      let who = user(sub.userId)?.name ?? "A subcontractor"
+      notifyOffice(
+        category: .invoiceSubmitted,
+        message: "\(who) submitted invoice \(sub.invoiceNumber) for approval.")
+    default:
+      notify(
+        sub.userId, type: "Invoice",
+        message: "Your invoice \(sub.invoiceNumber) is now \(status.rawValue).",
+        symbol: "doc.text")
+    }
   }
 
   // MARK: - Admin management: sites, staff, allocations
@@ -467,15 +486,20 @@ final class AppStore {
     sync(queued: SupabaseData.operation(for: a)) { try await SupabaseData.save(a, token: $0) }
     if isNew {
       notify(
-        a.tradesmanId, type: "Allocation",
+        a.tradesmanId, category: .workAllocated,
         message: "You have been allocated work at \(site(a.siteId)?.name ?? "a site") on "
-          + "\(Fmt.date(a.date)).", symbol: "hammer.fill")
+          + "\(Fmt.date(a.date)).")
     }
   }
 
   func addRecord(_ r: DailyRecord) {
     dailyRecords.append(r)
     sync(queued: SupabaseData.operation(for: r)) { try await SupabaseData.save(r, token: $0) }
+    let who = user(r.userId)?.name ?? "A subcontractor"
+    let where0 = site(r.siteId)?.name ?? "a site"
+    notifyOffice(
+      category: .recordSubmitted,
+      message: "\(who) submitted a daily site record for \(where0).")
   }
 
   /// Adds or upserts a weekly submission (used when a tradesman creates/edits an invoice).
@@ -781,6 +805,67 @@ final class AppStore {
       message: message, read: false, timestamp: Date(), symbol: symbol)
     notifications.append(n)
     sync(queued: SupabaseData.operation(for: n)) { try await SupabaseData.save(n, token: $0) }
+  }
+
+  /// Category-aware notification. Records the in-app notification and, when the
+  /// recipient is the signed-in user and hasn't muted this category, also raises
+  /// a local (on-device) push banner. Recipients who turned the category off in
+  /// their preferences receive neither.
+  func notify(_ userId: UUID, category: NotifyCategory, message: String) {
+    guard NotificationPreferencesStore.shared.isEnabled(category, for: userId) else { return }
+    notify(userId, type: category.displayType, message: message, symbol: category.symbol)
+    // Local banners can only target the device's signed-in user.
+    if userId == currentUser?.id {
+      LocalNotificationService.fire(
+        title: "MPG • \(category.displayType)", body: message, categorySymbol: category.symbol)
+    }
+  }
+
+  /// Every admin + site-manager recipient for office-level events.
+  private var officeRecipients: [UUID] {
+    (users.filter { $0.role == .admin } + users.filter { $0.role == .siteManager }).map { $0.id }
+  }
+
+  /// Notifies Steve (admin) and every site manager of an office-level event.
+  func notifyOffice(category: NotifyCategory, message: String) {
+    for id in Set(officeRecipients) {
+      notify(id, category: category, message: message)
+    }
+  }
+
+  // MARK: - Admin pending-review digest
+
+  /// Guards the once-per-launch pending-review reminder so Steve isn't spammed
+  /// every time the admin tab re-renders.
+  private var pendingReviewDigestSent = false
+
+  /// Everything currently waiting on Steve (admin) to sign off: submitted or
+  /// site-manager-approved invoices, plus daily site records not yet reviewed by
+  /// the office. Attendance events that still need manual approval also count.
+  var pendingAdminReviewCount: Int {
+    let invoices = submissions.filter {
+      [.submitted, .approvedSM, .queryRaised, .onHold].contains($0.status)
+    }.count
+    let attendance = clockRecords.filter {
+      $0.requiresManualApproval && $0.adminApproved == nil
+    }.count
+    return invoices + attendance
+  }
+
+  /// Fires a single "you have N items to review" reminder to Steve when the
+  /// admin opens the app. No-op for non-admins, when nothing is pending, or if
+  /// the reminder has already been sent this launch. Respects the admin's
+  /// `pendingReview` notification preference.
+  func notifyPendingReviews() {
+    guard let me = currentUser, me.role == .admin else { return }
+    guard !pendingReviewDigestSent else { return }
+    let count = pendingAdminReviewCount
+    guard count > 0 else { return }
+    pendingReviewDigestSent = true
+    let noun = count == 1 ? "item is" : "items are"
+    notify(
+      me.id, category: .pendingReview,
+      message: "\(count) \(noun) waiting for your approval. Tap to review invoices and records.")
   }
 
   // Dashboard rollups
