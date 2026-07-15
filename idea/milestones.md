@@ -12,8 +12,8 @@
 - [x] Phase 3: Xero LIVE — OAuth connect + push approved invoice to Xero
 - [x] Admin Manage tab: add/edit sites, team members, and work allocations in-app
 - [x] AI receipt scan LIVE + take-off review sheet (graceful manual-entry fallback if scan fails)
-- [x] AI Invoice Auditor: pre-approval risk score + flags (hours vs GPS, receipts, photos, deadline, duplicates)
-- [x] AI voice-to-daily-record for tradesmen (mic → on-device transcription → structured record)
+- [x] AI Invoice Auditor: pre-approval risk score + flags
+- [x] AI voice-to-daily-record for tradesmen
 - [x] AI Weekly Recap: plain-English per-week spend summary
 - [x] AI Ask MPG: local natural-language query over live company data with chat UI
 - [x] Apple 5.1.1: in-app Delete my account flow
@@ -24,8 +24,10 @@
 - [x] Seed data: real MPG site addresses + team members + sub-contractors
 - [x] Logo: in-app MPGLogo simplified to clean roofline gable + wordmark
 - [x] Team feed redesign: centered phone-width column + Instagram-style card
-- [x] App Review v1.0 rejection fix 2.2: replace simulated VoIP call with real system tel: call (mock CallService removed)
-- [x] App Review v1.0 rejection fix 5.1.2(i): confirmed no tracking/IDFA/ATT/analytics SDKs in code
+- [x] App Review v1.0 rejection fix 2.2: real system tel: call
+- [x] App Review v1.0 rejection fix 5.1.2(i): confirmed no tracking SDKs
+- [x] Terms of Service document drafted for website (growth/app-store/terms-of-service.md)
+- [ ] Privacy Policy document for website (optional matching page)
 - [ ] User: correct App Store Connect App Privacy labels (mark all data types "not used to track")
 - [ ] User: upload new build with call fix, add Review Notes, resubmit for review
 - [ ] Optional AI phrasing pass on Weekly Recap via scan-receipt Edge Function pattern
