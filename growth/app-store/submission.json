@@ -20,7 +20,7 @@
     "collectsContactsData" : false,
     "collectsHealthData" : false,
     "collectsLocationData" : true,
-    "collectsMicrophoneData" : false,
+    "collectsMicrophoneData" : true,
     "collectsPhotoLibraryData" : true,
     "companyName" : "My Project Group Limited",
     "contactEmail" : "",
@@ -34,6 +34,7 @@
     "hasUserGeneratedContent" : true,
     "inferenceNotes" : [
       "Detected camera permission usage from Info.plist.",
+      "Detected microphone permission usage from Info.plist.",
       "Detected photo library permission usage from Info.plist.",
       "Detected account or sign-in related code.",
       "Detected Supabase environment or backend linkage.",
@@ -51,8 +52,10 @@
     "permissionUsageDescriptions" : {
       "NSCameraUsageDescription" : "MPG Site Records uses the camera so you can take before, during and completion photos of your work and capture supplier receipts on site. Photos are timestamped and attached to the job.",
       "NSLocationWhenInUseUsageDescription" : "MPG Site Records uses your location only when you clock in or out, or upload site evidence, to confirm you are on or near the allocated site. Your location is never tracked continuously in the background.",
+      "NSMicrophoneUsageDescription" : "MPG Site Records uses the microphone so you can speak your daily site record instead of typing it. Audio is transcribed on your device and is not stored.",
       "NSPhotoLibraryAddUsageDescription" : "MPG Site Records can save site photos you capture back to your photo library.",
-      "NSPhotoLibraryUsageDescription" : "MPG Site Records lets you attach existing photos, receipts and supplier invoices from your library to a job or daily record."
+      "NSPhotoLibraryUsageDescription" : "MPG Site Records lets you attach existing photos, receipts and supplier invoices from your library to a job or daily record.",
+      "NSSpeechRecognitionUsageDescription" : "MPG Site Records transcribes the daily site record you speak so it can auto-fill your times, work done and delays for you to review."
     },
     "privacyTrackingDomains" : [
 
@@ -66,7 +69,7 @@
     "servesEUUsers" : false,
     "supportEmail" : "info@my-project.co.uk",
     "supportName" : "",
-    "supportsAccountDeletion" : false,
+    "supportsAccountDeletion" : true,
     "usesAccounts" : true,
     "usesAds" : false,
     "usesAnalytics" : true,
@@ -75,14 +78,15 @@
     "websiteURL" : ""
   },
   "generated" : {
-    "lastGeneratedAt" : "2026-07-09T14:36:19.700Z",
+    "lastGeneratedAt" : "2026-07-15T18:19:34.871Z",
     "metadata" : {
       "accessibilityHints" : [
-        "Add accessibility labels to the Office Dashboard summary tiles (invoices to review, active tradesmen, outstanding total) so VoiceOver users receive the numeric values.",
-        "Ensure the GPS clock-in and clock-out buttons expose an accessibility trait of 'button' and announce state changes (clocked in \/ clocked out) via accessibility notifications.",
-        "Photo category selector (before \/ during \/ after) should expose selected state via accessibilityValue so VoiceOver announces the current selection.",
-        "Invoice status badges (Draft, Submitted, Paid) should have explicit accessibility labels rather than relying solely on colour.",
-        "Daily site record form fields should have descriptive accessibility labels and hint text for users navigating with Switch Control or VoiceOver."
+        "Ensure all photo action buttons (Take Photo, Attach from Library) have descriptive accessibility labels indicating their purpose and context (e.g. 'Take before-works photo').",
+        "Daily site record form fields should expose accessibilityLabel and accessibilityHint traits so VoiceOver users understand expected input.",
+        "The clock-in and clock-out buttons should announce state changes (clocked in \/ clocked out) as accessibility announcements.",
+        "The Office Dashboard summary cards (invoices to review, total outstanding) should expose their numeric values via accessibilityValue.",
+        "Status badges (Draft, Submitted, Approved, Paid) should not rely on colour alone — include text labels accessible to VoiceOver.",
+        "The dictation entry point for daily records should have a clear accessibilityLabel such as 'Dictate site record' and an accessibilityHint explaining what will happen."
       ],
       "accessibilityRecommended" : true,
       "ageRatingHints" : [
@@ -110,7 +114,7 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "Supabase Auth requires email for account creation and authentication.",
+          "reason" : "Supabase Auth requires email for account sign-in and role-based access.",
           "tracking" : false
         },
         {
@@ -120,7 +124,7 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "Supabase Auth assigns user IDs to distinguish role-based access (Admin\/Site Manager\/Tradesman).",
+          "reason" : "Supabase Auth assigns user IDs for role-based access (Admin, Site Manager, Tradesman).",
           "tracking" : false
         },
         {
@@ -130,7 +134,7 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "App uses location when clocking in\/out and uploading site evidence to verify proximity to allocated site.",
+          "reason" : "Location collected at clock-in\/out and site evidence upload to confirm user is on\/near allocated site.",
           "tracking" : false
         },
         {
@@ -140,7 +144,17 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "App captures before\/during\/completion site photos and supplier receipts; users attach existing photos from library.",
+          "reason" : "App captures before\/during\/completion photos of work, supplier receipts, and site evidence attached to jobs.",
+          "tracking" : false
+        },
+        {
+          "category" : "User Content",
+          "dataType" : "Audio Data",
+          "linked" : true,
+          "purposes" : [
+            "App Functionality"
+          ],
+          "reason" : "Microphone enables voice recording of daily site records; audio is transcribed on-device and not stored.",
           "tracking" : false
         },
         {
@@ -150,7 +164,7 @@
           "purposes" : [
             "Analytics"
           ],
-          "reason" : "Analytics service integrated to track user interactions within the app.",
+          "reason" : "App includes analytics integration to monitor usage patterns.",
           "tracking" : false
         },
         {
@@ -160,108 +174,111 @@
           "purposes" : [
             "Analytics"
           ],
-          "reason" : "Analytics service collects crash data for app stability monitoring.",
+          "reason" : "Analytics service collects crash data for debugging and stability.",
           "tracking" : false
         }
       ],
-      "appStoreDescription" : "MPG Site Records replaces messy WhatsApp threads, loose photos and one-off PDFs with one standard company system for construction subcontractors and the office that pays them.\n\nBuilt for tradesmen working on real sites, the app keeps the whole week in order. See the work you have been allocated, complete daily site records, capture before, during and after photos, log materials and receipts, clock in and out with GPS geofencing, and submit your weekly timesheet and invoice when the job is done.\n\nFor the office, admins and site managers get a single dashboard to review submissions, chase missing receipts, query hours, approve work and pay on time.\n\nFOR TRADESMEN\n\nToday's Work shows every allocated job with address, hours, trade and what is required on site.\n\nJob Details keeps the brief, times, site manager and notes from the office together, with quick actions to take a photo, add materials or submit a daily record.\n\nDaily Site Records capture start time, finish time, breaks, work carried out and any delays, with the day's total hours calculated automatically.\n\nPhotos are timestamped and linked to the job automatically, sorted as before, during or after works.\n\nMaterials and receipts are filed against the right job so nothing goes missing before invoicing.\n\nWeekly invoices show net due, hours and CIS deductions, with clear draft and paid status and the Monday submission deadline in view.\n\nYour profile holds trade and business details plus compliance information including UTR, NI number, CIS status and VAT.\n\nFOR ADMINS AND SITE MANAGERS\n\nThe Office Dashboard shows invoices to review, active tradesmen, active sites and total outstanding at a glance.\n\nClear alerts flag materials purchases missing a receipt and invoices submitted after the deadline, so problems are caught before payment runs.\n\nSites and the tradesmen working them stay organised in one place, ready to review, query, approve and pay.\n\nWHY TEAMS USE IT\n\nOne standard system for every job, instead of scattered messages and files.\n\nHonest daily records and GPS clock-ins that hold up when it matters.\n\nPhotos and receipts filed by job, ready at invoice time.\n\nFaster review and payment for the office.\n\nMPG Site Records is built for My Project Group Ltd and the subcontractors who work with them.",
+      "appStoreDescription" : "MPG Site Records replaces messy WhatsApp threads, loose photos and one-off PDFs with one standard company system for construction subcontractors and the office that pays them.\n\nBuilt for tradesmen working on real sites, the app keeps the whole week in order. See the work you have been allocated, complete daily site records, capture before, during and after photos, log materials and receipts, clock in and out with GPS geofencing, and submit your weekly timesheet and invoice when the job is done.\n\nFor the office, admins and site managers get a single dashboard to review submissions, chase missing receipts, query hours, approve work and pay on time.\n\nFOR TRADESMEN\n\nToday's Work shows every allocated job with address, hours, trade and what is required on site.\n\nJob Details keeps the brief, times, site manager and notes from the office together, with quick actions to take a photo, add materials or submit a daily record.\n\nDaily Site Records capture start time, finish time, breaks, work carried out and any delays, with the day's total hours calculated for you. Dictate your record hands-free and let the app fill in the details for you to review.\n\nPhotos are timestamped and linked to the job automatically, sorted as before, during or after works.\n\nMaterials and receipts are filed against the right job so nothing goes missing before invoicing.\n\nWeekly invoices show net due, hours and CIS deductions, with clear draft and paid status and the Monday submission deadline in view.\n\nYour profile holds trade and business details plus compliance information such as UTR, NI number, CIS status and VAT.\n\nFOR ADMINS AND SITE MANAGERS\n\nThe Office Dashboard shows invoices to review, active tradesmen, active sites and total outstanding at a glance.\n\nClear alerts flag materials purchases missing a receipt and invoices submitted after the deadline, so problems are caught before payment.\n\nSites and the tradesmen working them stay organised in one place, ready to review, query, approve and pay.\n\nWHY TEAMS USE IT\n\nOne standard system for every job, instead of scattered messages and files.\n\nHonest daily records and GPS clock-ins that hold up when it matters.\n\nPhotos and receipts filed by job, ready at invoice time.\n\nFaster review and payment for the office.\n\nMPG Site Records is built for My Project Group Ltd and the subcontractors who work with them.",
       "categorySuggestions" : [
         "Business (Primary)",
         "Productivity (Secondary)"
       ],
       "demoAccountChecklist" : [
-        "Tradesman demo — email: demo.tradesman@my-project.co.uk | Password to be supplied by My Project Group Ltd via reviewer contact.",
-        "Admin demo — email: demo.admin@my-project.co.uk | Password to be supplied by My Project Group Ltd via reviewer contact.",
-        "Log in as tradesman to review Today's Work, Job Details, Daily Site Record submission, photo capture, materials entry, and weekly invoice.",
-        "Log in as admin to review the Office Dashboard, invoice approval flow, site and tradesman management, and alert flags.",
-        "GPS clock-in requires device location permission; on a simulator use a simulated location near a test site address.",
-        "Contact info@my-project.co.uk or call 0044 0117 251 05 65 if credentials need to be confirmed before review begins."
+        "Provide a demo tradesman account email and password in App Store Connect's review notes field.",
+        "Provide a demo admin account email and password so reviewers can see the Office Dashboard and approval flow.",
+        "Ensure the demo tradesman account has at least one allocated job with a daily site record, photo, and material entry pre-populated.",
+        "Ensure the demo admin account has at least one pending invoice and one flagged receipt alert visible on the dashboard.",
+        "Confirm the demo accounts remain active and accessible for the full review period."
       ],
       "keywords" : [
         "construction",
         "site records",
-        "CIS invoice",
         "timesheet",
         "subcontractor",
-        "GPS clock-in",
+        "CIS",
+        "invoice",
         "tradesman",
-        "job log"
+        "site diary",
+        "clock in"
       ],
-      "promotionalText" : "One system for every site. GPS clock-ins, daily records, photos and CIS invoices — all in one place.",
+      "promotionalText" : "One system for every job. Log work, clock in, capture photos and submit invoices — all in one place.",
       "reviewNotes" : [
-        "This app is for authorised subcontractors and staff of My Project Group Ltd only. Account creation is not open to the public; access requires credentials issued by the company.",
-        "A demo tradesman account and a demo admin account are available for review — see the demo account checklist below.",
-        "The app uses location only when the user actively clocks in, clocks out, or uploads site evidence. There is no background location tracking.",
-        "Camera and photo library permissions are used to capture and attach site photos and supplier receipts to job records.",
-        "GPS geofencing is used to confirm the user is near the allocated job site at clock-in and clock-out.",
-        "The Apple Sign In entitlement is present as an additional authentication option alongside Supabase Auth email\/password login.",
-        "Associated Domains entitlement supports universal links to deep-link into specific job or invoice records."
+        "MPG Site Records is a closed, invite-only business tool used by My Project Group Limited and its authorised subcontractors. New accounts cannot be self-registered; they are provisioned by an admin.",
+        "A demo account has been prepared for App Review. Please use the credentials provided in the demo account checklist below.",
+        "The app requests location permission (when in use only) to confirm the user is on or near an allocated site at the moment of clock-in, clock-out, or evidence upload. Location is never accessed in the background.",
+        "The microphone and speech recognition permissions are used together for on-device dictation of daily site records. No audio is stored or transmitted.",
+        "The camera permission is used to photograph site progress and capture receipts. Photos are timestamped and attached to the relevant job record.",
+        "Photo library read permission allows attaching existing photos and documents to jobs. Photo library write permission saves captured site photos back to the library.",
+        "OpenAI API integration is used to assist with intelligent feature processing within the app. No personally identifying data beyond what is necessary for the feature is transmitted.",
+        "The app contains user-generated content (site records, photos, receipts) visible only to the submitting tradesman and authorised admins and site managers within the same organisation. There is no public-facing content feed."
       ],
       "reviewerContactChecklist" : [
-        "Contact name: My Project Group Ltd support team",
-        "Contact email: info@my-project.co.uk",
-        "Contact phone: 0044 0117 251 05 65",
-        "Note: credentials for both tradesman and admin demo accounts must be confirmed with the contact above before submitting for review."
+        "Name: MPG Site Records Support Team",
+        "Email: info@my-project.co.uk",
+        "Phone: 0044 0117 251 05 65"
       ]
     },
     "model" : "claude-sonnet-4-6",
     "privacy" : {
       "intro" : [
-        "This Privacy Policy explains how My Project Group Ltd (\"we\", \"us\", \"our\") collects, uses, and protects information when you use the MPG Site Records application (\"the App\"). By using the App you agree to the practices described here.",
-        "If you have questions about this policy, please contact us at info@my-project.co.uk."
+        "This Privacy Policy explains how My Project Group Limited ('we', 'us', or 'our') collects, uses, and protects information when you use the MPG Site Records iOS application ('App'). By using the App you agree to the practices described here. If you do not agree, please do not use the App."
       ],
       "sections" : [
         {
           "bullets" : [
-            "Account information: your name, email address, trade, business details, and compliance information such as UTR number, National Insurance number, CIS status, and VAT registration.",
-            "Daily site records: start and finish times, break durations, work descriptions, delays, and calculated hours.",
-            "Photos: timestamped images taken with your device camera or selected from your photo library, categorised as before, during, or after works.",
-            "Materials and receipts: descriptions, costs, and photographs of supplier receipts submitted against a job.",
-            "Location data: a single location reading captured at the moment you clock in, clock out, or upload site evidence — used solely to confirm proximity to the allocated site. Location is not tracked continuously in the background.",
-            "Invoice and payment data: hours worked, net amounts due, and CIS deduction records.",
-            "Device and usage data: app interaction events and crash diagnostics collected via analytics services to help us improve the App."
+            "Account information: your email address and a user identifier created when you register through Supabase Auth.",
+            "Profile information: your trade, business name, UTR number, National Insurance number, CIS status, and VAT details as entered by you.",
+            "Daily site records: start and finish times, break durations, work descriptions, delays, and any notes you enter or dictate.",
+            "Photos and images: timestamped site photos (before, during, and after works), receipt images, and supplier invoice scans you capture or select from your library.",
+            "Materials and receipts: item descriptions, costs, and linked images you log against a job.",
+            "Timesheet and invoice data: hours worked, net amounts due, and CIS deduction information.",
+            "Location data: a single location reading captured at the moment you clock in or out, or upload site evidence, to confirm proximity to the allocated site. Location is not tracked continuously or in the background.",
+            "Voice input: audio spoken into the daily site record dictation feature. Audio is transcribed on-device using Apple's speech recognition and is not stored or transmitted as a recording.",
+            "Usage and diagnostic data: anonymised interaction events and crash reports collected via integrated analytics."
           ],
           "paragraphs" : [
-            "We collect information you provide directly and information generated by your use of the App."
+            "We collect information you provide directly, information generated as you use the App, and information from your device with your permission."
           ],
           "title" : "Information We Collect"
         },
         {
           "bullets" : [
-            "To provide and operate the App, including authenticating your account and synchronising records between your device and our servers.",
-            "To allow site managers and administrators to review, query, approve, and pay submitted timesheets and invoices.",
-            "To confirm site attendance through GPS-verified clock-in and clock-out.",
-            "To generate and display weekly invoices showing hours, net due, and CIS deductions.",
-            "To send alerts about missing receipts or late invoice submissions.",
-            "To improve App performance and reliability using aggregated analytics and crash-diagnostic data.",
-            "To comply with applicable legal and contractual obligations."
+            "To provide and operate the App, including authenticating your account, displaying allocated work, and enabling site records, clock-ins, and invoice submissions.",
+            "To enable admins and site managers to review, query, approve, and pay submissions.",
+            "To confirm your location at the moment of a clock-in, clock-out, or evidence upload.",
+            "To auto-fill your daily site record using on-device speech transcription.",
+            "To improve reliability and fix errors using aggregated, anonymised analytics and crash reports.",
+            "To communicate with you about your account or your use of the App."
           ],
           "paragraphs" : [
-            "We use the information we collect for the following purposes."
+            "We use the information we collect for the following purposes:"
           ],
           "title" : "How We Use Information"
         },
         {
           "bullets" : [
-            "Camera: used to photograph work progress and capture supplier receipts on site.",
-            "Photo Library (read): used to attach existing photos and receipts from your device library to a job or daily record.",
-            "Photo Library (add): used to save site photos you capture in the App back to your device library.",
-            "Location (when in use): a single reading taken only when you clock in, clock out, or submit site evidence. Location is not accessed in the background."
+            "Camera: used to photograph work progress and capture receipts on site. Photos are timestamped and attached to the relevant job.",
+            "Microphone: used only during active dictation of a daily site record. Audio is processed on-device and is not stored.",
+            "Speech Recognition: used to transcribe spoken site records into text for your review. Transcription runs on-device via Apple's framework.",
+            "Photo Library (read): allows you to attach existing photos, receipts, and supplier invoices from your library to a job or daily record.",
+            "Photo Library (write): allows the App to save site photos you capture to your photo library.",
+            "Location (when in use): a single location reading is taken when you clock in or out, or upload site evidence. The App never accesses location in the background."
           ],
           "paragraphs" : [
-            "The App requests the following device permissions. You may manage these in your iOS Settings at any time; revoking a permission will limit the relevant App functionality."
+            "The App requests the following device permissions. You may manage these at any time in iOS Settings."
           ],
           "title" : "Device Permissions And Sensitive Data"
         },
         {
           "bullets" : [
-            "Within your organisation: information you submit is visible to the administrators and site managers of My Project Group Ltd who are responsible for reviewing and approving your records.",
-            "Service providers: we use Supabase to host and authenticate account data, and analytics tools to monitor App performance. These providers process data on our behalf under appropriate data-processing arrangements.",
-            "OpenAI: certain features may use OpenAI's API to process text you submit within the App. No personally identifiable financial or compliance data is intentionally sent to OpenAI.",
-            "Legal obligations: we may disclose information where required to do so by law or in response to a valid legal request."
+            "Supabase: our backend infrastructure provider stores account data, site records, photos, and other App data on our behalf. Data is processed subject to Supabase's data processing terms.",
+            "OpenAI: we use OpenAI's API to support certain intelligent features within the App. Only the content necessary for the feature is transmitted; we do not send identifying information where it can be avoided.",
+            "Analytics provider: anonymised usage and diagnostic events are sent to our analytics service to help us improve the App. This data is not linked to your identity for advertising purposes.",
+            "Authorised personnel: admins and site managers within My Project Group Limited may view records, photos, and invoices you submit as part of normal business operations.",
+            "Legal requirements: we may disclose information if required to do so by law or in response to a valid legal process."
           ],
           "paragraphs" : [
-            "We do not sell your personal information. We may share information in the following limited circumstances."
+            "We do not sell your personal information. We do not share your information for third-party advertising or cross-app tracking."
           ],
           "title" : "How We Share Information"
         },
@@ -270,18 +287,19 @@
 
           ],
           "paragraphs" : [
-            "We retain your account and job records for as long as your account remains active or as required to fulfil our legal and contractual obligations, including CIS and construction industry record-keeping requirements.",
-            "If you wish to request deletion of your data, please contact us at info@my-project.co.uk. We will respond within a reasonable timeframe and advise you of any records we are required to retain by law."
+            "We retain your account information and submitted records for as long as your account is active and for a reasonable period thereafter to meet our business and legal obligations. You may request deletion of your account and associated personal data at any time by contacting us at the address below. We will process deletion requests within a reasonable timeframe, subject to any legal retention requirements."
           ],
           "title" : "Data Retention"
         },
         {
           "bullets" : [
-
+            "You can review and update your profile information from within the App.",
+            "You can withdraw device permissions (camera, microphone, location, photo library) at any time in iOS Settings. Withdrawing some permissions will limit certain App features.",
+            "You can request a copy of the personal data we hold about you.",
+            "You can request deletion of your account and personal data by contacting us at info@my-project.co.uk."
           ],
           "paragraphs" : [
-            "You may update your profile information within the App at any time. You may also contact us at info@my-project.co.uk to request access to, correction of, or deletion of your personal information, subject to our legal retention obligations.",
-            "You can manage device permissions (camera, photo library, location) in iOS Settings. Revoking permissions will disable the corresponding App features but will not affect previously submitted records."
+            "You have choices regarding your information:"
           ],
           "title" : "Your Choices"
         },
@@ -290,7 +308,7 @@
 
           ],
           "paragraphs" : [
-            "The App is intended for use by construction industry tradesmen, subcontractors, site managers, and administrators. It is not directed at children under the age of 13. We do not knowingly collect personal information from children."
+            "MPG Site Records is a professional tool intended for use by adults engaged in construction subcontracting. The App is not directed at children under the age of 13, and we do not knowingly collect personal information from children. If you believe a child has provided personal information to us, please contact us immediately and we will take steps to delete that information."
           ],
           "title" : "Children's Privacy"
         },
@@ -299,8 +317,10 @@
 
           ],
           "paragraphs" : [
-            "If you have questions, concerns, or requests relating to this Privacy Policy or your personal data, please contact us at:",
-            "My Project Group Ltd\nEmail: info@my-project.co.uk"
+            "If you have questions about this Privacy Policy or wish to exercise your data rights, please contact My Project Group Limited at:",
+            "Email: info@my-project.co.uk",
+            "Phone: 0044 0117 251 05 65",
+            "We will endeavour to respond to all enquiries within a reasonable timeframe."
           ],
           "title" : "Contact"
         }
@@ -309,32 +329,31 @@
     },
     "support" : {
       "intro" : [
-        "Need help with MPG Site Records? The sections below explain how to reach us, what to include in your request, and what to expect in response.",
-        "For all support enquiries, email us at info@my-project.co.uk or call 0044 0117 251 05 65."
+        "Need help with MPG Site Records? Our support team is here to assist tradesmen, site managers, and admins with any questions or issues. Please read the sections below before getting in touch — many common questions can be resolved quickly with the right information."
       ],
       "sections" : [
         {
           "bullets" : [
-
+            "Email: info@my-project.co.uk",
+            "Phone: 0044 0117 251 05 65",
+            "Email is preferred for account and data queries as it allows us to respond with a written record. We aim to respond to email enquiries within two business days."
           ],
           "paragraphs" : [
-            "Our primary support channel is email. Send your query to info@my-project.co.uk with a clear subject line such as \"MPG Site Records — [brief issue description]\".",
-            "You can also call us on 0044 0117 251 05 65 during normal UK business hours."
+            "You can contact the MPG Site Records support team by email or phone:"
           ],
           "title" : "How To Reach Support"
         },
         {
           "bullets" : [
-            "Your full name and registered email address.",
-            "Your role in the App (tradesman, site manager, or admin).",
-            "The name of the site or job the issue relates to, if applicable.",
-            "A clear description of what you were trying to do and what happened instead.",
-            "The iOS version and device model you are using (found in Settings > General > About).",
-            "The App version number (found in Settings > General > About, or on the App profile screen).",
-            "Screenshots or screen recordings if they help illustrate the problem."
+            "Your full name and the email address registered to your account.",
+            "Your role in the App: tradesman, site manager, or admin.",
+            "A clear description of the problem, including what you were trying to do and what happened instead.",
+            "The iOS version on your device and the version of MPG Site Records you are using (found in Settings within the App).",
+            "Screenshots or screen recordings if the issue involves something visual.",
+            "The approximate date and time the issue occurred."
           ],
           "paragraphs" : [
-            "To help us resolve your issue as quickly as possible, please include the following details in your message."
+            "To help us resolve your issue as quickly as possible, please include the following details when you contact us:"
           ],
           "title" : "What To Include In Your Request"
         },
@@ -343,8 +362,8 @@
 
           ],
           "paragraphs" : [
-            "If you cannot log in, have forgotten your credentials, or believe your account has been set up incorrectly, contact us at info@my-project.co.uk and include your registered email address.",
-            "Access to the App is granted by My Project Group Ltd. If you are a new subcontractor who has not yet received login details, speak to your site manager or contact the office directly."
+            "If you are unable to sign in, have forgotten your credentials, or believe your account has been set up incorrectly, please contact support with your registered email address. For security reasons we may ask you to verify your identity before making changes to your account.",
+            "If you need your account to be deleted and your personal data removed, email us at info@my-project.co.uk with the subject line 'Account Deletion Request'. We will process your request within a reasonable timeframe."
           ],
           "title" : "Account And Access Issues"
         },
@@ -353,8 +372,8 @@
 
           ],
           "paragraphs" : [
-            "To request access to, correction of, or deletion of your personal data held in MPG Site Records, email info@my-project.co.uk with the subject line \"Data Request — MPG Site Records\" and include your full name and registered email address.",
-            "We will acknowledge your request promptly and respond in full within a reasonable timeframe, subject to any legal obligations that require us to retain certain records."
+            "You have the right to request a copy of the personal data we hold about you, to correct inaccurate data, or to request deletion of your data. To submit any of these requests, please email info@my-project.co.uk with the subject line 'Data Request' and include your registered email address and the nature of your request.",
+            "If you have concerns about how your data is being used, please review our Privacy Policy or contact us directly. We will acknowledge your request and respond within a reasonable timeframe."
           ],
           "title" : "Privacy And Data Requests"
         },
@@ -363,8 +382,8 @@
 
           ],
           "paragraphs" : [
-            "We aim to respond to all support emails within two business days. Complex technical issues or data requests may take longer; we will keep you informed of progress.",
-            "The App is operated by My Project Group Ltd for use by authorised personnel. Apple Inc. does not provide support for this application."
+            "We aim to respond to all support enquiries within two business days. Complex account or data requests may take longer. We will keep you informed of progress if additional time is needed.",
+            "Please note that support is provided in English. Out-of-hours messages will be picked up on the next available business day."
           ],
           "title" : "Response Expectations"
         }
@@ -373,8 +392,7 @@
     },
     "terms" : {
       "intro" : [
-        "These Terms of Use (\"Terms\") govern your access to and use of the MPG Site Records application (\"the App\") provided by My Project Group Ltd (\"we\", \"us\", \"our\").",
-        "By creating an account or using the App you agree to these Terms. If you do not agree, do not use the App."
+        "These Terms of Service ('Terms') govern your use of the MPG Site Records iOS application ('App') provided by My Project Group Limited ('we', 'us', or 'our'). By creating an account or using the App you agree to these Terms. If you do not agree, do not use the App."
       ],
       "sections" : [
         {
@@ -382,8 +400,7 @@
 
           ],
           "paragraphs" : [
-            "The App is a construction-site management tool designed for use by authorised subcontractors, tradesmen, site managers, and administrators working with My Project Group Ltd. Access is granted on the basis that you are an authorised user.",
-            "The App is provided for professional and business use. You must use it in accordance with these Terms and all applicable laws and regulations."
+            "MPG Site Records is a professional workforce management tool for construction subcontractors and the office staff who manage them. The App is provided to support internal business operations of My Project Group Limited and its authorised subcontractors. You may use the App solely for those purposes and in accordance with these Terms."
           ],
           "title" : "Use Of The Service"
         },
@@ -392,23 +409,21 @@
 
           ],
           "paragraphs" : [
-            "You must be at least 18 years old and authorised by My Project Group Ltd to create and hold an account.",
-            "You are responsible for maintaining the confidentiality of your login credentials. You must notify us immediately at info@my-project.co.uk if you suspect unauthorised access to your account.",
-            "You are responsible for the accuracy of the profile information you provide, including trade details and compliance information such as UTR and CIS status."
+            "To use the App you must be at least 18 years of age, be authorised by My Project Group Limited to access the system, and provide accurate account information. You are responsible for maintaining the confidentiality of your login credentials and for all activity that occurs under your account. You must notify us immediately of any unauthorised use of your account."
           ],
           "title" : "Accounts And Eligibility"
         },
         {
           "bullets" : [
-            "Submit false, inaccurate, or misleading site records, clock-in data, photos, receipts, or invoice information.",
-            "Attempt to circumvent GPS geofencing or location verification.",
-            "Upload content that is offensive, defamatory, or infringes any third party's intellectual property rights.",
-            "Attempt to gain unauthorised access to other users' accounts or data.",
-            "Interfere with or disrupt the App's servers, infrastructure, or security.",
-            "Use the App for any purpose other than legitimate construction site management and invoicing activities."
+            "Submit false, misleading, or fabricated site records, clock-in times, receipts, or invoices.",
+            "Upload content that is offensive, defamatory, or in violation of any applicable law.",
+            "Attempt to reverse-engineer, tamper with, or circumvent any security feature of the App.",
+            "Use the App in any way that could damage, disable, or impair its operation.",
+            "Share your login credentials with any unauthorised person.",
+            "Use the App in violation of any applicable employment, tax, or construction industry scheme regulation."
           ],
           "paragraphs" : [
-            "When using the App you must not:"
+            "You agree to use the App only for its intended purpose. You must not:"
           ],
           "title" : "Acceptable Use"
         },
@@ -417,8 +432,8 @@
 
           ],
           "paragraphs" : [
-            "The App, including its design, functionality, and underlying code, is the property of My Project Group Ltd and its licensors. Nothing in these Terms transfers any intellectual property rights to you.",
-            "You retain ownership of the photos and records you submit through the App. By submitting content you grant My Project Group Ltd a non-exclusive licence to store, display, and use that content for the purposes of providing the service described in the App."
+            "All rights in the App, including its design, code, and content created by My Project Group Limited, are owned by or licensed to My Project Group Limited. Nothing in these Terms grants you any ownership interest in the App.",
+            "You retain ownership of content you create and submit through the App, such as site photos and daily records. By submitting content you grant My Project Group Limited a licence to store, display, and use that content for the purpose of operating the App and managing your work relationship with us."
           ],
           "title" : "Intellectual Property"
         },
@@ -427,9 +442,8 @@
 
           ],
           "paragraphs" : [
-            "The App is provided \"as is\" and \"as available\" without warranties of any kind, express or implied, to the fullest extent permitted by applicable law.",
-            "We do not warrant that the App will be uninterrupted, error-free, or free from loss of data. You are responsible for maintaining your own records where required by law or contract.",
-            "GPS and location accuracy depends on your device hardware and network conditions. We do not guarantee the precision of location readings used for clock-in verification."
+            "The App is provided 'as is' and 'as available'. We do not warrant that the App will be error-free, uninterrupted, or free of harmful components. To the fullest extent permitted by applicable law, we disclaim all warranties, express or implied, including warranties of merchantability and fitness for a particular purpose.",
+            "GPS and geofencing functions depend on device hardware, operating system, and network conditions. We do not guarantee the accuracy of location data recorded by the App."
           ],
           "title" : "Disclaimers"
         },
@@ -438,9 +452,8 @@
 
           ],
           "paragraphs" : [
-            "To the fullest extent permitted by applicable law, My Project Group Ltd shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or relating to your use of, or inability to use, the App.",
-            "Our total aggregate liability to you for any claim arising from these Terms or your use of the App shall not exceed the amount, if any, paid by you to us in the twelve months preceding the claim.",
-            "Nothing in these Terms limits liability for death or personal injury caused by our negligence, fraud, or any other liability that cannot be excluded by law."
+            "To the fullest extent permitted by applicable law, My Project Group Limited shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or related to your use of or inability to use the App, even if we have been advised of the possibility of such damages.",
+            "Our total liability to you for any claim arising out of or related to these Terms or the App shall not exceed the greater of the amount you paid to access the App in the twelve months preceding the claim, or one hundred pounds sterling (£100)."
           ],
           "title" : "Limitation Of Liability"
         },
@@ -449,8 +462,7 @@
 
           ],
           "paragraphs" : [
-            "We may suspend or terminate your access to the App at any time if we reasonably believe you have breached these Terms, your engagement with My Project Group Ltd has ended, or for any other legitimate operational reason.",
-            "On termination, your right to access the App ceases. Records submitted prior to termination may be retained in accordance with our Privacy Policy and legal obligations."
+            "We may suspend or terminate your access to the App at any time if you breach these Terms or if your working relationship with My Project Group Limited ends. You may request deletion of your account by contacting us at info@my-project.co.uk. Termination does not affect any rights or obligations that arose prior to termination."
           ],
           "title" : "Termination"
         },
@@ -459,7 +471,7 @@
 
           ],
           "paragraphs" : [
-            "We may update these Terms from time to time. When we make material changes we will notify you via the App or by email. Your continued use of the App after the effective date of any changes constitutes your acceptance of the updated Terms."
+            "We may update these Terms from time to time. We will notify you of material changes via the App or by email to the address associated with your account. Continued use of the App after the effective date of any changes constitutes your acceptance of the revised Terms."
           ],
           "title" : "Changes To These Terms"
         },
@@ -468,21 +480,23 @@
 
           ],
           "paragraphs" : [
-            "Questions about these Terms should be directed to:",
-            "My Project Group Ltd\nEmail: info@my-project.co.uk\nPhone: 0044 0117 251 05 65"
+            "If you have questions about these Terms, please contact My Project Group Limited:",
+            "Email: info@my-project.co.uk",
+            "Phone: 0044 0117 251 05 65"
           ],
           "title" : "Contact"
         }
       ],
-      "title" : "Terms of Use — MPG Site Records"
+      "title" : "Terms of Service — MPG Site Records"
     },
     "warnings" : [
-      "facts.legalEntityName is empty. The company name used throughout all documents is 'My Project Group Ltd' taken from facts.companyName — confirm the exact registered legal entity name before publishing the Privacy Policy and Terms of Use.",
-      "facts.websiteURL is empty. No website URL has been linked in the support or privacy documents. Add a URL in App Store Connect if one is available, and update the Privacy Policy link accordingly.",
-      "facts.jurisdiction is empty. The Privacy Policy does not specify a governing law or jurisdiction. A solicitor should confirm whether English law (or another jurisdiction) applies and add the appropriate clause before publication.",
-      "OpenAI is listed as an integrated service. If any personally identifiable data (names, UTR numbers, site records) is sent to the OpenAI API, the Privacy Policy and App Privacy disclosures will need to be updated to reflect that, and a data processing agreement with OpenAI should be in place.",
-      "facts.supportsAccountDeletion is false but facts.usesAccounts is true. Apple requires apps with accounts to offer in-app account deletion (App Store Review Guideline 5.1.1). Implement an in-app account deletion flow or provide a clearly accessible deletion request mechanism before submission.",
-      "The demo account credentials for App Review have not been confirmed in the facts. Ensure valid demo credentials for both the tradesman and admin roles are entered in App Store Connect > App Review Information before submitting."
+      "companyName is 'My Project Group Limited' but legalEntityName is empty. Confirm the exact registered legal entity name before publishing Terms of Service and Privacy Policy.",
+      "jurisdiction is not specified in the facts. The Terms of Service contain no governing law or dispute resolution clause. Add the applicable jurisdiction (e.g. England and Wales) before publication.",
+      "websiteURL and marketingURL are both empty. App Store Connect requires a valid marketing or support URL on the app listing. Confirm a public-facing URL before submission.",
+      "contactEmail is empty; support copy uses supportEmail (info@my-project.co.uk). Verify this address is monitored and able to receive user data and account deletion requests.",
+      "OpenAI is listed as an integrated service. Confirm that data transmitted to the OpenAI API complies with OpenAI's usage policies and that the Privacy Policy disclosure accurately reflects what content is sent.",
+      "The app provisions accounts via admin invite only. Ensure the App Review demo credentials are included in App Store Connect's review notes field, as reviewers cannot self-register.",
+      "legalEntityName is blank — if My Project Group Limited is not the correct registered company name, update all legal documents before publication."
     ]
   },
   "lastASCClassificationAt" : "2026-07-09T14:39:53Z",

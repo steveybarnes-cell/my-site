@@ -2,7 +2,7 @@
 
 ## Promotional text
 
-One system for every site. GPS clock-ins, daily records, photos and CIS invoices — all in one place.
+One system for every job. Log work, clock in, capture photos and submit invoices — all in one place.
 
 ## Description
 
@@ -18,7 +18,7 @@ Today's Work shows every allocated job with address, hours, trade and what is re
 
 Job Details keeps the brief, times, site manager and notes from the office together, with quick actions to take a photo, add materials or submit a daily record.
 
-Daily Site Records capture start time, finish time, breaks, work carried out and any delays, with the day's total hours calculated automatically.
+Daily Site Records capture start time, finish time, breaks, work carried out and any delays, with the day's total hours calculated for you. Dictate your record hands-free and let the app fill in the details for you to review.
 
 Photos are timestamped and linked to the job automatically, sorted as before, during or after works.
 
@@ -26,13 +26,13 @@ Materials and receipts are filed against the right job so nothing goes missing b
 
 Weekly invoices show net due, hours and CIS deductions, with clear draft and paid status and the Monday submission deadline in view.
 
-Your profile holds trade and business details plus compliance information including UTR, NI number, CIS status and VAT.
+Your profile holds trade and business details plus compliance information such as UTR, NI number, CIS status and VAT.
 
 FOR ADMINS AND SITE MANAGERS
 
 The Office Dashboard shows invoices to review, active tradesmen, active sites and total outstanding at a glance.
 
-Clear alerts flag materials purchases missing a receipt and invoices submitted after the deadline, so problems are caught before payment runs.
+Clear alerts flag materials purchases missing a receipt and invoices submitted after the deadline, so problems are caught before payment.
 
 Sites and the tradesmen working them stay organised in one place, ready to review, query, approve and pay.
 
@@ -50,6 +50,6 @@ MPG Site Records is built for My Project Group Ltd and the subcontractors who wo
 
 ## Keywords
 
-construction, site records, CIS invoice, timesheet, subcontractor, GPS clock-in, tradesman, job log
+construction, site records, timesheet, subcontractor, CIS, invoice, tradesman, site diary, clock in
 
 <sub>Generated from `.tenx/app-store-submission.json` — edits here are overwritten when the listing is regenerated.</sub>
