@@ -5,6 +5,8 @@ import SwiftUI
 struct TradesmanRecordsView: View {
   @Environment(AppStore.self) private var store
   @State private var tab = 0
+  @State private var draftStore = DraftStore.shared
+  @State private var resumeAllocation: WorkAllocation?
 
   private var me: AppUser? { store.currentUser }
 
@@ -23,11 +25,11 @@ struct TradesmanRecordsView: View {
               .pickerStyle(.segmented)
 
               if tab == 0 { recordsList } else if tab == 1 { materialsList } else { photosList }
-            }
             .padding(16)
           }
         }
         .navigationTitle("My Records")
+        .sheet(item: $resumeAllocation) { DailyRecordFormView(allocation: $0) }
       }
     }
     .__tenxTrackView("TradesmanRecordsView")

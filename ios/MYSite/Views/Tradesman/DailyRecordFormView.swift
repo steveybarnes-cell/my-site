@@ -14,6 +14,8 @@ struct DailyRecordFormView: View {
   @State private var delayNote = ""
   @State private var instructedBy = ""
   @State private var showVoice = false
+  @State private var didRestore = false
+  private let drafts = DraftStore.shared
 
   private var totalHours: Double {
     let s = minutes(startTime)
@@ -39,6 +41,21 @@ struct DailyRecordFormView: View {
               PrimaryButton(title: "Save Daily Record", symbol: "checkmark") { save() }
                 .disabled(description.isEmpty || totalHours <= 0)
                 .opacity(description.isEmpty || totalHours <= 0 ? 0.5 : 1)
+              Button {
+                saveDraft()
+              } label: {
+                Label("Save draft & finish later", systemImage: "tray.and.arrow.down")
+                  .font(.subheadline.weight(.semibold))
+                  .frame(maxWidth: .infinity)
+                  .padding(.vertical, 14)
+                  .foregroundStyle(Brand.olive)
+                  .background(
+                    Brand.lightGreen, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+              }
+              .buttonStyle(.plain)
+              Text("Works offline — saved on this device until you submit.")
+                .font(.caption2).foregroundStyle(Brand.inkSoft)
+                .frame(maxWidth: .infinity)
             }
             .padding(16)
           }
@@ -52,10 +69,23 @@ struct DailyRecordFormView: View {
           VoiceDailyRecordView { result in apply(result) }
         }
         .onAppear {
-          startTime = allocation.startTime
-          finishTime = allocation.expectedFinish
-          category = allocation.category
-          if let sm = allocation.siteManagerId.flatMap(store.user) { instructedBy = sm.name }
+          guard !didRestore else { return }
+          didRestore = true
+          if let d = drafts.draft(forAllocation: allocation.id) {
+            startTime = d.startTime
+            finishTime = d.finishTime
+            breakMinutes = d.breakMinutes
+            description = d.description
+            category = d.category
+            delay = d.delay
+            delayNote = d.delayNote
+            instructedBy = d.instructedBy
+          } else {
+            startTime = allocation.startTime
+            finishTime = allocation.expectedFinish
+            category = allocation.category
+            if let sm = allocation.siteManagerId.flatMap(store.user) { instructedBy = sm.name }
+          }
         }
       }
     }
@@ -227,6 +257,21 @@ struct DailyRecordFormView: View {
       variationStatus: category == .variation ? .awaiting : nil)
     store.addRecord(rec)
     store.updateAllocationStatus(allocation.id, to: .inProgress)
+    if let existing = drafts.draft(forAllocation: allocation.id) {
+      drafts.delete(existing.id)
+    }
+    dismiss()
+  }
+
+  private func saveDraft() {
+    guard let me = store.currentUser else { return }
+    let draft = RecordDraft(
+      allocationId: allocation.id, siteId: allocation.siteId, userId: me.id,
+      siteName: store.site(allocation.siteId)?.name ?? "Site",
+      startTime: startTime, finishTime: finishTime, breakMinutes: breakMinutes,
+      description: description, category: category, delay: delay, delayNote: delayNote,
+      instructedBy: instructedBy)
+    drafts.save(draft)
     dismiss()
   }
 }
