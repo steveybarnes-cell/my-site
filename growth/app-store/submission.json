@@ -23,7 +23,7 @@
     "collectsMicrophoneData" : true,
     "collectsPhotoLibraryData" : true,
     "companyName" : "My Project Group Limited",
-    "contactEmail" : "",
+    "contactEmail" : "info@my-project.co.uk",
     "entitlementKeys" : [
       "com.apple.developer.applesignin",
       "com.apple.developer.associated-domains",
@@ -47,7 +47,7 @@
     ],
     "jurisdiction" : "",
     "kidFocused" : false,
-    "legalEntityName" : "",
+    "legalEntityName" : "My Project Group Limited",
     "marketingURL" : "",
     "permissionUsageDescriptions" : {
       "NSCameraUsageDescription" : "MPG Site Records uses the camera so you can take before, during and completion photos of your work and capture supplier receipts on site. Photos are timestamped and attached to the job.",
@@ -57,6 +57,7 @@
       "NSPhotoLibraryUsageDescription" : "MPG Site Records lets you attach existing photos, receipts and supplier invoices from your library to a job or daily record.",
       "NSSpeechRecognitionUsageDescription" : "MPG Site Records transcribes the daily site record you speak so it can auto-fill your times, work done and delays for you to review."
     },
+    "privacyPolicyURL" : "https:\/\/my-project.co.uk\/privacy",
     "privacyTrackingDomains" : [
 
     ],
@@ -69,13 +70,15 @@
     "servesEUUsers" : false,
     "supportEmail" : "info@my-project.co.uk",
     "supportName" : "",
+    "supportURL" : "https:\/\/my-project.co.uk\/support",
     "supportsAccountDeletion" : true,
+    "termsOfServiceURL" : "https:\/\/my-project.co.uk\/termsofservice",
     "usesAccounts" : true,
     "usesAds" : false,
     "usesAnalytics" : true,
     "usesSubscriptions" : false,
     "usesTracking" : false,
-    "websiteURL" : ""
+    "websiteURL" : "https:\/\/my-project.co.uk"
   },
   "generated" : {
     "lastGeneratedAt" : "2026-07-15T18:19:34.871Z",
@@ -178,7 +181,7 @@
           "tracking" : false
         }
       ],
-      "appStoreDescription" : "MPG Site Records replaces messy WhatsApp threads, loose photos and one-off PDFs with one standard company system for construction subcontractors and the office that pays them.\n\nBuilt for tradesmen working on real sites, the app keeps the whole week in order. See the work you have been allocated, complete daily site records, capture before, during and after photos, log materials and receipts, clock in and out with GPS geofencing, and submit your weekly timesheet and invoice when the job is done.\n\nFor the office, admins and site managers get a single dashboard to review submissions, chase missing receipts, query hours, approve work and pay on time.\n\nFOR TRADESMEN\n\nToday's Work shows every allocated job with address, hours, trade and what is required on site.\n\nJob Details keeps the brief, times, site manager and notes from the office together, with quick actions to take a photo, add materials or submit a daily record.\n\nDaily Site Records capture start time, finish time, breaks, work carried out and any delays, with the day's total hours calculated for you. Dictate your record hands-free and let the app fill in the details for you to review.\n\nPhotos are timestamped and linked to the job automatically, sorted as before, during or after works.\n\nMaterials and receipts are filed against the right job so nothing goes missing before invoicing.\n\nWeekly invoices show net due, hours and CIS deductions, with clear draft and paid status and the Monday submission deadline in view.\n\nYour profile holds trade and business details plus compliance information such as UTR, NI number, CIS status and VAT.\n\nFOR ADMINS AND SITE MANAGERS\n\nThe Office Dashboard shows invoices to review, active tradesmen, active sites and total outstanding at a glance.\n\nClear alerts flag materials purchases missing a receipt and invoices submitted after the deadline, so problems are caught before payment.\n\nSites and the tradesmen working them stay organised in one place, ready to review, query, approve and pay.\n\nWHY TEAMS USE IT\n\nOne standard system for every job, instead of scattered messages and files.\n\nHonest daily records and GPS clock-ins that hold up when it matters.\n\nPhotos and receipts filed by job, ready at invoice time.\n\nFaster review and payment for the office.\n\nMPG Site Records is built for My Project Group Ltd and the subcontractors who work with them.",
+      "appStoreDescription" : "MPG Site Records replaces messy WhatsApp threads, loose photos and one-off PDFs with one standard company system for construction subcontractors and the office that pays them.\n\nBuilt for tradesmen working on real sites, the app keeps the whole week in order. See the work you have been allocated, complete daily site records, capture before, during and after photos, log materials and receipts, clock in and out with GPS geofencing, and submit your weekly timesheet and invoice when the job is done.\n\nFor the office, admins and site managers get a single dashboard to review submissions, chase missing receipts, query hours, approve work and pay on time.\n\nFor tradesmen\n\nToday's Work shows every allocated job with address, hours, trade and what is required on site.\n\nJob Details keeps the brief, times, site manager and notes from the office together, with quick actions to take a photo, add materials or submit a daily record.\n\nDaily Site Records capture start time, finish time, breaks, work carried out and any delays, with the day's total hours calculated for you.\n\nPhotos are timestamped and linked to the job automatically, sorted as before, during or after works.\n\nMaterials and receipts are filed against the right job so nothing goes missing before invoicing.\n\nWeekly invoices show net due, hours and CIS deductions, with clear draft and paid status and the Monday submission deadline in view.\n\nYour profile holds trade and business details plus compliance information such as UTR, NI number, CIS status and VAT.\n\nFor admins and site managers\n\nThe Office Dashboard shows invoices to review, active tradesmen, active sites and total outstanding at a glance.\n\nClear alerts flag materials purchases missing a receipt and invoices submitted after the deadline, so problems are caught before payment.\n\nSites and the tradesmen working them stay organised in one place, ready to review, query, approve and pay.\n\nWhy teams use it\n\nOne standard system for every job, instead of scattered messages and files.\n\nHonest daily records and GPS clock-ins that hold up when it matters.\n\nPhotos and receipts filed by job, ready at invoice time.\n\nFaster review and payment for the office.\n\nMPG Site Records is built for My Project Group Ltd and the subcontractors who work with them.",
       "categorySuggestions" : [
         "Business (Primary)",
         "Productivity (Secondary)"
@@ -201,7 +204,7 @@
         "site diary",
         "clock in"
       ],
-      "promotionalText" : "One system for every job. Log work, clock in, capture photos and submit invoices — all in one place.",
+      "promotionalText" : "One standard company system for construction subcontractors: log work, capture photos and receipts, clock in with GPS, submit weekly.",
       "reviewNotes" : [
         "MPG Site Records is a closed, invite-only business tool used by My Project Group Limited and its authorised subcontractors. New accounts cannot be self-registered; they are provisioned by an admin.",
         "A demo account has been prepared for App Review. Please use the credentials provided in the demo account checklist below.",
@@ -507,5 +510,5 @@
     "locale" : "en-US",
     "publicSlug" : "mpg-site-records"
   },
-  "releaseNotes" : ""
+  "releaseNotes" : "• App icons are refreshed with a cleaner, updated look.\n• AskMPG works more reliably with improved accuracy.\n• Privacy Policy and Terms of Service are now available in-app.\n• First release — welcome to MY Site!"
 }

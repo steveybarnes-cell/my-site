@@ -2,7 +2,7 @@
 
 ## Promotional text
 
-One system for every job. Log work, clock in, capture photos and submit invoices — all in one place.
+One standard company system for construction subcontractors: log work, capture photos and receipts, clock in with GPS, submit weekly.
 
 ## Description
 
@@ -12,13 +12,13 @@ Built for tradesmen working on real sites, the app keeps the whole week in order
 
 For the office, admins and site managers get a single dashboard to review submissions, chase missing receipts, query hours, approve work and pay on time.
 
-FOR TRADESMEN
+For tradesmen
 
 Today's Work shows every allocated job with address, hours, trade and what is required on site.
 
 Job Details keeps the brief, times, site manager and notes from the office together, with quick actions to take a photo, add materials or submit a daily record.
 
-Daily Site Records capture start time, finish time, breaks, work carried out and any delays, with the day's total hours calculated for you. Dictate your record hands-free and let the app fill in the details for you to review.
+Daily Site Records capture start time, finish time, breaks, work carried out and any delays, with the day's total hours calculated for you.
 
 Photos are timestamped and linked to the job automatically, sorted as before, during or after works.
 
@@ -28,7 +28,7 @@ Weekly invoices show net due, hours and CIS deductions, with clear draft and pai
 
 Your profile holds trade and business details plus compliance information such as UTR, NI number, CIS status and VAT.
 
-FOR ADMINS AND SITE MANAGERS
+For admins and site managers
 
 The Office Dashboard shows invoices to review, active tradesmen, active sites and total outstanding at a glance.
 
@@ -36,7 +36,7 @@ Clear alerts flag materials purchases missing a receipt and invoices submitted a
 
 Sites and the tradesmen working them stay organised in one place, ready to review, query, approve and pay.
 
-WHY TEAMS USE IT
+Why teams use it
 
 One standard system for every job, instead of scattered messages and files.
 
@@ -51,5 +51,18 @@ MPG Site Records is built for My Project Group Ltd and the subcontractors who wo
 ## Keywords
 
 construction, site records, timesheet, subcontractor, CIS, invoice, tradesman, site diary, clock in
+
+## Links
+
+- **Support**: https://my-project.co.uk/support
+- **Privacy policy**: https://my-project.co.uk/privacy
+- **Terms of service**: https://my-project.co.uk/termsofservice
+
+## Release notes (next version)
+
+• App icons are refreshed with a cleaner, updated look.
+• AskMPG works more reliably with improved accuracy.
+• Privacy Policy and Terms of Service are now available in-app.
+• First release — welcome to MY Site!
 
 <sub>Generated from `.tenx/app-store-submission.json` — edits here are overwritten when the listing is regenerated.</sub>
