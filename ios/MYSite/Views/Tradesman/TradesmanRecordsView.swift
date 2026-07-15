@@ -24,7 +24,15 @@ struct TradesmanRecordsView: View {
               }
               .pickerStyle(.segmented)
 
-              if tab == 0 { recordsList } else if tab == 1 { materialsList } else { photosList }
+              if tab == 0 {
+                draftsSection
+                recordsList
+              } else if tab == 1 {
+                materialsList
+              } else {
+                photosList
+              }
+            }
             .padding(16)
           }
         }
@@ -33,6 +41,58 @@ struct TradesmanRecordsView: View {
       }
     }
     .__tenxTrackView("TradesmanRecordsView")
+  }
+
+  @ViewBuilder private var draftsSection: some View {
+    let drafts = me.map { draftStore.drafts(for: $0.id) } ?? []
+    if !drafts.isEmpty {
+      VStack(alignment: .leading, spacing: 10) {
+        Label("Saved drafts", systemImage: "tray.full.fill")
+          .font(.subheadline.weight(.semibold)).foregroundStyle(Brand.olive)
+        Text("Unfinished records saved on this device. Resume to complete and submit.")
+          .font(.caption).foregroundStyle(Brand.inkSoft)
+        ForEach(drafts) { d in
+          HStack(spacing: 12) {
+            Image(systemName: "square.and.pencil")
+              .font(.headline).foregroundStyle(Brand.olive)
+              .frame(width: 40, height: 40)
+              .background(Brand.lightGreen, in: RoundedRectangle(cornerRadius: 10))
+            VStack(alignment: .leading, spacing: 2) {
+              Text(d.siteName).font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
+              Text(d.description.isEmpty ? "No description yet" : d.description)
+                .font(.caption).foregroundStyle(Brand.inkSoft).lineLimit(1)
+              Text("Saved \(Fmt.date(d.updatedAt))")
+                .font(.caption2).foregroundStyle(Brand.inkSoft)
+            }
+            Spacer()
+            Button {
+              resume(d)
+            } label: {
+              Text("Resume").font(.caption.weight(.bold)).foregroundStyle(.white)
+                .padding(.horizontal, 12).padding(.vertical, 7)
+                .background(Brand.olive, in: Capsule())
+            }
+            .buttonStyle(.plain)
+            Button {
+              draftStore.delete(d.id)
+            } label: {
+              Image(systemName: "trash").font(.subheadline).foregroundStyle(Brand.red)
+            }
+            .buttonStyle(.plain)
+          }
+          .padding(.vertical, 4)
+        }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .mpgCard()
+    }
+  }
+
+  private func resume(_ draft: RecordDraft) {
+    guard let allocationId = draft.allocationId,
+      let alloc = store.allocations.first(where: { $0.id == allocationId })
+    else { return }
+    resumeAllocation = alloc
   }
 
   @ViewBuilder private var recordsList: some View {
