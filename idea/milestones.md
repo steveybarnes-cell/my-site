@@ -1,4 +1,5 @@
 - [x] Terms of Service document drafted for website (growth/app-store/terms-of-service.md)
+- [x] Terms of Service exported as styled printable HTML (growth/app-store/terms-of-service.html)
 - [x] Privacy Policy document for website (matching page: growth/app-store/privacy-policy.md)
 - [ ] User: correct App Store Connect App Privacy labels (mark all data types "not used to track")
 - [ ] User: upload new build with call fix, add Review Notes, resubmit for review
