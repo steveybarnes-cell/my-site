@@ -1,4 +1,4 @@
-# MPG Site Records — App Store
+# MYSite — App Store
 
 ## Promotional text
 

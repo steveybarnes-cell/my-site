@@ -12,7 +12,7 @@
   },
   "facts" : {
     "accessibilityURL" : "",
-    "appName" : "MPG Site Records",
+    "appName" : "MYSite",
     "authProvider" : "Supabase Auth",
     "backendProvider" : "Custom API",
     "bundleIdentifier" : "app.10x.mpg-site-records",
@@ -74,7 +74,7 @@
     "supportsAccountDeletion" : true,
     "termsOfServiceURL" : "https:\/\/my-project.co.uk\/termsofservice",
     "usesAccounts" : true,
-    "usesAds" : false,
+    "usesAds" : true,
     "usesAnalytics" : true,
     "usesSubscriptions" : false,
     "usesTracking" : false,
@@ -117,7 +117,7 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "Supabase Auth requires email for account sign-in and role-based access.",
+          "reason" : "Supabase Auth backend requires email for account creation and sign-in.",
           "tracking" : false
         },
         {
@@ -127,17 +127,7 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "Supabase Auth assigns user IDs for role-based access (Admin, Site Manager, Tradesman).",
-          "tracking" : false
-        },
-        {
-          "category" : "Location",
-          "dataType" : "Precise Location",
-          "linked" : true,
-          "purposes" : [
-            "App Functionality"
-          ],
-          "reason" : "Location collected at clock-in\/out and site evidence upload to confirm user is on\/near allocated site.",
+          "reason" : "Supabase Auth generates user IDs to identify authenticated users.",
           "tracking" : false
         },
         {
@@ -147,7 +137,7 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "App captures before\/during\/completion photos of work, supplier receipts, and site evidence attached to jobs.",
+          "reason" : "App captures before\/during\/completion site photos and supplier receipts via camera.",
           "tracking" : false
         },
         {
@@ -157,7 +147,17 @@
           "purposes" : [
             "App Functionality"
           ],
-          "reason" : "Microphone enables voice recording of daily site records; audio is transcribed on-device and not stored.",
+          "reason" : "Speech recognition transcribes daily site records spoken by the user on-device.",
+          "tracking" : false
+        },
+        {
+          "category" : "Location",
+          "dataType" : "Precise Location",
+          "linked" : true,
+          "purposes" : [
+            "App Functionality"
+          ],
+          "reason" : "Geofencing confirms user location at clock-in\/out and site evidence upload.",
           "tracking" : false
         },
         {
@@ -167,7 +167,7 @@
           "purposes" : [
             "Analytics"
           ],
-          "reason" : "App includes analytics integration to monitor usage patterns.",
+          "reason" : "Analytics code detects and logs user interactions within the app.",
           "tracking" : false
         },
         {
@@ -177,7 +177,7 @@
           "purposes" : [
             "Analytics"
           ],
-          "reason" : "Analytics service collects crash data for debugging and stability.",
+          "reason" : "Analytics integration captures crash and error diagnostics.",
           "tracking" : false
         }
       ],
@@ -502,13 +502,13 @@
       "legalEntityName is blank — if My Project Group Limited is not the correct registered company name, update all legal documents before publication."
     ]
   },
-  "lastASCClassificationAt" : "2026-07-09T14:39:53Z",
-  "lastASCClassificationHash" : "f10b4d6abb2da7fb110bda6dc5591802e7facc1b4a8d6c2fdaa5c3c09cb5dc62",
+  "lastASCClassificationAt" : "2026-07-15T21:53:44Z",
+  "lastASCClassificationHash" : "a339cea38931ea1e6a04d1d3badebcdde76a78e75b9684913ba7b30fc41da735",
   "publish" : {
     "isPublished" : false,
     "lastPublishedSlug" : "",
     "locale" : "en-US",
-    "publicSlug" : "mpg-site-records"
+    "publicSlug" : "mysite"
   },
   "releaseNotes" : "• App icons are refreshed with a cleaner, updated look.\n• AskMPG works more reliably with improved accuracy.\n• Privacy Policy and Terms of Service are now available in-app.\n• First release — welcome to MY Site!"
 }
