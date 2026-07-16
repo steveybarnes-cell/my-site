@@ -2,22 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSCameraUsageDescription</key>
-	<string>MPG Site Records uses the camera so you can take before, during and completion photos of your work and capture supplier receipts on site. Photos are timestamped and attached to the job.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>MPG Site Records lets you attach existing photos, receipts and supplier invoices from your library to a job or daily record.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>MPG Site Records can save site photos you capture back to your photo library.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>MPG Site Records uses the microphone so you can speak your daily site record instead of typing it. Audio is transcribed on your device and is not stored.</string>
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>MPG Site Records transcribes the daily site record you speak so it can auto-fill your times, work done and delays for you to review.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>MPG Site Records uses your location only when you clock in or out, or upload site evidence, to confirm you are on or near the allocated site. Your location is never tracked continuously in the background.</string>
-	<key>SupabaseURL</key>
-	<string>$(SUPABASE_URL)</string>
-	<key>SupabasePublishableKey</key>
-	<string>$(SUPABASE_PUBLISHABLE_KEY)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -29,5 +13,9 @@
 			</array>
 		</dict>
 	</array>
+	<key>SupabasePublishableKey</key>
+	<string>$(SUPABASE_PUBLISHABLE_KEY)</string>
+	<key>SupabaseURL</key>
+	<string>$(SUPABASE_URL)</string>
 </dict>
 </plist>
