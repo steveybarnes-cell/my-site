@@ -44,7 +44,7 @@ Honest daily records and GPS clock-ins that hold up when it matters.
 
 Photos and receipts filed by job, ready at invoice time.
 
-Faster review and payment for the office.
+Faster review and payment for the office
 
 MPG Site Records is built for My Project Group Ltd and the subcontractors who work with them.
 
