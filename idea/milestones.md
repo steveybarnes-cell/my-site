@@ -4,6 +4,7 @@
 - [x] Offline site record drafts — save incomplete daily records on-site, auto-restore & resume/delete
 - [x] Notifications — per-user preferences + in-app alerts + local push on approval events (submit/query/pay/allocate/record)
 - [x] Admin pending-review digest — proactive on-open reminder to Steve of items awaiting approval (+ own toggle)
+- [x] Export compliance — ITSAppUsesNonExemptEncryption=false added to Info.plist (skips encryption question on future builds)
 - [ ] User: correct App Store Connect App Privacy labels (mark all data types "not used to track")
 - [ ] User: upload new build with call fix, add Review Notes, resubmit for review
 - [ ] Post-launch: remote push delivery (APNS) — push certs + server, validate on physical device
