@@ -60,9 +60,10 @@ construction, site records, timesheet, subcontractor, CIS, invoice, tradesman, s
 
 ## Release notes (next version)
 
-• App icons are refreshed with a cleaner, updated look.
-• AskMPG works more reliably with improved accuracy.
-• Privacy Policy and Terms of Service are now available in-app.
-• First release — welcome to MY Site!
+• Managers now get SMS alerts when approvals need their attention.
+• Push notifications keep admins updated on approval activity instantly.
+• App icons have a fresh new look throughout the app.
+• AskMPG works more reliably with several usability improvements.
+• General fixes to make the app smoother and more stable.
 
 <sub>Generated from `.tenx/app-store-submission.json` — edits here are overwritten when the listing is regenerated.</sub>

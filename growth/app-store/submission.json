@@ -510,5 +510,5 @@
     "locale" : "en-US",
     "publicSlug" : "mysite"
   },
-  "releaseNotes" : "• App icons are refreshed with a cleaner, updated look.\n• AskMPG works more reliably with improved accuracy.\n• Privacy Policy and Terms of Service are now available in-app.\n• First release — welcome to MY Site!"
+  "releaseNotes" : "• Managers now get SMS alerts when approvals need their attention.\n• Push notifications keep admins updated on approval activity instantly.\n• App icons have a fresh new look throughout the app.\n• AskMPG works more reliably with several usability improvements.\n• General fixes to make the app smoother and more stable."
 }
