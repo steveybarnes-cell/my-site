@@ -1,13 +1,1 @@
-- [x] Terms of Service document drafted for website (growth/app-store/terms-of-service.md)
-- [x] Terms of Service exported as styled printable HTML (growth/app-store/terms-of-service.html)
-- [x] Privacy Policy document for website (matching page: growth/app-store/privacy-policy.md)
-- [x] Offline site record drafts — save incomplete daily records on-site, auto-restore & resume/delete
-- [x] Notifications — per-user preferences + in-app alerts + local push on approval events (submit/query/pay/allocate/record)
-- [x] Admin pending-review digest — proactive on-open reminder to Steve of items awaiting approval (+ own toggle)
-- [x] Export compliance — ITSAppUsesNonExemptEncryption=false added to Info.plist (skips encryption question on future builds)
-- [ ] User: correct App Store Connect App Privacy labels (mark all data types "not used to track")
-- [ ] User: upload new build with call fix, add Review Notes, resubmit for review
-- [ ] Post-launch: remote push delivery (APNS) — push certs + server, validate on physical device
-- [ ] Optional AI phrasing pass on Weekly Recap via scan-receipt Edge Function pattern
-- [ ] Smart AI Xero line descriptions before push
-- [ ] Team feed: wire to Supabase (feed_posts/feed_comments + RLS) + real photo uploads
+Current task plan saved successfully.
