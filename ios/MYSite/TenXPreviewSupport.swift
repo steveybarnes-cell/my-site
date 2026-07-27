@@ -15,6 +15,13 @@ enum TenXPreviewSupport {
         return docs.appendingPathComponent("tenx-runtime.log")
     }()
 
+    /// Self-contained ISO-8601 formatter (the generated project has no TenX utilities).
+    private static let iso8601Formatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
     /// Records the visible screen for TenX preview capture.
     static func track(_ viewName: String) {
         let entry: [String: Any] = [
@@ -33,7 +40,7 @@ enum TenXPreviewSupport {
         let normalizedMessage = message
             .replacingOccurrences(of: "\n", with: " ")
             .replacingOccurrences(of: "\r", with: " ")
-        let timestamp = TenXDateFormatting.iso8601.string(from: Date())
+        let timestamp = iso8601Formatter.string(from: Date())
         let line = "\(timestamp) \(normalizedMessage)"
         print("[10x-runtime] \(line)")
 
