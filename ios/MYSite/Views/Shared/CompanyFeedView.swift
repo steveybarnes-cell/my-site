@@ -99,7 +99,8 @@ struct CompanyFeedView: View {
       }
     } else {
       ScrollView {
-        LazyVStack(spacing: 16) {
+        LazyVStack(spacing: 14) {
+          FeedPulseHeader(postCount: visiblePosts.count, needsActionOnly: needsActionOnly)
           SiteFilterBar(selectedSiteId: $selectedSiteId)
 
           if visiblePosts.isEmpty {
@@ -133,6 +134,62 @@ struct CompanyFeedView: View {
   }
 }
 
+// MARK: - Feed pulse header
+
+/// Sits above the filter bar and gives the wall a sense of live momentum:
+/// what you are looking at, how much of it there is, and whether it is moving.
+struct FeedPulseHeader: View {
+  let postCount: Int
+  let needsActionOnly: Bool
+
+  private var title: String {
+    needsActionOnly ? "Your action queue" : "Work happening now"
+  }
+
+  private var subtitle: String {
+    needsActionOnly
+      ? "Updates waiting for your acknowledgement"
+      : "\(postCount) update\(postCount == 1 ? "" : "s") from sites and the team"
+  }
+
+  var body: some View {
+    HStack(alignment: .center, spacing: 14) {
+      ZStack {
+        Circle().fill(Brand.charcoal)
+        Image(systemName: needsActionOnly ? "checkmark.seal.fill" : "bolt.fill")
+          .font(.headline)
+          .foregroundStyle(needsActionOnly ? Brand.lime : .white)
+      }
+      .frame(width: 48, height: 48)
+
+      VStack(alignment: .leading, spacing: 3) {
+        Text(title)
+          .font(.headline.weight(.bold))
+          .foregroundStyle(Brand.ink)
+        Text(subtitle)
+          .font(.caption)
+          .foregroundStyle(Brand.inkSoft)
+          .lineLimit(2)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+
+      Spacer(minLength: 4)
+      LivePill()
+    }
+    .padding(14)
+    .background(
+      Brand.surface.opacity(0.92),
+      in: RoundedRectangle(cornerRadius: Brand.Radius.feature, style: .continuous)
+    )
+    .overlay {
+      RoundedRectangle(cornerRadius: Brand.Radius.feature, style: .continuous)
+        .stroke(Brand.hairline.opacity(0.85), lineWidth: 1)
+    }
+    .shadow(color: Brand.cardShadow, radius: 12, x: 0, y: 5)
+    .padding(.horizontal, 12)
+  }
+}
+
 // MARK: - Live indicator
 
 struct LivePill: View {
@@ -150,7 +207,7 @@ struct LivePill: View {
     }
     .padding(.horizontal, 9)
     .padding(.vertical, 4)
-    .background(Capsule().fill(Brand.lightGreen))
+    .background(Capsule().fill(Brand.lime.opacity(0.34)))
     .onAppear {
       withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) {
         pulse = true
@@ -194,13 +251,15 @@ struct FilterChip: View {
         .foregroundStyle(selected ? .white : Brand.ink)
         .lineLimit(1)
         .padding(.horizontal, 14)
-        .padding(.vertical, 8)
+        .padding(.vertical, 7)
         .background(
           Capsule().fill(selected ? Brand.olive : Brand.surface)
             .overlay(Capsule().stroke(Brand.hairline, lineWidth: selected ? 0 : 1))
         )
+        .shadow(color: selected ? Brand.olive.opacity(0.25) : .clear, radius: 6, x: 0, y: 3)
     }
     .buttonStyle(.plain)
+    .animation(.snappy(duration: 0.2), value: selected)
   }
 }
 
@@ -276,7 +335,10 @@ struct FeedPostCard: View {
           .foregroundStyle(Brand.ink)
           .padding(.horizontal, 14)
           .padding(.vertical, 8)
-          .background(Capsule().fill(Brand.hairline.opacity(0.4)))
+          // Secondary action: outlined rather than filled, so the
+          // acknowledge button stays the obvious primary.
+          .background(Capsule().fill(Brand.surface))
+          .overlay(Capsule().stroke(Brand.hairline, lineWidth: 1))
         }
 
         Spacer()
@@ -332,8 +394,9 @@ struct FeedPostCard: View {
         }
 
         Text(post.timestamp.relativeShort.uppercased())
-          .font(.caption2)
-          .foregroundStyle(Brand.inkSoft)
+          .font(.caption2.weight(.medium))
+          .tracking(0.5)
+          .foregroundStyle(Brand.inkSoft.opacity(0.8))
           .padding(.top, 2)
       }
       .padding(.horizontal, 14)
@@ -348,11 +411,12 @@ struct FeedPostCard: View {
         .fill(liked ? Brand.olive : Brand.hairline)
         .frame(width: 4)
     }
-    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: Brand.Radius.card, style: .continuous))
     .overlay(
-      RoundedRectangle(cornerRadius: 20, style: .continuous)
-        .stroke(Brand.hairline, lineWidth: 1)
+      RoundedRectangle(cornerRadius: Brand.Radius.card, style: .continuous)
+        .stroke(Brand.hairline.opacity(0.8), lineWidth: 1)
     )
+    .shadow(color: Brand.cardShadow, radius: 10, x: 0, y: 4)
     .padding(.horizontal, 12)
     .sheet(isPresented: $showComments) {
       FeedCommentsView(postId: post.id)

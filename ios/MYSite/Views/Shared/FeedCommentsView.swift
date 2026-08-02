@@ -28,6 +28,8 @@ struct FeedCommentsView: View {
                   }
                   if !post.photoSymbols.isEmpty {
                     FeedPhotoGrid(symbols: post.photoSymbols)
+                      .clipShape(
+                        RoundedRectangle(cornerRadius: Brand.Radius.inner, style: .continuous))
                   }
 
                   Divider().overlay(Brand.hairline)
@@ -67,9 +69,11 @@ struct FeedCommentsView: View {
     HStack(spacing: 10) {
       TextField("Write a comment…", text: $draft, axis: .vertical)
         .lineLimit(1...4)
+        .font(.subheadline)
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .background(Brand.lightGreen.opacity(0.6), in: Capsule())
+        .overlay(Capsule().stroke(Brand.hairline, lineWidth: 1))
 
       Button {
         store.addComment(to: postId, text: draft)
@@ -81,9 +85,14 @@ struct FeedCommentsView: View {
       }
       .buttonStyle(.plain)
       .disabled(!canSend)
+      .animation(.snappy(duration: 0.2), value: canSend)
     }
     .padding(12)
     .background(.ultraThinMaterial)
+    // Hairline keeps the composer visually docked rather than floating.
+    .overlay(alignment: .top) {
+      Rectangle().fill(Brand.hairline).frame(height: 1)
+    }
   }
 
   private var canSend: Bool {

@@ -30,7 +30,6 @@ struct TradeWorkFeedView: View {
             ScrollView {
               LazyVStack(spacing: 14) {
                 tradePicker
-                  .padding(.horizontal, 14)
                   .padding(.top, 4)
 
                 if let selectedTrade {
@@ -81,6 +80,10 @@ struct TradeWorkFeedView: View {
           }
         }
       }
+      // Inset lives inside the scroll view so the selected chip's shadow
+      // isn't clipped at the leading and trailing edges.
+      .padding(.horizontal, 14)
+      .padding(.vertical, 4)
     }
   }
 
@@ -102,7 +105,7 @@ struct TradeWorkFeedView: View {
               Text(
                 "\(store.workTimeline(forTrade: trade).filter { $0.userName == u.name }.count) items"
               )
-              .font(.caption).foregroundStyle(Brand.inkSoft)
+              .font(.caption).monospacedDigit().foregroundStyle(Brand.inkSoft)
             }
           }
         }
@@ -120,9 +123,11 @@ private struct TradeWorkRow: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(spacing: 8) {
         Image(systemName: item.kind.symbol)
-          .foregroundStyle(Brand.olive)
-          .frame(width: 30, height: 30)
-          .background(Brand.lightGreen, in: RoundedRectangle(cornerRadius: 9))
+          .font(.footnote.weight(.semibold))
+          .foregroundStyle(Brand.oliveDark)
+          .frame(width: 32, height: 32)
+          .background(
+            Brand.lightGreen, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
         VStack(alignment: .leading, spacing: 1) {
           Text(item.userName).font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
           Label(item.siteName, systemImage: "mappin.and.ellipse")
@@ -136,10 +141,14 @@ private struct TradeWorkRow: View {
         .frame(maxWidth: .infinity, alignment: .leading)
       HStack {
         Text(item.subtitle).font(.caption).foregroundStyle(Brand.inkSoft)
-        Spacer()
+        Spacer(minLength: 10)
         Text(item.date.relativeShort.uppercased())
-          .font(.caption2).foregroundStyle(Brand.inkSoft)
+          .font(.caption2.weight(.medium))
+          .tracking(0.5)
+          .foregroundStyle(Brand.inkSoft.opacity(0.8))
+          .layoutPriority(1)
       }
+      .padding(.top, 2)
     }
     .mpgCard()
   }

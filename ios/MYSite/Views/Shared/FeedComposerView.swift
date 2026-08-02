@@ -28,15 +28,21 @@ struct FeedComposerView: View {
                   .scrollContentBackground(.hidden)
                   .padding(10)
                   .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    RoundedRectangle(cornerRadius: Brand.Radius.inner, style: .continuous)
                       .fill(Brand.lightGreen.opacity(0.5))
+                  )
+                  .overlay(
+                    RoundedRectangle(cornerRadius: Brand.Radius.inner, style: .continuous)
+                      .stroke(Brand.hairline, lineWidth: 1)
                   )
                   .overlay(alignment: .topLeading) {
                     if text.isEmpty {
+                      // Padding matches the editor's own text inset so the
+                      // placeholder sits exactly where typing begins.
                       Text("Share an update with the team…")
                         .font(.subheadline)
                         .foregroundStyle(Brand.inkSoft)
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, 15)
                         .padding(.vertical, 18)
                         .allowsHitTesting(false)
                     }
@@ -61,10 +67,12 @@ struct FeedComposerView: View {
                       SitePhotoImage(scene: SiteScene(key: key))
                         .frame(height: 66)
                         .frame(maxWidth: .infinity)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .clipShape(
+                          RoundedRectangle(cornerRadius: Brand.Radius.chip, style: .continuous)
+                        )
                         .overlay(
-                          RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(on ? Brand.olive : Brand.hairline, lineWidth: on ? 3 : 1)
+                          RoundedRectangle(cornerRadius: Brand.Radius.chip, style: .continuous)
+                            .stroke(on ? Brand.olive : Brand.hairline, lineWidth: on ? 2.5 : 1)
                         )
                         .overlay(alignment: .topTrailing) {
                           if on {
@@ -100,18 +108,26 @@ struct FeedComposerView: View {
                   .padding(.vertical, 12)
                   .padding(.horizontal, 14)
                   .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                      .fill(Brand.lightGreen.opacity(0.5)))
+                    RoundedRectangle(cornerRadius: Brand.Radius.inner, style: .continuous)
+                      .fill(Brand.lightGreen.opacity(0.5))
+                  )
+                  .overlay(
+                    RoundedRectangle(cornerRadius: Brand.Radius.inner, style: .continuous)
+                      .stroke(Brand.hairline, lineWidth: 1)
+                  )
                 }
               }
               .mpgCard()
 
               PrimaryButton(title: "Post to team", symbol: "paperplane.fill") {
-                store.addFeedPost(text: text, photoSymbols: photoSymbols, siteId: selectedSiteId)
+                _ = store.addFeedPost(
+                  text: text, photoSymbols: photoSymbols, siteId: selectedSiteId)
                 dismiss()
               }
               .disabled(!canPost)
               .opacity(canPost ? 1 : 0.5)
+              .animation(.snappy(duration: 0.2), value: canPost)
+              .padding(.top, 2)
             }
             .padding(16)
           }

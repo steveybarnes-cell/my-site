@@ -12,9 +12,12 @@ struct StatusChip: View {
       .font(.caption.weight(.semibold))
       .lineLimit(1)
       .padding(.horizontal, 10)
-      .padding(.vertical, 5)
+      .padding(.vertical, 4)
       .foregroundStyle(filled ? .white : color)
       .background(filled ? color : color.opacity(0.14), in: Capsule())
+      .overlay(
+        Capsule().stroke(color.opacity(filled ? 0 : 0.22), lineWidth: 1)
+      )
   }
 }
 
@@ -69,13 +72,15 @@ struct SectionHeader: View {
   let title: String
   var subtitle: String? = nil
   var body: some View {
-    VStack(alignment: .leading, spacing: 2) {
+    VStack(alignment: .leading, spacing: 3) {
       Text(title.uppercased())
         .font(.caption.weight(.bold))
         .foregroundStyle(Brand.olive)
-        .tracking(0.6)
+        .tracking(0.8)
+      // Subtitle sits below the label in the hierarchy, so it must not
+      // out-size the title it describes.
       if let subtitle {
-        Text(subtitle).font(.subheadline).foregroundStyle(Brand.inkSoft)
+        Text(subtitle).font(.footnote).foregroundStyle(Brand.inkSoft)
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -91,17 +96,26 @@ struct MetricTile: View {
   var tint: Color = Brand.olive
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: 6) {
       Image(systemName: symbol)
-        .font(.title3)
+        .font(.footnote.weight(.semibold))
         .foregroundStyle(tint)
+        .frame(width: 26, height: 26)
+        .background(tint.opacity(0.12), in: Circle())
+        .padding(.bottom, 2)
+      // Monospaced digits stop figures jittering as values change and keep
+      // tiles in a grid optically aligned.
       Text(value)
         .font(.title2.bold())
+        .monospacedDigit()
         .foregroundStyle(Brand.ink)
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
       Text(label)
         .font(.caption)
         .foregroundStyle(Brand.inkSoft)
         .lineLimit(2)
+        .fixedSize(horizontal: false, vertical: true)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .mpgCard()
@@ -125,7 +139,8 @@ struct PrimaryButton: View {
       .frame(maxWidth: .infinity)
       .padding(.vertical, 15)
       .foregroundStyle(.white)
-      .background(tint, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .background(tint, in: RoundedRectangle(cornerRadius: Brand.Radius.inner, style: .continuous))
+      .shadow(color: tint.opacity(0.28), radius: 8, x: 0, y: 4)
     }
     .buttonStyle(.plain)
   }
@@ -152,6 +167,7 @@ struct InfoRow: View {
       Spacer(minLength: 12)
       Text(value)
         .font(.subheadline.weight(.medium))
+        .monospacedDigit()
         .foregroundStyle(Brand.ink)
         .multilineTextAlignment(.trailing)
     }
@@ -168,15 +184,19 @@ struct EmptyStateView: View {
   var action: (() -> Void)? = nil
 
   var body: some View {
-    VStack(spacing: 14) {
+    VStack(spacing: 12) {
       Image(systemName: symbol)
-        .font(.system(size: 44))
-        .foregroundStyle(Brand.olive.opacity(0.7))
+        .font(.system(size: 34, weight: .light))
+        .foregroundStyle(Brand.olive.opacity(0.75))
+        .frame(width: 72, height: 72)
+        .background(Brand.lightGreen.opacity(0.7), in: Circle())
+        .padding(.bottom, 2)
       Text(title).font(.headline).foregroundStyle(Brand.ink)
       Text(message)
         .font(.subheadline)
         .foregroundStyle(Brand.inkSoft)
         .multilineTextAlignment(.center)
+        .frame(maxWidth: 320)
       if let actionTitle, let action {
         Button(actionTitle, action: action)
           .font(.subheadline.weight(.semibold))
@@ -205,9 +225,11 @@ struct WarningBanner: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
     .padding(12)
-    .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    .background(
+      tint.opacity(0.12), in: RoundedRectangle(cornerRadius: Brand.Radius.inner, style: .continuous)
+    )
     .overlay(
-      RoundedRectangle(cornerRadius: 12, style: .continuous)
+      RoundedRectangle(cornerRadius: Brand.Radius.inner, style: .continuous)
         .stroke(tint.opacity(0.35), lineWidth: 1)
     )
   }

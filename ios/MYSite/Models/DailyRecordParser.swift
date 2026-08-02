@@ -142,7 +142,12 @@ enum DailyRecordParser {
     {
       return (.otherTrade, "Waiting on another trade.")
     }
-    if hasDelayWord { return (.none, nil) }
+    // A delay was clearly reported but no specific cause matched above. This
+    // must be recorded as `.other` rather than Optional.none — returning nil
+    // would drop the delay entirely and keep it out of the delay register.
+    if hasDelayWord {
+      return (DelayReason.other, "Delay reported — cause not specified.")
+    }
     return (nil, nil)
   }
 

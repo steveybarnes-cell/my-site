@@ -18,7 +18,7 @@ struct DashboardView: View {
         ZStack {
           MPGBackground()
           ScrollView {
-            VStack(spacing: 22) {
+            VStack(spacing: 20) {
               if filter.isActive { activeFilterBar }
               if store.pendingSyncCount > 0 { pendingSyncBanner }
               weekSummarySection
@@ -80,9 +80,14 @@ struct DashboardView: View {
         .font(.footnote.weight(.semibold)).foregroundStyle(Brand.red)
     }
     .padding(12)
-    .background(Brand.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    .background(
+      Brand.surface, in: RoundedRectangle(cornerRadius: Brand.Radius.inner, style: .continuous)
+    )
     .overlay(
-      RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Brand.hairline, lineWidth: 1))
+      RoundedRectangle(cornerRadius: Brand.Radius.inner, style: .continuous)
+        .stroke(Brand.hairline, lineWidth: 1)
+    )
+    .shadow(color: Brand.cardShadow, radius: 8, x: 0, y: 3)
   }
 
   // MARK: - Pending sync banner
@@ -103,10 +108,11 @@ struct DashboardView: View {
     }
     .padding(12)
     .background(
-      Brand.amber.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+      Brand.amber.opacity(0.12),
+      in: RoundedRectangle(cornerRadius: Brand.Radius.inner, style: .continuous)
     )
     .overlay(
-      RoundedRectangle(cornerRadius: 12, style: .continuous)
+      RoundedRectangle(cornerRadius: Brand.Radius.inner, style: .continuous)
         .stroke(Brand.amber.opacity(0.35), lineWidth: 1))
   }
 
@@ -149,12 +155,18 @@ struct DashboardView: View {
 
   private func countPill(_ value: String, _ label: String, _ color: Color) -> some View {
     VStack(spacing: 2) {
-      Text(value).font(.title3.bold()).foregroundStyle(color)
+      Text(value).font(.title3.bold()).monospacedDigit().foregroundStyle(color)
       Text(label).font(.caption2).foregroundStyle(Brand.inkSoft)
     }
     .frame(maxWidth: .infinity)
     .padding(.vertical, 10)
-    .background(color.opacity(0.10), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    .background(
+      color.opacity(0.10), in: RoundedRectangle(cornerRadius: Brand.Radius.chip, style: .continuous)
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: Brand.Radius.chip, style: .continuous)
+        .stroke(color.opacity(0.18), lineWidth: 1)
+    )
   }
 
   // MARK: - 2. Site cost summary
@@ -170,8 +182,9 @@ struct DashboardView: View {
           VStack(alignment: .leading, spacing: 8) {
             HStack {
               Text(r.siteName).font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
-              Spacer()
-              Text(Fmt.gbp(r.total)).font(.subheadline.bold()).foregroundStyle(Brand.olive)
+              Spacer(minLength: 10)
+              Text(Fmt.gbp(r.total)).font(.subheadline.bold()).monospacedDigit()
+                .foregroundStyle(Brand.olive)
             }
             InfoRow(label: "Labour", value: Fmt.gbp(r.labour), symbol: "hammer")
             InfoRow(label: "Materials", value: Fmt.gbp(r.materials), symbol: "shippingbox")
@@ -204,8 +217,9 @@ struct DashboardView: View {
           VStack(alignment: .leading, spacing: 8) {
             HStack {
               Text(r.name).font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
-              Spacer()
-              Text(Fmt.gbp(r.invoiceValue)).font(.subheadline.bold()).foregroundStyle(Brand.olive)
+              Spacer(minLength: 10)
+              Text(Fmt.gbp(r.invoiceValue)).font(.subheadline.bold()).monospacedDigit()
+                .foregroundStyle(Brand.olive)
             }
             HStack(spacing: 8) {
               tag(Fmt.hours(r.hours), "clock", Brand.blue)
@@ -253,12 +267,18 @@ struct DashboardView: View {
 
   private func trackerCell(_ value: String, _ label: String, _ color: Color) -> some View {
     VStack(spacing: 4) {
-      Text(value).font(.title3.bold()).foregroundStyle(color)
+      Text(value).font(.title3.bold()).monospacedDigit().foregroundStyle(color)
       Text(label).font(.caption2).foregroundStyle(Brand.inkSoft).multilineTextAlignment(.center)
     }
     .frame(maxWidth: .infinity)
     .padding(.vertical, 12)
-    .background(color.opacity(0.10), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    .background(
+      color.opacity(0.10), in: RoundedRectangle(cornerRadius: Brand.Radius.chip, style: .continuous)
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: Brand.Radius.chip, style: .continuous)
+        .stroke(color.opacity(0.18), lineWidth: 1)
+    )
   }
 
   // MARK: - 5. Missing evidence
@@ -295,6 +315,7 @@ struct DashboardView: View {
       Spacer()
       Text("\(count)")
         .font(.subheadline.bold())
+        .monospacedDigit()
         .foregroundStyle(count > 0 ? Brand.red : Brand.paidGreen)
         .padding(.horizontal, 10).padding(.vertical, 3)
         .background(
@@ -368,7 +389,7 @@ struct DashboardView: View {
       if !store.recentSiteFiles().isEmpty {
         Divider().overlay(Brand.hairline)
         Text("RECENTLY UPLOADED").font(.caption2.weight(.bold)).foregroundStyle(Brand.olive)
-          .tracking(0.6)
+          .tracking(0.8)
         ForEach(store.recentSiteFiles(5)) { f in
           HStack(spacing: 10) {
             Image(systemName: f.category.symbol).foregroundStyle(Brand.olive).frame(width: 22)
@@ -395,6 +416,7 @@ struct DashboardView: View {
       Spacer()
       Text("\(count)")
         .font(.subheadline.bold())
+        .monospacedDigit()
         .foregroundStyle(count > 0 ? Brand.red : Brand.paidGreen)
         .padding(.horizontal, 10).padding(.vertical, 3)
         .background((count > 0 ? Brand.red : Brand.paidGreen).opacity(0.12), in: Capsule())
