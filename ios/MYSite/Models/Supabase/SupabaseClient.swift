@@ -148,6 +148,24 @@ struct SupabaseClient {
     return data
   }
 
+  /// Call a Postgres function via PostgREST RPC. Used for anything that must be
+  /// enforced server-side rather than trusted from the client — role changes in
+  /// particular. `body` is the encoded argument object, or nil for no arguments.
+  func rpc(_ function: String, body: Data? = nil, accessToken: String) async throws -> Data {
+    guard let base = SupabaseConfig.restBaseURL, let key = SupabaseConfig.anonKey else {
+      throw SupabaseError.notConfigured
+    }
+    var req = URLRequest(url: base.appendingPathComponent("rpc").appendingPathComponent(function))
+    req.httpMethod = "POST"
+    req.setValue(key, forHTTPHeaderField: "apikey")
+    req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+    req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    req.httpBody = body ?? Data("{}".utf8)
+    let (data, response) = try await session.data(for: req)
+    try Self.validate(response, data: data)
+    return data
+  }
+
   /// Authenticated upsert (POST with merge-duplicates) of encoded rows. RLS applies.
   /// Pass the raw JSON body for one or more rows.
   func upsert(table: String, body: Data, accessToken: String) async throws {

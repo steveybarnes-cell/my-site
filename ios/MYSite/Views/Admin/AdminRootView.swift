@@ -339,6 +339,30 @@ struct AdminProfileView: View {
             }
             .mpgCard()
 
+            // Admin-only: generate invite codes and decide upgrade requests.
+            if store.isLiveBackend {
+              NavigationLink {
+                RoleAdminView()
+              } label: {
+                HStack(spacing: 12) {
+                  Image(systemName: "person.badge.key.fill")
+                    .foregroundStyle(Brand.oliveDark)
+                    .frame(width: 28, height: 28)
+                    .background(Brand.lightGreen, in: RoundedRectangle(cornerRadius: 8))
+                  VStack(alignment: .leading, spacing: 2) {
+                    Text("Access & Invites")
+                      .font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
+                    Text("Invite managers and approve requests")
+                      .font(.caption).foregroundStyle(Brand.inkSoft)
+                  }
+                  Spacer()
+                  Image(systemName: "chevron.right").font(.caption).foregroundStyle(Brand.inkSoft)
+                }
+                .mpgCard()
+              }
+              .buttonStyle(.plain)
+            }
+
             PrimaryButton(
               title: "Log Out", symbol: "rectangle.portrait.and.arrow.right", tint: Brand.charcoal
             ) {

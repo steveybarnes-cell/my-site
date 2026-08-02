@@ -106,6 +106,27 @@ final class AuthManager {
     }
   }
 
+  // MARK: - Role refresh
+
+  /// Re-reads the signed-in user's profile and applies any role change in place.
+  ///
+  /// Called after redeeming an invite code or having a request approved. Because
+  /// `ContentView` routes on `store.currentUser?.role`, updating the user here
+  /// swaps the whole interface — tab bar included — with no sign-out required.
+  /// Returns the role now in effect, or nil if there's no live session.
+  @discardableResult
+  func refreshRole() async -> UserRole? {
+    guard let session else { return nil }
+    do {
+      let user = try await fetchAppUser(for: session)
+      await store.startLiveSession(user: user, token: session.accessToken)
+      return user.role
+    } catch {
+      errorMessage = error.localizedDescription
+      return nil
+    }
+  }
+
   // MARK: - Sign out
 
   func signOut() async {

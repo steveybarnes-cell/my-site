@@ -27,6 +27,11 @@ struct ProfileView: View {
                 paymentCard(p)
               }
               contactCard
+              // Redeem an invite code or ask an admin for a higher role.
+              // Admins already have everything, so it's hidden for them.
+              if store.currentUser?.role != .admin, store.isLiveBackend {
+                RoleAccessCard()
+              }
               PrimaryButton(
                 title: "Log Out", symbol: "rectangle.portrait.and.arrow.right", tint: Brand.charcoal
               ) {
