@@ -133,36 +133,44 @@ struct SitePhotoImage: View {
   let scene: SiteScene
 
   var body: some View {
-    ZStack {
-      AsyncImage(
-        url: scene.photoURL, transaction: Transaction(animation: .easeInOut(duration: 0.25))
-      ) { phase in
-        switch phase {
-        case .success(let image):
-          image
-            .resizable()
-            .scaledToFill()
-            .overlay(
-              LinearGradient(
-                colors: [.black.opacity(0.0), .black.opacity(0.22)],
-                startPoint: .center, endPoint: .bottom)
-            )
-            .overlay(alignment: .bottomLeading) {
-              Text(scene.stamp)
-                .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                .foregroundStyle(.white.opacity(0.9))
-                .padding(.horizontal, 6)
-                .padding(.vertical, 3)
-                .background(.black.opacity(0.35), in: RoundedRectangle(cornerRadius: 4))
-                .padding(8)
-            }
-        default:
-          // Loading or failed: show the rendered scene as placeholder/fallback.
-          SiteSceneImage(scene: scene)
+    // `Color.clear` takes exactly the size the parent proposes, and the image
+    // is drawn as an overlay on top of it. This matters: `.scaledToFill()`
+    // reports a layout size larger than the proposed width, and `.clipped()`
+    // only clips *drawing*, not layout — so without this the oversized width
+    // propagates up and stretches the whole feed card past the screen edge.
+    Color.clear
+      .overlay {
+        AsyncImage(
+          url: scene.photoURL, transaction: Transaction(animation: .easeInOut(duration: 0.25))
+        ) { phase in
+          switch phase {
+          case .success(let image):
+            image
+              .resizable()
+              .scaledToFill()
+              .overlay(
+                LinearGradient(
+                  colors: [.black.opacity(0.0), .black.opacity(0.22)],
+                  startPoint: .center, endPoint: .bottom)
+              )
+              .overlay(alignment: .bottomLeading) {
+                Text(scene.stamp)
+                  .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                  .foregroundStyle(.white.opacity(0.9))
+                  .padding(.horizontal, 6)
+                  .padding(.vertical, 3)
+                  .background(.black.opacity(0.35), in: RoundedRectangle(cornerRadius: 4))
+                  .padding(8)
+              }
+          default:
+            // Loading or failed: show the rendered scene as placeholder/fallback.
+            SiteSceneImage(scene: scene)
+          }
         }
       }
-    }
-    .clipped()
+      .clipped()
+      // Belt and braces: never let this view exceed the width it was offered.
+      .frame(maxWidth: .infinity)
   }
 }
 
