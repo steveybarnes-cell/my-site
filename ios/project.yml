@@ -17,7 +17,7 @@ targets:
     settings:
       base:
         PRODUCT_NAME: MYSite
-        PRODUCT_BUNDLE_IDENTIFIER: app.10x.my-site
+        PRODUCT_BUNDLE_IDENTIFIER: com.myprojectgroup.mpgsiterecords
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: 'MY Site'
         INFOPLIST_KEY_CFBundleName: 'MY Site'
