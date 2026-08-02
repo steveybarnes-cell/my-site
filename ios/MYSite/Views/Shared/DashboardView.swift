@@ -21,6 +21,7 @@ struct DashboardView: View {
             VStack(spacing: 20) {
               if filter.isActive { activeFilterBar }
               if store.pendingSyncCount > 0 { pendingSyncBanner }
+              ScanReceiptCard()
               weekSummarySection
               DashboardCharts(analytics: analytics)
               siteCostSection

@@ -27,6 +27,7 @@ final class AuthManager {
     let role: String?
     let phone: String?
     let active: Bool?
+    let company_id: String?
   }
 
   private static let sessionKey = "supabase_session"
@@ -211,12 +212,13 @@ final class AuthManager {
   /// Fetch the profile row for the signed-in user. Falls back to a Tradesman
   /// placeholder if the row hasn't been created yet (trigger latency).
   private func fetchAppUser(for session: SupabaseSession) async throws -> AppUser {
-    let query = "id=eq.\(session.userId)&select=id,name,email,role,phone,active"
+    let query = "id=eq.\(session.userId)&select=id,name,email,role,phone,active,company_id"
     let data = try await SupabaseClient.shared.get(
       table: "profiles", query: query, accessToken: session.accessToken)
     let rows = (try? JSONDecoder().decode([ProfileRow].self, from: data)) ?? []
 
     let uuid = UUID(uuidString: session.userId) ?? UUID()
+    store.currentCompanyId = rows.first?.company_id.flatMap { UUID(uuidString: $0) }
     guard let row = rows.first else {
       return AppUser(
         id: uuid,

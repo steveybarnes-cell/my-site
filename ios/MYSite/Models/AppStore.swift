@@ -21,10 +21,6 @@ final class AppStore {
   var siteFiles: [SiteFile] = []
   var feedPosts: [FeedPost] = []
 
-  /// Non-destructive photo markups keyed by post + photo index. The underlying
-  /// photo is never modified; annotations are drawn as an overlay.
-  var photoMarkups: [PhotoMarkupKey: PhotoMarkup] = [:]
-
   /// Whether the company Xero organisation is connected (modelled — real flow is Xero OAuth).
   var xeroConnected: Bool = false
 
@@ -50,6 +46,11 @@ final class AppStore {
   /// Read-only access to the signed-in user's Supabase JWT for authorised Edge Function calls.
   var currentBackendToken: String? { backendToken }
 
+  /// The signed-in user's company. Storage paths are filed under it, and RLS
+  /// refuses anything outside it, so with no company there is nothing to
+  /// upload into — uploads stay local rather than failing at the server.
+  var currentCompanyId: UUID?
+
   init() {
     seed()
     pendingSyncCount = SyncQueue.shared.count
@@ -69,6 +70,7 @@ final class AppStore {
   func logout() {
     currentUser = nil
     backendToken = nil
+    currentCompanyId = nil
     liveDataError = nil
     isDemoMode = false
   }
@@ -112,6 +114,7 @@ final class AppStore {
     }
     // Connectivity is proven good — flush anything captured while offline.
     await drainSyncQueue()
+    retryFailedFeedPhotoUploads()
   }
 
   /// Replays any queued offline writes to Supabase, in order.
@@ -182,20 +185,99 @@ final class AppStore {
   /// Newest-first company feed.
   var feed: [FeedPost] { feedPosts.sorted { $0.timestamp > $1.timestamp } }
 
+  /// Creates a feed post from typed text and already-flattened JPEG bytes.
+  ///
+  /// Photos are written to the on-device store first and the post is published
+  /// immediately, so a tradesman on a site with no signal still sees their post
+  /// land. Mirroring the bytes into the `site-evidence` bucket happens after, in
+  /// the background, and is retried on the next live refresh if it fails.
   @discardableResult
-  func addFeedPost(text: String, photoSymbols: [String] = [], siteId: UUID? = nil) -> FeedPost? {
+  func addFeedPost(text: String, images: [Data] = [], siteId: UUID? = nil) -> FeedPost? {
     guard let me = currentUser else { return nil }
     let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard !trimmed.isEmpty || !photoSymbols.isEmpty else { return nil }
+    guard !trimmed.isEmpty || !images.isEmpty else { return nil }
+
+    let photos: [FeedPhoto] = images.compactMap { data in
+      guard let fileName = FeedPhotoStore.save(data) else { return nil }
+      return .local(fileName: fileName)
+    }
+
     let post = FeedPost(
       authorId: me.id,
       authorName: me.name,
       authorRole: me.role,
       text: trimmed,
-      photoSymbols: photoSymbols,
+      photos: photos,
       siteId: siteId)
     feedPosts.append(post)
+    uploadFeedPhotos(for: post.id)
     return post
+  }
+
+  // MARK: - Feed photo uploads
+
+  /// Site segment used when a feed post isn't tagged to a job.
+  ///
+  /// Storage RLS authorises on the company and owner segments, not the site
+  /// one, so an untagged post still files safely inside its own company — it
+  /// just isn't attributable to a job, and no site manager picks it up.
+  static let untaggedSiteId = UUID(uuidString: "00000000-0000-0000-0000-000000000000")!
+
+  /// Mirrors a post's photos into the private `site-evidence` bucket at
+  /// `<company_id>/<site_id>/<user_id>/<file>`.
+  private func uploadFeedPhotos(for postId: UUID) {
+    guard let token = backendToken, let me = currentUser else { return }
+    guard let post = feedPosts.first(where: { $0.id == postId }) else { return }
+    let siteId = post.siteId ?? Self.untaggedSiteId
+
+    for photo in post.photos where photo.uploadState == .local || photo.uploadState == .failed {
+      guard let fileName = photo.localFileName,
+        let data = FeedPhotoStore.data(for: fileName)
+      else { continue }
+
+      guard let companyId = currentCompanyId else { continue }
+      let path = SupabaseStorage.objectPath(
+        companyId: companyId, siteId: siteId, userId: me.id, fileName: fileName)
+      let photoId = photo.id
+      updateFeedPhoto(photoId, in: postId) { $0.uploadState = .uploading }
+
+      Task { @MainActor in
+        do {
+          try await SupabaseStorage.upload(data: data, path: path, token: token)
+          let signed = try? await SupabaseStorage.signedURL(path: path, token: token)
+          self.updateFeedPhoto(photoId, in: postId) {
+            $0.storageObjectPath = path
+            $0.remoteURL = signed?.absoluteString
+            $0.uploadState = .uploaded
+          }
+        } catch {
+          self.updateFeedPhoto(photoId, in: postId) { $0.uploadState = .failed }
+          self.liveDataError =
+            (error as? SupabaseError)?.errorDescription ?? error.localizedDescription
+        }
+      }
+    }
+  }
+
+  /// Re-attempts every feed photo that never made it to Storage. Called on live
+  /// refresh, so a post made in a basement uploads once signal returns.
+  func retryFailedFeedPhotoUploads() {
+    guard backendToken != nil else { return }
+    for post in feedPosts {
+      let stuck = post.photos.contains {
+        $0.uploadState == .failed || $0.uploadState == .local
+      }
+      if stuck { uploadFeedPhotos(for: post.id) }
+    }
+  }
+
+  private func updateFeedPhoto(
+    _ photoId: UUID, in postId: UUID, _ mutate: (inout FeedPhoto) -> Void
+  ) {
+    guard let p = feedPosts.firstIndex(where: { $0.id == postId }),
+      let i = feedPosts[p].photos.firstIndex(where: { $0.id == photoId })
+    else { return }
+    mutate(&feedPosts[p].photos[i])
   }
 
   func toggleLike(_ postId: UUID) {
@@ -226,25 +308,17 @@ final class AppStore {
 
   // MARK: - Photo markup
 
-  func markup(postId: UUID, photoIndex: Int) -> PhotoMarkup {
-    photoMarkups[PhotoMarkupKey(postId: postId, photoIndex: photoIndex)] ?? PhotoMarkup()
-  }
-
-  func saveMarkup(_ markup: PhotoMarkup, postId: UUID, photoIndex: Int) {
-    let key = PhotoMarkupKey(postId: postId, photoIndex: photoIndex)
-    if markup.isEmpty {
-      photoMarkups.removeValue(forKey: key)
-    } else {
-      photoMarkups[key] = markup
-    }
-  }
-
   func deleteFeedPost(_ postId: UUID) {
     guard let me = currentUser,
       let post = feedPosts.first(where: { $0.id == postId })
     else { return }
     // Only the author or an admin may delete a post.
     guard post.authorId == me.id || me.role == .admin else { return }
+    // Reclaim the cached bytes; the Storage object (if any) is left in place so
+    // deleting a post never destroys filed site evidence.
+    for photo in post.photos {
+      if let fileName = photo.localFileName { FeedPhotoStore.delete(fileName) }
+    }
     feedPosts.removeAll { $0.id == postId }
   }
 
@@ -557,10 +631,12 @@ final class AppStore {
     }
 
     let ownerId = currentUser?.id ?? allocation?.tradesmanId ?? UUID()
-    let objectPath =
-      imageData != nil
-      ? SupabaseStorage.objectPath(siteId: site.id, userId: ownerId, fileName: result.driveFileName)
-      : ""
+    var objectPath = ""
+    if imageData != nil, let companyId = currentCompanyId {
+      objectPath = SupabaseStorage.objectPath(
+        companyId: companyId, siteId: site.id, userId: ownerId,
+        fileName: result.driveFileName)
+    }
 
     let photo = SitePhoto(
       id: UUID(),

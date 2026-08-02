@@ -41,6 +41,7 @@ struct SiteManagerSitesView: View {
         MPGBackground()
         ScrollView {
           VStack(spacing: 16) {
+            ScanReceiptCard()
             if mySites.isEmpty {
               EmptyStateView(
                 symbol: "mappin.slash", title: "No sites assigned",
@@ -157,6 +158,12 @@ struct SiteManagerMoreView: View {
       roleTitle: "Site Manager",
       roleSymbol: "person.bust",
       items: [
+        MoreHubItem(
+          title: "Scan Invoice / Receipt",
+          subtitle: "Photograph it — details read for you",
+          symbol: "doc.text.viewfinder",
+          tint: Brand.blue
+        ) { ScanReceiptView(presentedModally: false) },
         MoreHubItem(
           title: "Dashboard",
           subtitle: "Site metrics & overview",

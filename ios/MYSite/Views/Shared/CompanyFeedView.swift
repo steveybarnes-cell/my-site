@@ -286,9 +286,9 @@ struct FeedPostCard: View {
       .padding(.top, 14)
       .padding(.bottom, 12)
 
-      if !post.photoSymbols.isEmpty {
+      if !post.photos.isEmpty {
         ZStack {
-          FeedPhotoGrid(symbols: post.photoSymbols)
+          FeedPhotoGrid(photos: post.photos)
           // Double-tap acknowledge burst, Instagram-style.
           Image(systemName: "checkmark.seal.fill")
             .font(.system(size: 84, weight: .bold))
@@ -493,24 +493,22 @@ struct FeedAuthorHeader: View {
 // MARK: - Photo grid
 
 struct FeedPhotoGrid: View {
-  let symbols: [String]
+  let photos: [FeedPhoto]
 
   /// Every feed photo renders at this fixed height so all posts are uniform and
   /// nothing overflows the card, regardless of the source image dimensions.
   private let photoHeight: CGFloat = 300
 
-  private var scenes: [SiteScene] { symbols.map { SiteScene(key: $0) } }
-
   var body: some View {
-    if scenes.count == 1, let scene = scenes.first {
-      SitePhotoImage(scene: scene)
+    if photos.count == 1, let photo = photos.first {
+      FeedPhotoView(photo: photo)
         .frame(maxWidth: .infinity)
         .frame(height: photoHeight)
         .clipped()
     } else {
       TabView {
-        ForEach(Array(scenes.enumerated()), id: \.offset) { _, scene in
-          SitePhotoImage(scene: scene)
+        ForEach(photos) { photo in
+          FeedPhotoView(photo: photo)
             .frame(maxWidth: .infinity)
             .clipped()
         }
@@ -518,6 +516,89 @@ struct FeedPhotoGrid: View {
       .tabViewStyle(.page(indexDisplayMode: .automatic))
       .frame(height: photoHeight)
     }
+  }
+}
+
+/// Renders a single feed photo.
+///
+/// Preference order is deliberate: the locally cached bytes win, because they
+/// are the copy that exists first, works with no signal, and never expires. The
+/// signed Storage URL is the fallback for photos taken on another device, and
+/// the rendered `SiteScene` covers seeded demo posts.
+struct FeedPhotoView: View {
+  let photo: FeedPhoto
+
+  var body: some View {
+    // `Color.clear` takes exactly the size the parent proposes and the image is
+    // drawn over it, so `.scaledToFill()` can't push its oversized layout width
+    // back up the tree and stretch the feed card. Same trick as SitePhotoImage.
+    Color.clear
+      .overlay {
+        if let fileName = photo.localFileName,
+          let image = FeedPhotoStore.image(for: fileName)
+        {
+          Image(uiImage: image)
+            .resizable()
+            .scaledToFill()
+        } else if let remote = photo.remoteURL, let url = URL(string: remote) {
+          AsyncImage(url: url, transaction: Transaction(animation: .easeInOut(duration: 0.25))) {
+            phase in
+            switch phase {
+            case .success(let image):
+              image.resizable().scaledToFill()
+            case .failure:
+              unavailable
+            default:
+              ZStack {
+                Brand.lightGreen
+                ProgressView().tint(Brand.olive)
+              }
+            }
+          }
+        } else if let key = photo.sceneKey {
+          SitePhotoImage(scene: SiteScene(key: key))
+        } else {
+          unavailable
+        }
+      }
+      .clipped()
+      .frame(maxWidth: .infinity)
+      .overlay(alignment: .topTrailing) { uploadBadge }
+  }
+
+  private var unavailable: some View {
+    ZStack {
+      Brand.lightGreen
+      VStack(spacing: 6) {
+        Image(systemName: "photo").font(.system(size: 26))
+        Text("Photo unavailable").font(.caption)
+      }
+      .foregroundStyle(Brand.inkSoft)
+    }
+  }
+
+  /// Surfaces upload state on the photo itself. A tradesman needs to know at a
+  /// glance whether their evidence actually reached the office, so a failed
+  /// upload is called out rather than left looking identical to a synced one.
+  @ViewBuilder private var uploadBadge: some View {
+    switch photo.uploadState {
+    case .uploading:
+      badge(symbol: "arrow.up.circle", tint: .white, text: "Uploading")
+    case .failed:
+      badge(symbol: "exclamationmark.icloud.fill", tint: Brand.red, text: "Upload failed")
+    case .standIn, .local, .uploaded:
+      EmptyView()
+    }
+  }
+
+  private func badge(symbol: String, tint: Color, text: String) -> some View {
+    Label(text, systemImage: symbol)
+      .font(.caption2.weight(.semibold))
+      .foregroundStyle(tint)
+      .padding(.horizontal, 8)
+      .padding(.vertical, 4)
+      .background(.black.opacity(0.45), in: Capsule())
+      .padding(8)
   }
 }
 

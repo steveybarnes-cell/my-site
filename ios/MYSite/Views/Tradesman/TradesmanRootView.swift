@@ -39,6 +39,12 @@ struct TradesmanMoreView: View {
       roleSymbol: "hammer.fill",
       items: [
         MoreHubItem(
+          title: "Scan Invoice / Receipt",
+          subtitle: "Photograph it — details read for you",
+          symbol: "doc.text.viewfinder",
+          tint: Brand.blue
+        ) { ScanReceiptView(presentedModally: false) },
+        MoreHubItem(
           title: "My Records",
           subtitle: "Daily records, photos & materials",
           symbol: "list.clipboard.fill"
@@ -75,6 +81,7 @@ struct TradesmanTodayView: View {
         ScrollView {
           VStack(spacing: 16) {
             greeting
+            ScanReceiptCard()
             let allocs = me.map { store.todaysAllocations(for: $0.id) } ?? []
             if allocs.isEmpty {
               EmptyStateView(

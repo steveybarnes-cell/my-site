@@ -2,14 +2,20 @@ import Foundation
 
 /// Uploads and reads real file bytes from the private `site-evidence` Storage bucket.
 ///
-/// Object path convention mirrors the RLS policy in 0002_storage.sql:
-///     <site_id>/<user_id>/<filename>
-/// so the folder segments authorise access (segment 1 = site, segment 2 = owner).
+/// Object path convention mirrors the RLS policy in 0005_multi_tenancy.sql:
+///     <company_id>/<site_id>/<user_id>/<filename>
+/// so the folder segments authorise access: segment 1 is the company (checked
+/// first, so no cross-company read is even attempted), 2 the site, 3 the owner.
 enum SupabaseStorage {
 
   /// Builds the RLS-friendly object path for a piece of site evidence.
-  static func objectPath(siteId: UUID, userId: UUID, fileName: String) -> String {
-    "\(siteId.uuidString.lowercased())/\(userId.uuidString.lowercased())/\(fileName)"
+  static func objectPath(
+    companyId: UUID, siteId: UUID, userId: UUID, fileName: String
+  ) -> String {
+    let company = companyId.uuidString.lowercased()
+    let site = siteId.uuidString.lowercased()
+    let owner = userId.uuidString.lowercased()
+    return "\(company)/\(site)/\(owner)/\(fileName)"
   }
 
   /// Uploads bytes to the bucket and returns the stored object path.

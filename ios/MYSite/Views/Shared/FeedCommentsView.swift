@@ -26,8 +26,8 @@ struct FeedCommentsView: View {
                     Text(post.text).font(.subheadline).foregroundStyle(Brand.ink)
                       .frame(maxWidth: .infinity, alignment: .leading)
                   }
-                  if !post.photoSymbols.isEmpty {
-                    FeedPhotoGrid(symbols: post.photoSymbols)
+                  if !post.photos.isEmpty {
+                    FeedPhotoGrid(photos: post.photos)
                       .clipShape(
                         RoundedRectangle(cornerRadius: Brand.Radius.inner, style: .continuous))
                   }

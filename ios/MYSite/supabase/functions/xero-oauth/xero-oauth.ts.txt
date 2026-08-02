@@ -1,12 +1,19 @@
 // Xero OAuth 2.0 Edge Function for MPG Site Records.
 //
+// MULTI-TENANT. Every stored connection is keyed by company_id, resolved from
+// the signed-in caller. Two companies connecting Xero no longer overwrite each
+// other — the previous version keyed every row on the literal string "mpg".
+//
 // Routes (path after the function name):
 //   GET  /xero-oauth/start     -> returns { url } to open Xero consent (verify_jwt on)
-//   GET  /xero-oauth/callback  -> Xero redirects here with ?code&state; exchanges + stores tokens,
-//                                 then 302 redirects into the app via mpgsiterecords://xero-connected
-//   POST /xero-oauth/refresh   -> refreshes the stored access token, returns { expires_at }
+//   GET  /xero-oauth/callback  -> Xero redirects here with ?code&state; exchanges + stores
+//                                 tokens against the company that started the flow, then
+//                                 302 redirects into the app via mpgsiterecords://xero-connected
+//   POST /xero-oauth/refresh   -> refreshes the calling company's access token
+//   GET  /xero-oauth/status    -> { connected, tenantName, expiresAt } for the caller's company
 //
 // Secrets (Backend): XERO_CLIENT_ID, XERO_CLIENT_SECRET, XERO_REDIRECT_URI
+// Optional secret:   XERO_SCOPES  — space-separated override for the scope list.
 // Uses SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (auto-injected) for token storage.
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -14,13 +21,26 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 const XERO_AUTH = "https://login.xero.com/identity/connect/authorize";
 const XERO_TOKEN = "https://identity.xero.com/connect/token";
 const XERO_CONNECTIONS = "https://api.xero.com/connections";
-const SCOPES = "openid profile email accounting.transactions accounting.contacts offline_access";
 const APP_DEEP_LINK = "mpgsiterecords://xero-connected";
-const COMPANY_KEY = "mpg";
+
+// Scope list. Overridable via the XERO_SCOPES secret so a scope problem can be
+// corrected without redeploying — an `invalid_scope` from Xero almost always
+// means a scope requested here is not ticked on the app in the Xero developer
+// portal, so the two lists have to be reconciled by hand.
+const DEFAULT_SCOPES = [
+  "openid",
+  "profile",
+  "email",
+  "offline_access",
+  "accounting.transactions",
+  "accounting.contacts",
+  "accounting.settings",
+].join(" ");
 
 const clientId = Deno.env.get("XERO_CLIENT_ID") ?? "";
 const clientSecret = Deno.env.get("XERO_CLIENT_SECRET") ?? "";
 const redirectUri = Deno.env.get("XERO_REDIRECT_URI") ?? "";
+const scopes = Deno.env.get("XERO_SCOPES") ?? DEFAULT_SCOPES;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -51,29 +71,57 @@ function notConfigured() {
   return !clientId || !clientSecret || !redirectUri;
 }
 
-async function exchangeCode(code: string) {
-  const body = new URLSearchParams({
-    grant_type: "authorization_code",
-    code,
-    redirect_uri: redirectUri,
-  });
-  const res = await fetch(XERO_TOKEN, {
-    method: "POST",
-    headers: {
-      Authorization: basicAuthHeader(),
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body,
-  });
-  if (!res.ok) throw new Error(`token exchange failed: ${res.status} ${await res.text()}`);
-  return await res.json();
+// ---------------------------------------------------------------------------
+// Tenancy
+// ---------------------------------------------------------------------------
+
+/// Resolves the caller's company from their Supabase JWT.
+///
+/// This is the whole point of the rewrite: the company is derived from *who is
+/// asking*, never from a constant, so one company can never read or overwrite
+/// another's Xero connection.
+async function callerCompany(req: Request): Promise<{ userId: string; companyId: string }> {
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const jwt = authHeader.replace(/^Bearer\s+/i, "");
+  if (!jwt) throw new HttpError(401, "no_token", "Sign in before connecting Xero.");
+
+  const db = admin();
+  const { data: userData, error: userErr } = await db.auth.getUser(jwt);
+  if (userErr || !userData?.user) {
+    throw new HttpError(401, "invalid_token", "Your session has expired. Sign in again.");
+  }
+  const userId = userData.user.id;
+
+  const { data: profile, error: profErr } = await db
+    .from("profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .maybeSingle();
+  if (profErr) throw new HttpError(500, "profile_lookup_failed", profErr.message);
+  if (!profile?.company_id) {
+    throw new HttpError(
+      409,
+      "no_company",
+      "Your account isn't attached to a company yet. Ask an admin to add you.",
+    );
+  }
+  return { userId, companyId: profile.company_id as string };
 }
 
-async function refreshToken(refresh_token: string) {
-  const body = new URLSearchParams({
-    grant_type: "refresh_token",
-    refresh_token,
-  });
+class HttpError extends Error {
+  constructor(readonly status: number, readonly code: string, message: string) {
+    super(message);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Xero calls
+// ---------------------------------------------------------------------------
+
+/// Surfaces Xero's own error body rather than collapsing everything to a 500,
+/// so `invalid_scope` / `invalid_client` / redirect-URI mismatches are readable
+/// in the app instead of guesswork.
+async function xeroPost(body: URLSearchParams, what: string) {
   const res = await fetch(XERO_TOKEN, {
     method: "POST",
     headers: {
@@ -82,9 +130,30 @@ async function refreshToken(refresh_token: string) {
     },
     body,
   });
-  if (!res.ok) throw new Error(`refresh failed: ${res.status} ${await res.text()}`);
-  return await res.json();
+  const text = await res.text();
+  if (!res.ok) {
+    let detail = text;
+    try {
+      const parsed = JSON.parse(text);
+      detail = parsed.error_description ?? parsed.error ?? text;
+    } catch { /* keep raw text */ }
+    throw new HttpError(res.status, `xero_${what}_failed`, detail);
+  }
+  return JSON.parse(text);
 }
+
+const exchangeCode = (code: string) =>
+  xeroPost(
+    new URLSearchParams({
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: redirectUri,
+    }),
+    "token_exchange",
+  );
+
+const refreshToken = (refresh_token: string) =>
+  xeroPost(new URLSearchParams({ grant_type: "refresh_token", refresh_token }), "refresh");
 
 async function fetchTenant(access_token: string) {
   const res = await fetch(XERO_CONNECTIONS, {
@@ -95,6 +164,8 @@ async function fetchTenant(access_token: string) {
   const first = Array.isArray(list) && list.length > 0 ? list[0] : null;
   return { tenantId: first?.tenantId ?? null, tenantName: first?.tenantName ?? null };
 }
+
+// ---------------------------------------------------------------------------
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -107,32 +178,73 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // 1) Build consent URL
+    // 1) Build consent URL -----------------------------------------------------
+    // The state is persisted against the caller's company so the callback —
+    // which arrives unauthenticated, straight from Xero — can be tied back to
+    // the right company. It also blocks CSRF: the previous version generated a
+    // state and then never checked it.
     if (route === "start") {
+      const { userId, companyId } = await callerCompany(req);
       const state = crypto.randomUUID();
+
+      const { error } = await admin().from("xero_oauth_states").insert({
+        state,
+        company_id: companyId,
+        created_by: userId,
+        expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+      });
+      if (error) throw new HttpError(500, "state_store_failed", error.message);
+
       const authUrl = new URL(XERO_AUTH);
       authUrl.searchParams.set("response_type", "code");
       authUrl.searchParams.set("client_id", clientId);
       authUrl.searchParams.set("redirect_uri", redirectUri);
-      authUrl.searchParams.set("scope", SCOPES);
+      authUrl.searchParams.set("scope", scopes);
       authUrl.searchParams.set("state", state);
       return json({ url: authUrl.toString(), state });
     }
 
-    // 2) Handle Xero redirect
+    // 2) Handle Xero redirect --------------------------------------------------
     if (route === "callback") {
       const code = url.searchParams.get("code");
+      const state = url.searchParams.get("state");
       const err = url.searchParams.get("error");
-      if (err || !code) {
-        return Response.redirect(`${APP_DEEP_LINK}?status=error`, 302);
+      const errDesc = url.searchParams.get("error_description");
+
+      // Pass Xero's reason back into the app so the user sees "invalid_scope"
+      // rather than a blank failure.
+      if (err || !code || !state) {
+        const reason = encodeURIComponent(errDesc ?? err ?? "missing_code");
+        return Response.redirect(`${APP_DEEP_LINK}?status=error&reason=${reason}`, 302);
       }
-      const tokens = await exchangeCode(code);
+
+      const db = admin();
+      const { data: pending } = await db
+        .from("xero_oauth_states")
+        .select("company_id, expires_at")
+        .eq("state", state)
+        .maybeSingle();
+
+      if (!pending || new Date(pending.expires_at) < new Date()) {
+        return Response.redirect(`${APP_DEEP_LINK}?status=error&reason=invalid_state`, 302);
+      }
+      // Single-use.
+      await db.from("xero_oauth_states").delete().eq("state", state);
+
+      let tokens;
+      try {
+        tokens = await exchangeCode(code);
+      } catch (e) {
+        const reason = encodeURIComponent(e instanceof HttpError ? e.message : String(e));
+        return Response.redirect(`${APP_DEEP_LINK}?status=error&reason=${reason}`, 302);
+      }
+
       const tenant = await fetchTenant(tokens.access_token);
       const expiresAt = new Date(Date.now() + (tokens.expires_in ?? 1800) * 1000).toISOString();
 
-      const { error } = await admin().from("xero_connections").upsert(
+      const { error } = await db.from("xero_connections").upsert(
         {
-          company_key: COMPANY_KEY,
+          company_id: pending.company_id,
           tenant_id: tenant.tenantId,
           tenant_name: tenant.tenantName,
           access_token: tokens.access_token,
@@ -140,19 +252,22 @@ Deno.serve(async (req) => {
           expires_at: expiresAt,
           updated_at: new Date().toISOString(),
         },
-        { onConflict: "company_key" },
+        { onConflict: "company_id" },
       );
-      if (error) return Response.redirect(`${APP_DEEP_LINK}?status=error`, 302);
+      if (error) {
+        return Response.redirect(`${APP_DEEP_LINK}?status=error&reason=store_failed`, 302);
+      }
       return Response.redirect(`${APP_DEEP_LINK}?status=connected`, 302);
     }
 
-    // 3) Refresh stored token
+    // 3) Refresh this company's stored token -----------------------------------
     if (route === "refresh") {
+      const { companyId } = await callerCompany(req);
       const db = admin();
       const { data: conn } = await db
         .from("xero_connections")
         .select("refresh_token")
-        .eq("company_key", COMPANY_KEY)
+        .eq("company_id", companyId)
         .maybeSingle();
       if (!conn?.refresh_token) return json({ error: "not_connected" }, 409);
 
@@ -163,12 +278,30 @@ Deno.serve(async (req) => {
         refresh_token: tokens.refresh_token ?? conn.refresh_token,
         expires_at: expiresAt,
         updated_at: new Date().toISOString(),
-      }).eq("company_key", COMPANY_KEY);
+      }).eq("company_id", companyId);
       return json({ expires_at: expiresAt });
+    }
+
+    // 4) Connection status for this company ------------------------------------
+    if (route === "status") {
+      const { companyId } = await callerCompany(req);
+      const { data: conn } = await admin()
+        .from("xero_connections")
+        .select("tenant_name, expires_at")
+        .eq("company_id", companyId)
+        .maybeSingle();
+      return json({
+        connected: !!conn,
+        tenantName: conn?.tenant_name ?? null,
+        expiresAt: conn?.expires_at ?? null,
+      });
     }
 
     return json({ error: "unknown_route" }, 404);
   } catch (e) {
+    if (e instanceof HttpError) {
+      return json({ error: e.code, message: e.message }, e.status);
+    }
     return json({ error: "xero_error", message: String(e) }, 500);
   }
 });

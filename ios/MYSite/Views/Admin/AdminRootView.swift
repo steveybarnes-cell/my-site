@@ -41,6 +41,12 @@ struct AdminMoreView: View {
       roleSymbol: "shield.lefthalf.filled",
       items: [
         MoreHubItem(
+          title: "Scan Invoice / Receipt",
+          subtitle: "Photograph it — details read for you",
+          symbol: "doc.text.viewfinder",
+          tint: Brand.blue
+        ) { ScanReceiptView(presentedModally: false) },
+        MoreHubItem(
           title: "Manage",
           subtitle: "Sites, team & work allocations",
           symbol: "square.and.pencil"

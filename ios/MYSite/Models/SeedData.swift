@@ -389,7 +389,7 @@ extension AppStore {
         authorId: steve.id, authorName: steve.name, authorRole: .admin,
         text:
           "Morning all 👋 New standard invoice format is now live in the app — please submit weekly invoices through here from now on, no more WhatsApp photos. Any questions give me a shout.",
-        photoSymbols: [], siteId: nil, timestamp: hrsAgo(26),
+        photos: [], siteId: nil, timestamp: hrsAgo(26),
         likedBy: [jenny.id, brandon.id, mike.id, dan.id],
         comments: [
           FeedComment(
@@ -403,7 +403,7 @@ extension AppStore {
         authorId: dan.id, authorName: dan.name, authorRole: .tradesman,
         text:
           "Rear utility dig-out done at Clifton Village. Ready for the sub-base tomorrow. Photos attached for the variation.",
-        photoSymbols: ["digOut", "screed"], siteId: clifton.id, timestamp: hrsAgo(20),
+        photos: [.scene("digOut"), .scene("screed")], siteId: clifton.id, timestamp: hrsAgo(20),
         likedBy: [paulSM.id, steve.id],
         comments: [
           FeedComment(
@@ -414,13 +414,13 @@ extension AppStore {
         authorId: jenny.id, authorName: jenny.name, authorRole: .siteManager,
         text:
           "Reminder: hard hats and hi-vis at all times on Marlborough Street — building control are visiting Thursday. Cheers.",
-        photoSymbols: [], siteId: marlborough.id, timestamp: hrsAgo(6),
+        photos: [], siteId: marlborough.id, timestamp: hrsAgo(6),
         likedBy: [steve.id, brandon.id],
         comments: []),
       FeedPost(
         authorId: brandon.id, authorName: brandon.name, authorRole: .tradesman,
         text: "Communal hallway second coat finished at Marlborough. Looking clean ✨",
-        photoSymbols: ["hallwayPaint", "kitchenFit"], siteId: marlborough.id,
+        photos: [.scene("hallwayPaint"), .scene("kitchenFit")], siteId: marlborough.id,
         timestamp: minsAgo(45),
         likedBy: [jenny.id, steve.id, mike.id],
         comments: [
@@ -432,7 +432,7 @@ extension AppStore {
         authorId: mike.id, authorName: mike.name, authorRole: .tradesman,
         text:
           "Brickwork to the rear extension up to DPC at Clifton. Blockwork inner leaf going in this afternoon. On programme.",
-        photoSymbols: ["brickwork", "screed"], siteId: clifton.id, timestamp: hrsAgo(9),
+        photos: [.scene("brickwork"), .scene("screed")], siteId: clifton.id, timestamp: hrsAgo(9),
         likedBy: [steve.id, paulSM.id, jenny.id],
         comments: [
           FeedComment(
@@ -447,14 +447,14 @@ extension AppStore {
         authorId: paulSM.id, authorName: paulSM.name, authorRole: .siteManager,
         text:
           "Scaffold inspection tag updated on Redcliffe — signed off and safe to use. Weekly check due next Friday.",
-        photoSymbols: ["scaffold"], siteId: redcliffe.id, timestamp: hrsAgo(4),
+        photos: [.scene("scaffold")], siteId: redcliffe.id, timestamp: hrsAgo(4),
         likedBy: [steve.id, mike.id, dan.id],
         comments: []),
       FeedPost(
         authorId: steve.id, authorName: steve.name, authorRole: .admin,
         text:
           "Reminder 📋 weekly invoices + timesheets in by Friday 5pm please so I can get everyone paid Monday. Receipts through the scanner as you go — don't let them pile up!",
-        photoSymbols: [], siteId: nil, timestamp: hrsAgo(3),
+        photos: [], siteId: nil, timestamp: hrsAgo(3),
         likedBy: [mike.id, dan.id, brandon.id, jenny.id, paulSM.id],
         comments: [
           FeedComment(
@@ -465,7 +465,7 @@ extension AppStore {
         authorId: brandon.id, authorName: brandon.name, authorRole: .tradesman,
         text:
           "New kitchen units landed at Marlborough — carcasses in, worktops templated. Should be finished by end of week.",
-        photoSymbols: ["kitchenFit"], siteId: marlborough.id, timestamp: minsAgo(20),
+        photos: [.scene("kitchenFit")], siteId: marlborough.id, timestamp: minsAgo(20),
         likedBy: [jenny.id, steve.id],
         comments: [
           FeedComment(
