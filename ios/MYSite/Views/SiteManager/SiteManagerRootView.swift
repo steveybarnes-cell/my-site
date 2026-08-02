@@ -186,6 +186,7 @@ struct SiteManagerMoreView: View {
 
 struct SiteManagerProfileView: View {
   @Environment(AppStore.self) private var store
+  @Environment(AuthManager.self) private var auth
 
   var body: some View {
     NavigationStack {
@@ -211,7 +212,10 @@ struct SiteManagerProfileView: View {
             PrimaryButton(
               title: "Log Out", symbol: "rectangle.portrait.and.arrow.right", tint: Brand.charcoal
             ) {
-              store.logout()
+              // Revokes the token and returns to LoginView. store.logout()
+              // alone leaves auth.phase == .signedIn, which drops the user
+              // into the tradesman app instead of signing them out.
+              Task { await auth.signOut() }
             }
           }
           .padding(16)

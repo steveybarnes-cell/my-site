@@ -207,9 +207,16 @@ struct SupabaseClient {
     return data
   }
 
+  /// Decodes a GoTrue token payload into a session.
+  ///
+  /// This must go through `TokenResponse`, not `SupabaseSession` directly:
+  /// GoTrue returns snake_case (`access_token`, `refresh_token`, `expires_in`),
+  /// whereas `SupabaseSession` is the app's own camelCase model used for
+  /// Keychain storage. Decoding the server payload straight into
+  /// `SupabaseSession` fails with `keyNotFound: "accessToken"`.
   private func decodeSession(_ data: Data) throws -> SupabaseSession {
     do {
-      return try JSONDecoder().decode(SupabaseSession.self, from: data)
+      return try JSONDecoder().decode(TokenResponse.self, from: data).session
     } catch {
       throw SupabaseError.decoding("\(error)")
     }

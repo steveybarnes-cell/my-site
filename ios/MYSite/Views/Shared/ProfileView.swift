@@ -30,7 +30,10 @@ struct ProfileView: View {
               PrimaryButton(
                 title: "Log Out", symbol: "rectangle.portrait.and.arrow.right", tint: Brand.charcoal
               ) {
-                store.logout()
+                // Must go through AuthManager, not store.logout() alone:
+                // it revokes the Supabase token, clears the Keychain session
+                // and sets phase = .signedOut so the app returns to LoginView.
+                Task { await auth.signOut() }
               }
               deleteAccountSection
             }
