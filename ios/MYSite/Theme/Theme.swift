@@ -2,21 +2,28 @@ import SwiftUI
 
 /// My Project Group Ltd brand system.
 enum Brand {
-  static let charcoal = Color(hex: 0x2A2E2B)
-  static let charcoalDeep = Color(hex: 0x1C201D)
-  static let olive = Color(hex: 0x6F8F5A)
-  static let oliveDark = Color(hex: 0x5A7748)
-  /// Muted sage/olive green used in the official MY PROJECT GROUP wordmark.
-  static let logoGreen = Color(hex: 0x7D9B62)
-  static let lightGreen = Color(hex: 0xE7EFE2)
+  // Sampled straight from the MY Site brand sheet rather than eyeballed. The
+  // palette moved from a warm olive-grey to a cool near-black with a punchier
+  // yellow-green, so anything that reads "warm" here is now deliberate.
+  static let charcoal = Color(hex: 0x14171D)
+  static let charcoalDeep = Color(hex: 0x0E1116)
+  /// Primary action colour — buttons, links, active state. The brand green.
+  static let olive = Color(hex: 0x7F9E4B)
+  static let oliveDark = Color(hex: 0x66803C)
+  /// Same green; kept as its own name because the wordmark is allowed to
+  /// diverge from the UI accent later without dragging every button with it.
+  static let logoGreen = Color(hex: 0x7F9E4B)
+  static let lightGreen = Color(hex: 0xEEF2E4)
   /// Bright completion accent used sparingly for live activity and positive momentum.
   static let lime = Color(hex: 0xB8E34A)
   /// Clear, modern information accent for active work and live updates.
   static let electricBlue = Color(hex: 0x4B7BFF)
   static let surface = Color.white
-  static let ink = Color(hex: 0x23271F)
-  static let inkSoft = Color(hex: 0x5F675A)
-  static let hairline = Color(hex: 0xDBE3D5)
+  // Cooled to match the new background. Warm ink over a cool near-black reads
+  // muddy where the two meet.
+  static let ink = Color(hex: 0x1A1D23)
+  static let inkSoft = Color(hex: 0x5C626C)
+  static let hairline = Color(hex: 0xE0E3DC)
 
   // Status palette
   static let amber = Color(hex: 0xC98A2B)
@@ -39,7 +46,7 @@ enum Brand {
 
   /// Soft, low-contrast elevation. Kept subtle so the olive stays the loudest
   /// thing on screen.
-  static let cardShadow = Color(hex: 0x1C201D, alpha: 0.05)
+  static let cardShadow = Color(hex: 0x0E1116, alpha: 0.06)
 }
 
 extension Color {

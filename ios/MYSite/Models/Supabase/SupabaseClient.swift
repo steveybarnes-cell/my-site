@@ -102,6 +102,36 @@ struct SupabaseClient {
       email: user.email)
   }
 
+  /// Sends a password recovery email.
+  ///
+  /// The auth server answers 200 whether or not the address is registered, so
+  /// this can't be used to discover who has an account — the UI says the same
+  /// thing either way to preserve that.
+  func sendPasswordReset(email: String, redirectTo: String) async throws {
+    guard let base = SupabaseConfig.authBaseURL, let key = SupabaseConfig.anonKey else {
+      throw SupabaseError.notConfigured
+    }
+    var comps = URLComponents(
+      url: base.appendingPathComponent("recover"), resolvingAgainstBaseURL: false)!
+    comps.queryItems = [URLQueryItem(name: "redirect_to", value: redirectTo)]
+    _ = try await post(url: comps.url!, apiKey: key, body: ["email": email])
+  }
+
+  /// Sets a new password for the user owning `accessToken`.
+  func updatePassword(_ newPassword: String, accessToken: String) async throws {
+    guard let base = SupabaseConfig.authBaseURL, let key = SupabaseConfig.anonKey else {
+      throw SupabaseError.notConfigured
+    }
+    var req = URLRequest(url: base.appendingPathComponent("user"))
+    req.httpMethod = "PUT"
+    req.setValue(key, forHTTPHeaderField: "apikey")
+    req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+    req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    req.httpBody = try JSONSerialization.data(withJSONObject: ["password": newPassword])
+    let (data, response) = try await session.data(for: req)
+    try Self.validate(response, data: data)
+  }
+
   /// Revoke the current session server-side.
   func signOut(accessToken: String) async {
     guard let base = SupabaseConfig.authBaseURL, let key = SupabaseConfig.anonKey else { return }

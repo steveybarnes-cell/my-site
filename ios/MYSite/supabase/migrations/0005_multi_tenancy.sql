@@ -62,6 +62,12 @@ returns boolean language sql stable security definer set search_path = public as
   select coalesce((select role = 'Admin' from public.profiles where id = auth.uid()), false)
 $$;
 
+-- `manages_site` is redefined further down, AFTER `sites.company_id` exists.
+-- It cannot live here: it is a SQL-language function, so Postgres validates
+-- its body at creation, and the column it needs is added in section 3. On an
+-- already-migrated database this made no difference; on a fresh one it made
+-- the whole migration fail at this line.
+
 
 -- =====================================================================
 -- 3. company_id on every table
@@ -167,7 +173,7 @@ begin
 end $$;
 
 -- Now company-aware: managing a site in another company is impossible even
--- if the site id is guessed. Defined here, after sites.company_id exists.
+-- if the site id is guessed.
 create or replace function public.manages_site(target_site uuid)
 returns boolean language sql stable security definer set search_path = public as $$
   select exists(

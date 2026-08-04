@@ -24,17 +24,30 @@ const XERO_CONNECTIONS = "https://api.xero.com/connections";
 const APP_DEEP_LINK = "mpgsiterecords://xero-connected";
 
 // Scope list. Overridable via the XERO_SCOPES secret so a scope problem can be
-// corrected without redeploying — an `invalid_scope` from Xero almost always
-// means a scope requested here is not ticked on the app in the Xero developer
-// portal, so the two lists have to be reconciled by hand.
+// corrected without redeploying.
+//
+// These are Xero's GRANULAR scopes. The old broad `accounting.transactions`
+// scope no longer exists for apps created after 2 March 2026 — requesting it
+// is what produced `invalid_scope`. Its write capability is now split across
+// accounting.invoices / accounting.banktransactions / accounting.payments, and
+// this function only ever creates invoices.
+//
+// This exact list is the one that consented successfully against the live app
+// on 2 Aug 2026, and it is deliberately shorter than it looks like it should be:
+//
+//   • No openid / profile / email. Those return an id_token describing the Xero
+//     user, which this function never reads — it identifies the company from the
+//     Supabase JWT instead. Asking for them only widens the consent screen.
+//   • No app.connections. GET /connections is authorised by the access token
+//     itself, so the tenant still resolves without it. It was in the earlier
+//     list and was one of the things being rejected.
+//
+// Keep this minimal: every scope listed here is a permission the user is asked
+// to hand over on the consent screen.
 const DEFAULT_SCOPES = [
-  "openid",
-  "profile",
-  "email",
-  "offline_access",
-  "accounting.transactions",
-  "accounting.contacts",
-  "accounting.settings",
+  "offline_access",       // required for refresh tokens
+  "accounting.contacts",  // find or create the invoice contact
+  "accounting.invoices",  // create the draft ACCREC invoice
 ].join(" ");
 
 const clientId = Deno.env.get("XERO_CLIENT_ID") ?? "";
@@ -187,6 +200,7 @@ Deno.serve(async (req) => {
       const { userId, companyId } = await callerCompany(req);
       const state = crypto.randomUUID();
 
+      console.log("[xero start] company:", companyId, "state:", state);
       const { error } = await admin().from("xero_oauth_states").insert({
         state,
         company_id: companyId,
@@ -214,8 +228,10 @@ Deno.serve(async (req) => {
       // Pass Xero's reason back into the app so the user sees "invalid_scope"
       // rather than a blank failure.
       if (err || !code || !state) {
-        const reason = encodeURIComponent(errDesc ?? err ?? "missing_code");
-        return Response.redirect(`${APP_DEEP_LINK}?status=error&reason=${reason}`, 302);
+        const reason = errDesc ?? err ?? `missing_code (code=${!!code} state=${!!state})`;
+        console.error("[xero callback] rejected by Xero:", reason);
+        return Response.redirect(
+          `${APP_DEEP_LINK}?status=error&reason=${encodeURIComponent(reason)}`, 302);
       }
 
       const db = admin();
@@ -226,6 +242,9 @@ Deno.serve(async (req) => {
         .maybeSingle();
 
       if (!pending || new Date(pending.expires_at) < new Date()) {
+        console.error(
+          "[xero callback] state lookup failed. found:", !!pending,
+          "expired:", pending ? new Date(pending.expires_at) < new Date() : "n/a");
         return Response.redirect(`${APP_DEEP_LINK}?status=error&reason=invalid_state`, 302);
       }
       // Single-use.
@@ -235,8 +254,10 @@ Deno.serve(async (req) => {
       try {
         tokens = await exchangeCode(code);
       } catch (e) {
-        const reason = encodeURIComponent(e instanceof HttpError ? e.message : String(e));
-        return Response.redirect(`${APP_DEEP_LINK}?status=error&reason=${reason}`, 302);
+        const reason = e instanceof HttpError ? e.message : String(e);
+        console.error("[xero callback] token exchange failed:", reason);
+        return Response.redirect(
+          `${APP_DEEP_LINK}?status=error&reason=${encodeURIComponent(reason)}`, 302);
       }
 
       const tenant = await fetchTenant(tokens.access_token);
@@ -255,7 +276,9 @@ Deno.serve(async (req) => {
         { onConflict: "company_id" },
       );
       if (error) {
-        return Response.redirect(`${APP_DEEP_LINK}?status=error&reason=store_failed`, 302);
+        console.error("[xero callback] storing connection failed:", error.message);
+        return Response.redirect(
+          `${APP_DEEP_LINK}?status=error&reason=${encodeURIComponent(error.message)}`, 302);
       }
       return Response.redirect(`${APP_DEEP_LINK}?status=connected`, 302);
     }

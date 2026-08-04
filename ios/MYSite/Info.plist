@@ -4,6 +4,12 @@
 <dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<!-- Without this iOS shows a plain white screen from tap to first frame,
+	     which on a cold start or straight after install is long enough to look
+	     like the app has failed. Charcoal + the gable mark matches the loading
+	     screen ContentView shows next, so the handoff is invisible. -->
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

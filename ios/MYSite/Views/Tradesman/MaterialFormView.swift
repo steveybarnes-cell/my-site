@@ -256,7 +256,10 @@ struct MaterialFormView: View {
         showReview = true
         scanNote = "Check the AI take-off before it fills the form."
       } catch {
-        scanError = "Couldn't read the receipt automatically. Enter the details manually."
+        // See ScanReceiptView — a generic message here hid an OpenAI billing
+        // failure behind what looked like a bad photo.
+        let reason = (error as? SupabaseError)?.errorDescription ?? error.localizedDescription
+        scanError = "Couldn't read the receipt — \(reason) Enter the details manually."
       }
     }
   }
@@ -273,11 +276,18 @@ struct MaterialFormView: View {
 
     if hasReceipt, let site {
       let receiptDesc = "Receipt — \(supplier)"
+      // receiptData is the photographed receipt. It was being dropped here,
+      // so the row was created but the bucket stayed empty — the evidence the
+      // whole screen exists to capture never actually left the phone.
       let uploaded = store.uploadFile(
         type: receiptType, description: receiptDesc, source: source, ext: "jpg",
         site: site, allocation: allocation, dailyRecordId: nil, submissionId: nil,
-        materialId: materialId)
+        materialId: materialId, imageData: receiptData)
       // Auto-push to Hubdoc / Xero + central cost tracker when connected.
+      // Hubdoc is independent of Xero: the receipt is emailed to the company's
+      // Hubdoc inbox whether or not Xero has been connected, and does nothing
+      // quietly if no Hubdoc address has been set.
+      store.sendToHubdoc(uploaded.id)
       if store.xeroConnected {
         store.sendToXero(uploaded.id)
       }
@@ -292,4 +302,168 @@ struct MaterialFormView: View {
 
 #Preview {
   MaterialFormView(allocation: AppStore().allocations[0]).environment(AppStore())
+}
+
+// =====================================================================
+// MARK: - Correcting a logged cost
+// =====================================================================
+
+/// Edit a material that has already been logged.
+///
+/// There is no approval queue in this app — a cost counts from the moment it
+/// is logged, so site spend and the weekly totals are always current rather
+/// than current-as-of-whenever somebody last signed things off.
+///
+/// That only works if mistakes are cheap to fix, which is what this is for. An
+/// AI reading a crumpled receipt will occasionally put the VAT in the wrong
+/// box; correcting it here moves every total that derives from it, because
+/// nothing caches spend — it's all computed from `materials` on read.
+struct MaterialEditSheet: View {
+  @Environment(AppStore.self) private var store
+  @Environment(\.dismiss) private var dismiss
+
+  let material: MaterialItem
+
+  @State private var supplier = ""
+  @State private var description = ""
+  @State private var reason = ""
+  @State private var costText = ""
+  @State private var vatText = ""
+  @State private var date = Date()
+  @State private var chargeable: Chargeable = .tbc
+  @State private var siteId: UUID?
+
+  private var cost: Double { Double(costText) ?? 0 }
+  private var vat: Double { Double(vatText) ?? 0 }
+  private var isInvalid: Bool { supplier.trimmingCharacters(in: .whitespaces).isEmpty || cost <= 0 }
+
+  /// Only sites this person can already see, so an edit can't quietly move a
+  /// cost onto a job they have no business touching.
+  private var availableSites: [Site] {
+    guard let me = store.currentUser else { return store.sites }
+    switch me.role {
+    case .admin: return store.sites
+    case .siteManager:
+      let mine = store.sitesManaged(by: me.id)
+      return mine.isEmpty ? store.sites : mine
+    case .tradesman:
+      let ids = Set(store.allocations.filter { $0.tradesmanId == me.id }.map(\.siteId))
+      let mine = store.sites.filter { ids.contains($0.id) }
+      return mine.isEmpty ? store.sites : mine
+    }
+  }
+
+  var body: some View {
+    NavigationStack {
+      ZStack {
+        MPGBackground()
+        ScrollView {
+          VStack(spacing: 16) {
+            details
+            money
+            allocation
+            PrimaryButton(title: "Save Changes", symbol: "checkmark") { save() }
+              .disabled(isInvalid)
+              .opacity(isInvalid ? 0.5 : 1)
+          }
+          .padding(16)
+        }
+      }
+      .navigationTitle("Edit Cost")
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+      }
+      .onAppear(perform: load)
+    }
+    .__tenxTrackView("MaterialEditSheet")
+  }
+
+  private var details: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      SectionHeader(title: "Purchase")
+      Field(label: "Supplier", text: $supplier)
+      Field(label: "What it was for", text: $description)
+      Field(label: "Reason (optional)", text: $reason)
+      HStack {
+        Text("Purchase date").font(.subheadline).foregroundStyle(Brand.ink)
+        Spacer()
+        DatePicker("", selection: $date, displayedComponents: .date).labelsHidden()
+      }
+    }
+    .mpgFormSection()
+  }
+
+  private var money: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      SectionHeader(
+        title: "Cost",
+        subtitle: "Net and VAT separately — this is what feeds the spend tracker")
+
+      amountRow("Net (ex VAT)", $costText)
+      amountRow("VAT", $vatText)
+
+      // Shown because the gross is what's printed on the receipt, and it's the
+      // fastest way to spot a misread: if this doesn't match the paper, one of
+      // the two boxes above is wrong.
+      InfoRow(label: "Total (inc VAT)", value: Fmt.gbp(cost + vat))
+    }
+    .mpgFormSection()
+  }
+
+  private func amountRow(_ label: String, _ text: Binding<String>) -> some View {
+    HStack {
+      Text(label).font(.subheadline).foregroundStyle(Brand.ink)
+      Spacer()
+      Text("£").foregroundStyle(Brand.inkSoft)
+      TextField("0.00", text: text)
+        .keyboardType(.decimalPad)
+        .multilineTextAlignment(.trailing)
+        .frame(width: 100)
+        .padding(8)
+        .background(.white, in: RoundedRectangle(cornerRadius: 10))
+    }
+  }
+
+  private var allocation: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      SectionHeader(title: "Allocation", subtitle: "Which job this cost lands against")
+      Picker("Site", selection: $siteId) {
+        ForEach(availableSites) { Text($0.name).tag(Optional($0.id)) }
+      }
+      .pickerStyle(.menu)
+      .tint(Brand.olive)
+
+      Picker("Chargeable", selection: $chargeable) {
+        ForEach(Chargeable.allCases) { Text($0.rawValue).tag($0) }
+      }
+      .pickerStyle(.segmented)
+    }
+    .mpgFormSection()
+  }
+
+  private func load() {
+    supplier = material.supplier
+    description = material.description
+    reason = material.reason
+    costText = String(format: "%.2f", material.costExVat)
+    vatText = String(format: "%.2f", material.vatAmount)
+    date = material.date
+    chargeable = material.chargeable
+    siteId = material.siteId
+  }
+
+  private func save() {
+    var updated = material
+    updated.supplier = supplier.trimmingCharacters(in: .whitespaces)
+    updated.description = description.trimmingCharacters(in: .whitespaces)
+    updated.reason = reason.trimmingCharacters(in: .whitespaces)
+    updated.costExVat = cost
+    updated.vatAmount = vat
+    updated.date = date
+    updated.chargeable = chargeable
+    updated.siteId = siteId ?? material.siteId
+    store.updateMaterial(updated)
+    dismiss()
+  }
 }

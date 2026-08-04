@@ -1,0 +1,234 @@
+// send-to-hubdoc: email a captured receipt to a company's Hubdoc inbox.
+//
+// Hubdoc has no public API. Every Hubdoc organisation gets a unique upload
+// address, and emailing a document there is the only supported programmatic
+// route in. So this function is, in the end, an email sender — the interesting
+// parts are everything around that.
+//
+// POST /send-to-hubdoc  { "photoId": "<uuid>" }   (verify_jwt = on)
+//   -> 200 { sent: true, to: "…@hubdoc.com" }
+//   -> 200 { sent: false, reason: "already_sent" | "not_configured" }
+//   -> 4xx/5xx { error }
+//
+// Secrets: RESEND_API_KEY, HUBDOC_FROM_EMAIL
+// Uses SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (auto-injected).
+
+import { createClient } from "jsr:@supabase/supabase-js@2";
+
+const BUCKET = "site-evidence";
+const RESEND_ENDPOINT = "https://api.resend.com/emails";
+
+const cors = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...cors, "Content-Type": "application/json" },
+  });
+}
+
+class HttpError extends Error {
+  constructor(readonly status: number, message: string) {
+    super(message);
+  }
+}
+
+function admin() {
+  return createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    { auth: { persistSession: false } },
+  );
+}
+
+/// Resolves the company from the caller's JWT rather than trusting anything in
+/// the body. A tradesman posting someone else's photoId must not be able to
+/// route another company's receipt into their own Hubdoc, and the only way to
+/// guarantee that is to never read the company from the request.
+async function callerCompany(req: Request): Promise<{ userId: string; companyId: string }> {
+  const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  if (!jwt) throw new HttpError(401, "Sign in before sending receipts.");
+
+  const db = admin();
+  const { data: userData, error: userErr } = await db.auth.getUser(jwt);
+  if (userErr || !userData?.user) {
+    throw new HttpError(401, "Your session has expired. Sign in again.");
+  }
+  const userId = userData.user.id;
+
+  const { data: profile, error } = await db
+    .from("profiles").select("company_id").eq("id", userId).maybeSingle();
+  if (error) throw new HttpError(500, error.message);
+  if (!profile?.company_id) {
+    throw new HttpError(409, "Your account isn't attached to a company yet.");
+  }
+  return { userId, companyId: profile.company_id as string };
+}
+
+/// Base64 for an arbitrary byte array.
+///
+/// Not `btoa(String.fromCharCode(...bytes))` — that spreads the whole file into
+/// argument positions and blows the stack somewhere north of a hundred kilobytes,
+/// which a photographed receipt comfortably exceeds. Chunked instead.
+function base64(bytes: Uint8Array): string {
+  const CHUNK = 0x8000;
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(binary);
+}
+
+function money(n: unknown): string | null {
+  return typeof n === "number" && isFinite(n) ? `£${n.toFixed(2)}` : null;
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+
+  try {
+    const apiKey = Deno.env.get("RESEND_API_KEY");
+    const from = Deno.env.get("HUBDOC_FROM_EMAIL");
+    if (!apiKey || !from) {
+      throw new HttpError(
+        503,
+        "Hubdoc sending isn't configured. Add RESEND_API_KEY and HUBDOC_FROM_EMAIL as backend secrets.",
+      );
+    }
+
+    let body: { photoId?: string };
+    try {
+      body = await req.json();
+    } catch {
+      throw new HttpError(400, "Invalid JSON body");
+    }
+    const photoId = (body.photoId ?? "").trim();
+    if (!photoId) throw new HttpError(400, "Missing 'photoId'");
+
+    const { companyId } = await callerCompany(req);
+    const db = admin();
+
+    // Where this company's receipts go. Absent is a normal state, not an
+    // error — most companies won't have set one up.
+    const { data: company, error: cErr } = await db
+      .from("companies").select("name, hubdoc_email").eq("id", companyId).maybeSingle();
+    if (cErr) throw new HttpError(500, cErr.message);
+    const to = (company?.hubdoc_email ?? "").trim();
+    if (!to) return json({ sent: false, reason: "not_configured" });
+
+    // Scoped to the caller's company, so a photoId belonging to someone else
+    // simply doesn't exist as far as this function is concerned.
+    // Column is `storage_path`, and there is no `drive_file_name` — the Swift
+    // model calls them storageObjectPath and driveFileName, and naming the
+    // PostgREST select after the Swift side rather than the schema is what
+    // broke this: the select 400s, so nothing sends and nothing is logged.
+    const { data: photo, error: pErr } = await db
+      .from("site_photos")
+      .select("id, description, type, storage_path, file_extension, timestamp, company_id")
+      .eq("id", photoId).eq("company_id", companyId).maybeSingle();
+    if (pErr) {
+      console.error(`send-to-hubdoc: photo lookup failed for ${photoId}: ${pErr.message}`);
+      throw new HttpError(500, pErr.message);
+    }
+    if (!photo) throw new HttpError(404, "That receipt doesn't exist.");
+
+    const path = (photo.storage_path ?? "").trim();
+    if (!path) {
+      throw new HttpError(409, "That receipt has no image stored against it yet.");
+    }
+
+    // Checked before doing the expensive work. The unique index is still the
+    // thing that actually guarantees it — this is just to avoid downloading a
+    // file and paying for an email that the insert would then reject.
+    const { data: already } = await db
+      .from("hubdoc_deliveries")
+      .select("id").eq("site_photo_id", photoId).eq("status", "sent").maybeSingle();
+    if (already) return json({ sent: false, reason: "already_sent" });
+
+    const { data: file, error: dErr } = await db.storage.from(BUCKET).download(path);
+    if (dErr || !file) {
+      throw new HttpError(502, `Couldn't read the receipt image: ${dErr?.message ?? "not found"}`);
+    }
+    const bytes = new Uint8Array(await file.arrayBuffer());
+
+    // Hubdoc caps attachments at 35 MB. A phone photo is nowhere near that,
+    // but a PDF supplier invoice could be, and a rejection at Hubdoc's end is
+    // silent — no bounce, no record. Better to fail here where it's visible.
+    if (bytes.length > 30 * 1024 * 1024) {
+      throw new HttpError(413, "That file is too large for Hubdoc (30 MB limit).");
+    }
+
+    const supplier = (photo.description ?? "").replace(/^Receipt\s*[—-]\s*/i, "").trim();
+    // Derived from the storage path's last segment — the filename Hubdoc shows
+    // should match the object actually sent.
+    const ext = (photo.file_extension ?? "jpg").replace(/[^a-z0-9]/gi, "") || "jpg";
+    const filename = path.split("/").pop() || `receipt-${photoId}.${ext}`;
+
+    // Hubdoc reads the attachment, not the body — the text is for a human who
+    // opens the email later wondering where a document came from.
+    const lines = [
+      supplier ? `Supplier: ${supplier}` : null,
+      photo.type ? `Type: ${photo.type}` : null,
+      photo.timestamp ? `Captured: ${new Date(photo.timestamp).toLocaleString("en-GB")}` : null,
+      company?.name ? `Company: ${company.name}` : null,
+      "",
+      "Sent automatically by MPG Site Records.",
+    ].filter(Boolean);
+
+    const res = await fetch(RESEND_ENDPOINT, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from,
+        to: [to],
+        subject: supplier ? `Receipt — ${supplier}` : "Receipt",
+        text: lines.join("\n"),
+        attachments: [{ filename, content: base64(bytes) }],
+      }),
+    });
+
+    const resText = await res.text();
+    if (!res.ok) {
+      console.error(`send-to-hubdoc: Resend ${res.status} for company ${companyId}: ${resText}`);
+      // Recorded as failed so an admin can see the attempt. Deliberately not
+      // unique-indexed, so retries accumulate rather than overwrite.
+      await db.from("hubdoc_deliveries").insert({
+        company_id: companyId,
+        site_photo_id: photoId,
+        to_email: to,
+        status: "failed",
+        error: `Resend ${res.status}: ${resText}`.slice(0, 1000),
+      });
+      throw new HttpError(502, `Couldn't send to Hubdoc (${res.status}).`);
+    }
+
+    let providerId: string | null = null;
+    try {
+      providerId = JSON.parse(resText)?.id ?? null;
+    } catch {
+      // Sent fine; just couldn't read the id back. Not worth failing over.
+    }
+
+    const { error: logErr } = await db.from("hubdoc_deliveries").insert({
+      company_id: companyId,
+      site_photo_id: photoId,
+      to_email: to,
+      status: "sent",
+      provider_id: providerId,
+    });
+    // The email is already gone. A duplicate here means two requests raced and
+    // the other one won — reporting failure would be a lie, so log and move on.
+    if (logErr) console.error(`send-to-hubdoc: log insert failed: ${logErr.message}`);
+
+    return json({ sent: true, to });
+  } catch (e) {
+    if (e instanceof HttpError) return json({ error: e.message }, e.status);
+    console.error("send-to-hubdoc: unexpected", e);
+    return json({ error: `${e}` }, 500);
+  }
+});

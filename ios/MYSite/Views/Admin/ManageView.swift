@@ -133,6 +133,7 @@ struct ManageView: View {
 
   private var teamList: some View {
     VStack(spacing: 12) {
+      PeopleAdminSection()
       let team = store.users.filter { $0.role != .admin }
       if team.isEmpty {
         EmptyStateView(
@@ -226,4 +227,219 @@ struct ManageView: View {
       s.login(as: s.users.first { $0.role == .admin }!)
       return s
     }())
+}
+
+// =====================================================================
+// MARK: - People administration
+// =====================================================================
+
+/// Pending signups and role changes, shown at the top of Manage → Team.
+///
+/// This screen exists because per-company isolation made new signups invisible.
+/// Their profile row has no company, every policy scopes rows to a company, and
+/// the two never meet — so an admin couldn't see a new starter at all, and an
+/// attempt to promote one silently updated nothing. Until now the only way in
+/// was a hand-written SQL statement.
+///
+/// Both actions go through Postgres functions rather than table writes, so a
+/// refusal comes back as a real message ("That user already belongs to another
+/// company") instead of a successful no-op.
+struct PeopleAdminSection: View {
+  @Environment(AppStore.self) private var store
+  @Environment(AuthManager.self) private var auth: AuthManager?
+
+  @State private var pending: [PendingSignup] = []
+  @State private var members: [CompanyMember] = []
+  @State private var chosenRole: [UUID: UserRole] = [:]
+  @State private var busyUser: UUID?
+  @State private var errorMessage: String?
+  @State private var notice: String?
+  @State private var hasLoaded = false
+
+  private var isAdmin: Bool { store.currentUser?.role == .admin }
+  private var token: String? { auth?.session?.accessToken }
+
+  var body: some View {
+    VStack(spacing: 12) {
+      if isAdmin && token != nil {
+        if !pending.isEmpty { pendingCard }
+        if hasLoaded && members.count > 1 { rolesCard }
+        if let errorMessage {
+          banner(errorMessage, symbol: "exclamationmark.triangle.fill", color: Brand.red)
+        }
+        if let notice {
+          banner(notice, symbol: "checkmark.circle.fill", color: Brand.paidGreen)
+        }
+      }
+    }
+    .task { await reload() }
+  }
+
+  // MARK: - Waiting to join
+
+  private var pendingCard: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      SectionHeader(
+        title: "Waiting to join",
+        subtitle: "New accounts see nothing until you add them to the company")
+
+      ForEach(pending) { signup in
+        VStack(alignment: .leading, spacing: 10) {
+          VStack(alignment: .leading, spacing: 2) {
+            Text(signup.displayName)
+              .font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
+            if let email = signup.email, email != signup.displayName {
+              Text(email).font(.caption).foregroundStyle(Brand.inkSoft)
+            }
+            if let created = signup.createdAt {
+              Text("Signed up \(Fmt.date(created))")
+                .font(.caption2).foregroundStyle(Brand.inkSoft)
+            }
+          }
+
+          Picker("Role", selection: roleBinding(for: signup.id)) {
+            ForEach(UserRole.allCases) { Text($0.rawValue).tag($0) }
+          }
+          .pickerStyle(.segmented)
+          .disabled(busyUser != nil)
+
+          Button {
+            Task { await adopt(signup) }
+          } label: {
+            Label(
+              busyUser == signup.id ? "Adding…" : "Add to company",
+              systemImage: busyUser == signup.id ? "hourglass" : "person.badge.plus"
+            )
+            .font(.subheadline.weight(.semibold))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(Brand.olive, in: Capsule())
+            .foregroundStyle(.white)
+          }
+          .buttonStyle(.plain)
+          .disabled(busyUser != nil)
+          .opacity(busyUser != nil ? 0.6 : 1)
+        }
+        .padding(12)
+        .background(
+          RoundedRectangle(cornerRadius: Brand.Radius.inner, style: .continuous)
+            .fill(Brand.lightGreen.opacity(0.45)))
+      }
+    }
+    .mpgCard()
+  }
+
+  // MARK: - Roles
+
+  private var rolesCard: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      SectionHeader(title: "Roles", subtitle: "Change what someone can see and do")
+
+      ForEach(members) { member in
+        HStack(spacing: 12) {
+          Image(systemName: member.role.icon)
+            .foregroundStyle(Brand.olive)
+            .frame(width: 34, height: 34)
+            .background(Brand.lightGreen, in: Circle())
+
+          VStack(alignment: .leading, spacing: 2) {
+            Text(member.displayName)
+              .font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
+            if let email = member.email, email != member.displayName {
+              Text(email).font(.caption2).foregroundStyle(Brand.inkSoft)
+            }
+          }
+
+          Spacer()
+
+          if busyUser == member.id {
+            ProgressView().controlSize(.small)
+          } else if member.id == store.currentUser?.id {
+            // The server refuses to let you drop your own admin access; saying
+            // so here is friendlier than letting them find out by being told no.
+            StatusChip(text: member.role.rawValue, color: Brand.inkSoft)
+          } else {
+            Menu {
+              ForEach(UserRole.allCases) { role in
+                Button {
+                  Task { await changeRole(member, to: role) }
+                } label: {
+                  if role == member.role {
+                    Label(role.rawValue, systemImage: "checkmark")
+                  } else {
+                    Text(role.rawValue)
+                  }
+                }
+              }
+            } label: {
+              HStack(spacing: 4) {
+                Text(member.role.rawValue).font(.caption.weight(.semibold))
+                Image(systemName: "chevron.up.chevron.down").font(.caption2)
+              }
+              .foregroundStyle(Brand.olive)
+              .padding(.vertical, 6).padding(.horizontal, 10)
+              .background(Brand.lightGreen, in: Capsule())
+            }
+            .disabled(busyUser != nil)
+          }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+      }
+    }
+    .mpgCard()
+  }
+
+  private func banner(_ text: String, symbol: String, color: Color) -> some View {
+    Label(text, systemImage: symbol)
+      .font(.caption)
+      .foregroundStyle(color)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .mpgCard(padding: 12)
+  }
+
+  // MARK: - Actions
+
+  private func roleBinding(for id: UUID) -> Binding<UserRole> {
+    Binding(
+      get: { chosenRole[id] ?? .tradesman },
+      set: { chosenRole[id] = $0 })
+  }
+
+  private func reload() async {
+    guard isAdmin, let token else { return }
+    pending = (try? await OnboardingService.pendingSignups(token: token)) ?? []
+    members = (try? await OnboardingService.members(token: token)) ?? []
+    hasLoaded = true
+  }
+
+  private func adopt(_ signup: PendingSignup) async {
+    guard let token else { return }
+    busyUser = signup.id
+    errorMessage = nil
+    notice = nil
+    do {
+      let role = chosenRole[signup.id] ?? .tradesman
+      try await OnboardingService.adopt(user: signup.id, role: role, token: token)
+      notice = "\(signup.displayName) added as \(role.rawValue)."
+      await reload()
+    } catch {
+      errorMessage = error.localizedDescription
+    }
+    busyUser = nil
+  }
+
+  private func changeRole(_ member: CompanyMember, to role: UserRole) async {
+    guard let token, role != member.role else { return }
+    busyUser = member.id
+    errorMessage = nil
+    notice = nil
+    do {
+      try await OnboardingService.setRole(user: member.id, role: role, token: token)
+      notice = "\(member.displayName) is now \(role.rawValue)."
+      await reload()
+    } catch {
+      errorMessage = error.localizedDescription
+    }
+    busyUser = nil
+  }
 }

@@ -1,6 +1,13 @@
 // scan-receipt: extract supplier, costs, VAT and date from a receipt photo.
 // The OpenAI key stays server-side as a Supabase secret (OPENAI_API_KEY).
 // Auth: requires a valid Supabase user JWT (verify_jwt = true).
+//
+// Optional secret: OPENAI_MODEL — overrides the model without a redeploy.
+// Model IDs are the one part of this that goes stale on its own: the previous
+// value here (`gpt-5.4-mini`) had stopped being a real model, and OpenAI's
+// reply to that is a 404 the app surfaced as "scanning failed". The override
+// exists so the next time that happens it's a one-line secret change rather
+// than a code change and a deploy.
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -21,6 +28,9 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   const apiKey = Deno.env.get("OPENAI_API_KEY");
+  // gpt-5.6-terra balances accuracy against cost. Receipts are short but the
+  // numbers matter, so this is not the place for the cheapest tier.
+  const model = Deno.env.get("OPENAI_MODEL") ?? "gpt-5.6-terra";
   if (!apiKey) {
     return json(
       { error: "OpenAI is not configured. Add OPENAI_API_KEY as a backend secret." },
@@ -57,7 +67,7 @@ Deno.serve(async (req) => {
     "If a value is not present, use null. Do not include any text outside the JSON.";
 
   const body = {
-    model: "gpt-5.4-mini",
+    model,
     max_completion_tokens: 700,
     response_format: { type: "json_object" },
     messages: [
@@ -88,7 +98,11 @@ Deno.serve(async (req) => {
 
   if (!aiRes.ok) {
     const text = await aiRes.text();
-    return json({ error: `OpenAI error ${aiRes.status}: ${text}` }, 502);
+    console.error(`scan-receipt: OpenAI ${aiRes.status} for model ${model}: ${text}`);
+    return json(
+      { error: `OpenAI error ${aiRes.status} (model ${model}): ${text}` },
+      502,
+    );
   }
 
   const data = await aiRes.json();

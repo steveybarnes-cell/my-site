@@ -51,11 +51,14 @@ final class XeroService: NSObject, ASWebAuthenticationPresentationContextProvidi
     let callback = try await runConsent(consentURL: start)
 
     // Callback arrives as mpgsiterecords://xero-connected?status=connected|error
-    let status =
-      URLComponents(url: callback, resolvingAgainstBaseURL: false)?
-      .queryItems?.first(where: { $0.name == "status" })?.value
+    // and, when it failed, &reason=<Xero's own words>. Surfacing that reason is
+    // the difference between a diagnosable failure and "please try again".
+    let items = URLComponents(url: callback, resolvingAgainstBaseURL: false)?.queryItems
+    let status = items?.first(where: { $0.name == "status" })?.value
     if status == "error" {
-      throw SupabaseError.oauthFailed("Xero didn't complete the connection. Please try again.")
+      let reason = items?.first(where: { $0.name == "reason" })?.value
+      let detail = (reason?.isEmpty == false) ? reason! : "no reason given"
+      throw SupabaseError.oauthFailed("Xero connection failed — \(detail)")
     }
   }
 

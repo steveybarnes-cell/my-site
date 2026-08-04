@@ -37,6 +37,16 @@ final class AuthManager {
   var errorMessage: String?
 
   private(set) var session: SupabaseSession?
+
+  // MARK: - Password reset
+
+  /// True once a recovery link has been opened and verified. Drives the
+  /// set-new-password screen.
+  var pendingPasswordReset = false
+  /// Whose account the open recovery link belongs to, for display.
+  private(set) var recoveryEmail: String?
+  /// Confirmation shown after a reset email is requested.
+  var resetNotice: String?
   private let store: AppStore
 
   init(store: AppStore) {
@@ -105,6 +115,90 @@ final class AuthManager {
       let s = try await flow.signInWithGoogle()
       try await self.adopt(s)
     }
+  }
+
+  // MARK: - Password reset
+
+  /// Requests a recovery email. Reports success identically whether or not the
+  /// address is registered — see `SupabaseClient.sendPasswordReset`.
+  func sendPasswordReset(email: String) async {
+    resetNotice = nil
+    await run {
+      try await SupabaseClient.shared.sendPasswordReset(
+        email: email.trimmingCharacters(in: .whitespaces),
+        redirectTo: SupabaseConfig.passwordResetURL)
+      self.resetNotice =
+        "If that address has an account, a reset link is on its way. "
+        + "Check your inbox, and your spam folder."
+    }
+  }
+
+  /// Handles a deep link opened from an email or OAuth callback.
+  ///
+  /// A recovery link carries a live session in its fragment. That session is
+  /// held rather than adopted: adopting it here would sign the user in just by
+  /// tapping the link, so a forwarded email would become a way past the
+  /// password. They only become signed in once a new password is actually set.
+  func handleIncoming(_ url: URL) async {
+    guard url.scheme == SupabaseConfig.callbackScheme else { return }
+    guard let fragment = URLComponents(url: url, resolvingAgainstBaseURL: false)?.fragment,
+      !fragment.isEmpty
+    else { return }
+
+    var params: [String: String] = [:]
+    for pair in fragment.split(separator: "&") {
+      let parts = pair.split(separator: "=", maxSplits: 1)
+      guard parts.count == 2 else { continue }
+      let value = String(parts[1])
+      params[String(parts[0])] = value.removingPercentEncoding ?? value
+    }
+
+    if let error = params["error_description"] ?? params["error"] {
+      errorMessage = error.replacingOccurrences(of: "+", with: " ")
+      return
+    }
+    guard params["type"] == "recovery",
+      let access = params["access_token"],
+      let refresh = params["refresh_token"]
+    else { return }
+
+    let expires = Double(params["expires_in"] ?? "3600") ?? 3600
+    await run {
+      let s = try await SupabaseClient.shared.session(
+        fromCallbackTokens: access, refreshToken: refresh, expiresIn: expires)
+      self.session = s
+      self.recoveryEmail = s.email
+      self.pendingPasswordReset = true
+    }
+  }
+
+  /// Sets the new password, then signs the user in with the session the link
+  /// carried. Returns false if it failed, leaving `errorMessage` set.
+  @discardableResult
+  func updatePassword(_ newPassword: String) async -> Bool {
+    guard let session else {
+      errorMessage = "That reset link has expired. Request a new one."
+      return false
+    }
+    var succeeded = false
+    await run {
+      try await SupabaseClient.shared.updatePassword(
+        newPassword, accessToken: session.accessToken)
+      try await self.adopt(session)
+      self.pendingPasswordReset = false
+      self.recoveryEmail = nil
+      succeeded = true
+    }
+    return succeeded
+  }
+
+  /// Abandons a reset without setting a password — the held session is dropped
+  /// so a cancelled link can't be reused to get in.
+  func cancelPasswordReset() {
+    pendingPasswordReset = false
+    recoveryEmail = nil
+    session = nil
+    errorMessage = nil
   }
 
   // MARK: - Role refresh

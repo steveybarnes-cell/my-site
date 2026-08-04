@@ -1,103 +1,118 @@
 import SwiftUI
 
-/// The "MY Site" brand mark: a clean pitched house gable, drawn entirely as a
-/// vector path in the app's own Brand colours so it reads as part of the
-/// interface — never a pasted-on photo.
+/// The MY Site bracket: an open rounded frame that wraps the wordmark.
+///
+/// Replaces the earlier gable "^". The bracket runs from a short stub at the
+/// bottom-left, up the left side, across the top, and stops partway down the
+/// right — deliberately open, so the wordmark sits *in* it rather than under a
+/// closed box.
 struct MYSiteMark: View {
-  /// Colour of the roofline stroke.
-  var stroke: Color = Brand.ink
+  /// Colour of the bracket stroke.
+  var stroke: Color = Brand.logoGreen
   /// Retained for source compatibility with older call sites.
   var accent: Color = Brand.logoGreen
 
   var body: some View {
     GeometryReader { geo in
-      let w = geo.size.width
-      let h = geo.size.height
-      let lw = max(2, h * 0.13)
-      RooflineShape()
+      BracketShape()
         .stroke(
-          stroke.opacity(0.85),
-          style: StrokeStyle(lineWidth: lw, lineCap: .round, lineJoin: .round)
+          stroke,
+          style: StrokeStyle(
+            lineWidth: max(1.5, min(geo.size.width, geo.size.height) * 0.052),
+            lineCap: .round,
+            lineJoin: .round)
         )
-        .frame(width: w, height: h)
     }
   }
 }
 
-/// A house gable: an open "^" roofline rising from the lower-left to a peak
-/// then down to the lower-right, matching the app icon.
-private struct RooflineShape: Shape {
+/// The open frame. Proportions traced from the brand sheet.
+private struct BracketShape: Shape {
   func path(in rect: CGRect) -> Path {
     let w = rect.width
     let h = rect.height
     func p(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
       CGPoint(x: rect.minX + x * w, y: rect.minY + y * h)
     }
+    // Corner radius as a fraction of the shorter side, so the curve stays
+    // circular rather than stretching when the frame isn't square.
+    let r: CGFloat = 0.17
+
     var path = Path()
-    // Left eave up to the peak.
-    path.move(to: p(0.04, 0.92))
-    path.addLine(to: p(0.46, 0.30))
-    // Peak down to the right eave.
-    path.addLine(to: p(0.88, 0.92))
+    // Bottom-left stub, running inward from the left.
+    path.move(to: p(0.22, 0.97))
+    path.addLine(to: p(0.03 + r, 0.97))
+    path.addQuadCurve(to: p(0.03, 0.97 - r), control: p(0.03, 0.97))
+    // Up the left side.
+    path.addLine(to: p(0.03, 0.03 + r))
+    path.addQuadCurve(to: p(0.03 + r, 0.03), control: p(0.03, 0.03))
+    // Across the top.
+    path.addLine(to: p(0.97 - r, 0.03))
+    path.addQuadCurve(to: p(0.97, 0.03 + r), control: p(0.97, 0.03))
+    // Short stub down the right, then stop — the frame stays open.
+    path.addLine(to: p(0.97, 0.26))
     return path
   }
 }
 
-/// "MY Site" logo lockup rendered purely with vector shapes and text tinted
-/// from the `Brand` palette, so it blends into whatever surface it sits on.
+/// "MY Site" logo lockup: the bracket with the wordmark set inside it.
+///
 /// Kept named `MPGLogo` so existing call sites continue to work.
 struct MPGLogo: View {
-  /// Cap height of the large "MY" wordmark. Everything scales from this.
+  /// Overall height of the lockup. Everything scales from this.
   var height: CGFloat = 72
-  /// Render for a dark background (light ink) when true.
+  /// Render for a dark background (white "MY") when true.
   var onDark: Bool = true
-  /// Lay the mark and wordmark side-by-side instead of stacked.
+  /// Lay the mark and wordmark side-by-side instead of nested.
   var horizontal: Bool = false
   /// Retained for source compatibility with older call sites.
   var showTagline: Bool = false
 
-  private var inkColor: Color { onDark ? .white : Brand.ink }
+  private var myColor: Color { onDark ? .white : Brand.ink }
   private var accentColor: Color { onDark ? Brand.logoGreen : Brand.oliveDark }
 
   var body: some View {
     if horizontal {
       horizontalLockup
     } else {
-      stackedLockup
+      nestedLockup
     }
   }
 
-  private var wordmark: some View {
-    let s = height
-    return VStack(alignment: .leading, spacing: -s * 0.02) {
-      Text("MY")
-        .font(.system(size: s, weight: .heavy, design: .rounded))
-        .foregroundStyle(accentColor)
-        .kerning(-s * 0.02)
-      Text("SITE")
-        .font(.system(size: s * 0.32, weight: .bold, design: .rounded))
-        .kerning(s * 0.22)
-        .foregroundStyle(inkColor.opacity(0.9))
-    }
+  /// The brand lockup, as artwork.
+  ///
+  /// This used to be assembled here: a `BracketShape` with SF Rounded text laid
+  /// over it, nudged into place by eye. It was close. Close is the problem —
+  /// the launch screen shows the real logo, and a hand-built near-copy one
+  /// screen later reads as a rendering fault rather than a design.
+  ///
+  /// `MYSiteLockup` is the brand artwork itself, traced from the master, so
+  /// there is nothing left to drift. It is the dark-background lockup: the "MY"
+  /// is white. A light-background version needs its own asset rather than a
+  /// colour swap here, because inverting a wordmark is a brand decision.
+  private var nestedLockup: some View {
+    Image("MYSiteLockup")
+      .resizable()
+      .scaledToFit()
+      .frame(height: height)
+      .accessibilityLabel("MY Site")
   }
 
-  private var stackedLockup: some View {
-    let s = height
-    return VStack(spacing: s * 0.08) {
-      MYSiteMark(stroke: inkColor, accent: accentColor)
-        .frame(width: s * 1.45, height: s * 0.68)
-      wordmark
-        .multilineTextAlignment(.center)
-    }
-    .fixedSize()
-  }
-
+  /// Bracket beside the wordmark, for tight horizontal spaces like nav bars.
   private var horizontalLockup: some View {
     let s = height
-    return HStack(spacing: s * 0.28) {
-      MYSiteMark(stroke: inkColor, accent: accentColor)
-        .frame(width: s * 1.2, height: s * 0.62)
-      wordmark
+    return HStack(spacing: s * 0.22) {
+      MYSiteMark(stroke: accentColor)
+        .frame(width: s * 0.82, height: s * 0.82)
+      VStack(alignment: .leading, spacing: -s * 0.03) {
+        Text("MY")
+          .font(.system(size: s * 0.46, weight: .heavy, design: .rounded))
+          .foregroundStyle(myColor)
+        Text("SITE")
+          .font(.system(size: s * 0.16, weight: .bold, design: .rounded))
+          .kerning(s * 0.10)
+          .foregroundStyle(accentColor)
+      }
     }
     .fixedSize()
   }
@@ -107,11 +122,11 @@ struct MPGLogo: View {
   VStack(spacing: 0) {
     ZStack {
       Brand.charcoal.ignoresSafeArea()
-      MPGLogo(height: 64)
+      MPGLogo(height: 160)
     }
     ZStack {
-      Brand.lightGreen.opacity(0.5).ignoresSafeArea()
-      MPGLogo(height: 56, onDark: false, horizontal: true)
+      Brand.charcoal.ignoresSafeArea()
+      MPGLogo(height: 44, horizontal: true)
     }
   }
 }

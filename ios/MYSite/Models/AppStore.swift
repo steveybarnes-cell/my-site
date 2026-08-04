@@ -18,6 +18,7 @@ final class AppStore {
   var comments: [QueryComment] = []
   var notifications: [AppNotification] = []
   var clockRecords: [ClockRecord] = []
+  var workLogEntries: [WorkLogEntry] = []
   var siteFiles: [SiteFile] = []
   var feedPosts: [FeedPost] = []
 
@@ -102,6 +103,7 @@ final class AppStore {
       if !liveSites.isEmpty { sites = liveSites }
       clockRecords = try await SupabaseData.loadClockRecords(token: token)
       dailyRecords = try await SupabaseData.loadDailyRecords(token: token)
+      workLogEntries = try await SupabaseData.loadWorkLog(token: token)
       submissions = try await SupabaseData.loadSubmissions(token: token)
       allocations = try await SupabaseData.loadAllocations(token: token)
       materials = try await SupabaseData.loadMaterials(token: token)
@@ -135,7 +137,10 @@ final class AppStore {
   /// connectivity) the operation is enqueued to the disk-backed `SyncQueue` and
   /// replayed automatically on the next successful live reload / drain, so the
   /// user never loses a capture. `queued` builds the replayable operation.
-  private func sync(
+  /// Not `private`: `DayBuilder.swift` writes work-log entries through this, and
+  /// Swift's `private` is file-scoped, so an extension in another file cannot
+  /// see it. Still intended for this type's own writes only.
+  func sync(
     queued: @autoclosure () -> SyncOperation?,
     _ work: @escaping (String) async throws -> Void
   ) {
@@ -576,6 +581,17 @@ final class AppStore {
       message: "\(who) submitted a daily site record for \(where0).")
   }
 
+  /// Corrects a day sheet in place.
+  ///
+  /// Closing a day is re-runnable, so this is the path a second close takes:
+  /// the sheet is rewritten from what is now captured rather than a duplicate
+  /// appearing for the same day.
+  func updateRecord(_ r: DailyRecord) {
+    guard let i = dailyRecords.firstIndex(where: { $0.id == r.id }) else { return }
+    dailyRecords[i] = r
+    sync(queued: SupabaseData.operation(for: r)) { try await SupabaseData.save(r, token: $0) }
+  }
+
   /// Adds or upserts a weekly submission (used when a tradesman creates/edits an invoice).
   func saveSubmission(_ s: WeeklySubmission) {
     if let i = submissions.firstIndex(where: { $0.id == s.id }) {
@@ -588,6 +604,20 @@ final class AppStore {
 
   func addMaterial(_ m: MaterialItem) {
     materials.append(m)
+    sync(queued: SupabaseData.operation(for: m)) { try await SupabaseData.save(m, token: $0) }
+  }
+
+  /// Corrects an existing material in place.
+  ///
+  /// There is no approval step by design — a cost counts the moment it is
+  /// logged, so site spend is always current rather than current-as-of-whenever
+  /// someone last signed things off. The trade-off is that a misread figure is
+  /// live too, which is exactly why this exists: fix it and the totals move
+  /// immediately, because every spend figure is derived from `materials` rather
+  /// than cached anywhere.
+  func updateMaterial(_ m: MaterialItem) {
+    guard let i = materials.firstIndex(where: { $0.id == m.id }) else { return }
+    materials[i] = m
     sync(queued: SupabaseData.operation(for: m)) { try await SupabaseData.save(m, token: $0) }
   }
   func addPhoto(_ p: SitePhoto) {
@@ -768,6 +798,58 @@ final class AppStore {
         "XERO-" + String(capturedId.uuidString.prefix(6)).uppercased()
       let syncedPhoto = self.photos[j]
       self.persist { try await SupabaseData.save(syncedPhoto, token: $0) }
+    }
+  }
+
+  // MARK: - Hubdoc (live)
+
+  /// Where this company's receipts are emailed, and how it's been going.
+  var hubdocSettings: HubdocService.Settings = .none
+  /// Set when saving the Hubdoc address fails, so the settings screen can say why.
+  var hubdocError: String?
+  var hubdocWorking = false
+
+  /// Emails a stored receipt to the company's Hubdoc inbox.
+  ///
+  /// Deliberately silent about the two non-failure outcomes. A company that
+  /// hasn't set Hubdoc up, and a receipt that has already been sent, are both
+  /// normal — telling a tradesman on a roof that "Hubdoc is not configured"
+  /// gives him something to worry about that isn't his to fix.
+  @MainActor
+  func sendToHubdoc(_ photoId: UUID) {
+    guard let token = backendToken else { return }
+    Task { @MainActor in
+      do {
+        let outcome = try await HubdocService.send(photoId: photoId, token: token)
+        if case .sent = outcome { self.hubdocSettings.delivered += 1 }
+      } catch {
+        // Recorded against the company in `hubdoc_deliveries` either way, so
+        // an admin can find it. Not surfaced here.
+        self.hubdocSettings.failed += 1
+      }
+    }
+  }
+
+  @MainActor
+  func loadHubdocSettings() async {
+    guard let token = backendToken else { return }
+    hubdocSettings = (try? await HubdocService.settings(token: token)) ?? .none
+  }
+
+  @MainActor
+  func saveHubdocEmail(_ email: String) async {
+    guard let token = backendToken else {
+      hubdocError = "Sign in with your MPG account first."
+      return
+    }
+    hubdocWorking = true
+    hubdocError = nil
+    defer { hubdocWorking = false }
+    do {
+      try await HubdocService.setEmail(email, token: token)
+      await loadHubdocSettings()
+    } catch {
+      hubdocError = (error as? SupabaseError)?.errorDescription ?? error.localizedDescription
     }
   }
 

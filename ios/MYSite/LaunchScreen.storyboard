@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Launch screen for MY Site.
+
+  Earlier versions built the lockup out of parts: a mark image, a "MY" label and
+  a "SITE" label, stacked. That was always going to drift — the labels used the
+  system font, which is a near-miss for the brand face, and the mark was a
+  leftover gable from the old identity. The launch screen is the first thing
+  anyone sees, so a near-miss reads as a mistake.
+
+  Now it is the real logo, one image, traced from the brand artwork and shipped
+  as MYSiteLockup. Nothing here reconstructs the brand; it just displays it.
+-->
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="22505" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22504"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <scene sceneID="EHf-IW-A2E">
+            <objects>
+                <viewController id="01J-lp-oVM" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="26" translatesAutoresizingMaskIntoConstraints="NO" id="stk-lockup">
+                                <rect key="frame" x="46.5" y="316" width="300" height="220"/>
+                                <subviews>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="MYSiteLockup" translatesAutoresizingMaskIntoConstraints="NO" id="mrk-img">
+                                        <rect key="frame" x="50" y="0.0" width="200" height="193"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="200" id="mrk-w"/>
+                                            <constraint firstAttribute="height" constant="193" id="mrk-h"/>
+                                        </constraints>
+                                    </imageView>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="All you need for your site in one place" textAlignment="center" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-tag">
+                                        <rect key="frame" x="0.0" y="219" width="300" height="21"/>
+                                        <fontDescription key="fontDescription" type="system" weight="medium" pointSize="17"/>
+                                        <color key="textColor" white="1" alpha="0.80000000000000004" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                            </stackView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
+                        <color key="backgroundColor" name="LaunchBackground"/>
+                        <constraints>
+                            <constraint firstItem="stk-lockup" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="stk-cx"/>
+                            <constraint firstItem="stk-lockup" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="stk-cy"/>
+                            <constraint firstItem="stk-lockup" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="Bcu-3y-fUS" secondAttribute="leading" constant="28" id="stk-lead"/>
+                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="stk-lockup" secondAttribute="trailing" constant="28" id="stk-trail"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="53" y="375"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="MYSiteLockup" width="200" height="193"/>
+        <namedColor name="LaunchBackground">
+            <color red="0.07843137254901961" green="0.09019607843137255" blue="0.11372549019607843" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
+</document>

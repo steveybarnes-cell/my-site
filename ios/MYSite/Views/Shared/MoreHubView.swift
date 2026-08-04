@@ -70,7 +70,7 @@ struct MoreHubView: View {
         .frame(width: 46, height: 46)
         .background(Brand.olive, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
       VStack(alignment: .leading, spacing: 3) {
-        MPGLogo(height: 26)
+        MPGLogo(height: 34, horizontal: true)
         Text(roleTitle)
           .font(.subheadline)
           .foregroundStyle(.white.opacity(0.75))

@@ -7,6 +7,7 @@ struct TradesmanRecordsView: View {
   @State private var tab = 0
   @State private var draftStore = DraftStore.shared
   @State private var resumeAllocation: WorkAllocation?
+  @State private var editingMaterial: MaterialItem?
 
   private var me: AppUser? { store.currentUser }
 
@@ -37,6 +38,7 @@ struct TradesmanRecordsView: View {
           }
         }
         .navigationTitle("My Records")
+        .sheet(item: $editingMaterial) { MaterialEditSheet(material: $0) }
         .sheet(item: $resumeAllocation) { DailyRecordFormView(allocation: $0) }
       }
     }
@@ -138,6 +140,9 @@ struct TradesmanRecordsView: View {
       ).mpgCard()
     } else {
       ForEach(mats) { m in
+        Button {
+          editingMaterial = m
+        } label: {
         VStack(alignment: .leading, spacing: 8) {
           if !m.receiptUploaded {
             WarningBanner(
@@ -156,9 +161,19 @@ struct TradesmanRecordsView: View {
               text: m.receiptUploaded ? "Receipt ✓" : "No receipt",
               color: m.receiptUploaded ? Brand.paidGreen : Brand.red)
           }
-          Text(Fmt.date(m.date)).font(.caption).foregroundStyle(Brand.inkSoft)
+          HStack {
+            Text(Fmt.date(m.date)).font(.caption).foregroundStyle(Brand.inkSoft)
+            Spacer()
+            // Costs count from the moment they're logged, so a misread figure
+            // is live. Making the row obviously tappable is the whole safety
+            // net — there's no approval queue to catch it later.
+            Label("Edit", systemImage: "pencil")
+              .font(.caption.weight(.semibold)).foregroundStyle(Brand.olive)
+          }
         }
         .mpgCard()
+        }
+        .buttonStyle(.plain)
       }
     }
   }

@@ -328,6 +328,7 @@ struct AdminProfileView: View {
             .background(Brand.charcoal, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
 
             xeroCard
+            hubdocCard
 
             VStack(alignment: .leading, spacing: 12) {
               SectionHeader(title: "Team")
@@ -383,6 +384,10 @@ struct AdminProfileView: View {
       }
       .navigationTitle("Profile")
     }
+  }
+
+  private var hubdocCard: some View {
+    HubdocSettingsCard()
   }
 
   private var xeroCard: some View {
@@ -444,4 +449,146 @@ struct AdminProfileView: View {
       s.login(as: s.users.first { $0.role == .admin }!)
       return s
     }())
+}
+
+
+// =====================================================================
+// MARK: - Hubdoc settings
+// =====================================================================
+
+/// Where this company's receipts are emailed, and whether they're arriving.
+///
+/// Hubdoc has no public API — every Hubdoc organisation gets a unique upload
+/// address and emailing a document there is the only supported route in. So
+/// this screen collects one thing: that address. Find it in Hubdoc under
+/// Upload Document, or in Organization settings.
+///
+/// The counts matter more than they look. Email is fire-and-forget: nothing
+/// comes back to say a receipt arrived, so without them there is no way to
+/// answer "did that go?" short of opening Hubdoc.
+struct HubdocSettingsCard: View {
+  @Environment(AppStore.self) private var store
+
+  @State private var email = ""
+  @State private var loaded = false
+  @State private var savedNote: String?
+
+  private var settings: HubdocService.Settings { store.hubdocSettings }
+  private var isAdmin: Bool { store.currentUser?.role == .admin }
+  private var dirty: Bool {
+    email.trimmingCharacters(in: .whitespaces) != (settings.hubdocEmail ?? "")
+  }
+
+  var body: some View {
+    Group {
+      if isAdmin {
+        VStack(alignment: .leading, spacing: 12) {
+          header
+          field
+          if let note = savedNote {
+            Label(note, systemImage: "checkmark.circle.fill")
+              .font(.caption).foregroundStyle(Brand.paidGreen)
+          }
+          if let err = store.hubdocError {
+            Label(err, systemImage: "exclamationmark.triangle.fill")
+              .font(.caption).foregroundStyle(Brand.red)
+          }
+          saveButton
+          if settings.isConfigured { counts }
+          Text(
+            "Find this in Hubdoc under Upload Document, or Organization settings. "
+              + "Leave it blank to turn Hubdoc off."
+          )
+          .font(.caption2).foregroundStyle(Brand.inkSoft)
+        }
+        .mpgCard()
+      }
+    }
+    .task {
+      guard !loaded else { return }
+      await store.loadHubdocSettings()
+      email = store.hubdocSettings.hubdocEmail ?? ""
+      loaded = true
+    }
+  }
+
+  private var header: some View {
+    HStack(spacing: 12) {
+      Image(systemName: "tray.and.arrow.up.fill")
+        .foregroundStyle(settings.isConfigured ? Brand.paidGreen : Brand.inkSoft)
+        .frame(width: 34, height: 34)
+        .background(Brand.lightGreen, in: RoundedRectangle(cornerRadius: 10))
+      VStack(alignment: .leading, spacing: 2) {
+        Text("Hubdoc").font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
+        Text(
+          settings.isConfigured
+            ? "Receipts are emailed here automatically"
+            : "Not set up — receipts stay in the app"
+        )
+        .font(.caption).foregroundStyle(Brand.inkSoft)
+      }
+      Spacer()
+      if settings.isConfigured {
+        Image(systemName: "checkmark.seal.fill").foregroundStyle(Brand.paidGreen)
+      }
+    }
+  }
+
+  private var field: some View {
+    HStack(spacing: 10) {
+      Image(systemName: "envelope").foregroundStyle(Brand.olive).frame(width: 20)
+      TextField("yourcompany-abc123@hubdoc.com", text: $email)
+        .keyboardType(.emailAddress)
+        .textContentType(.emailAddress)
+        .autocorrectionDisabled()
+        .textInputAutocapitalization(.never)
+        .font(.subheadline)
+    }
+    .padding(.vertical, 12).padding(.horizontal, 14)
+    .background(
+      RoundedRectangle(cornerRadius: Brand.Radius.inner, style: .continuous)
+        .fill(Brand.lightGreen.opacity(0.5)))
+    .overlay(
+      RoundedRectangle(cornerRadius: Brand.Radius.inner, style: .continuous)
+        .stroke(Brand.hairline, lineWidth: 1))
+  }
+
+  private var saveButton: some View {
+    Button {
+      savedNote = nil
+      Task {
+        await store.saveHubdocEmail(email.trimmingCharacters(in: .whitespaces))
+        if store.hubdocError == nil {
+          email = store.hubdocSettings.hubdocEmail ?? ""
+          savedNote = email.isEmpty ? "Hubdoc turned off." : "Saved."
+        }
+      }
+    } label: {
+      HStack(spacing: 8) {
+        if store.hubdocWorking {
+          ProgressView().tint(.white)
+        } else {
+          Image(systemName: "checkmark")
+        }
+        Text("Save Hubdoc address").font(.subheadline.weight(.semibold))
+      }
+      .frame(maxWidth: .infinity)
+      .padding(.vertical, 12)
+      .background(Brand.charcoal, in: RoundedRectangle(cornerRadius: 12))
+      .foregroundStyle(.white)
+    }
+    .disabled(store.hubdocWorking || !dirty)
+    .opacity(store.hubdocWorking || !dirty ? 0.5 : 1)
+  }
+
+  private var counts: some View {
+    HStack(spacing: 16) {
+      Label("\(settings.delivered) delivered", systemImage: "paperplane.fill")
+        .font(.caption).foregroundStyle(Brand.inkSoft)
+      if settings.failed > 0 {
+        Label("\(settings.failed) failed", systemImage: "exclamationmark.triangle.fill")
+          .font(.caption).foregroundStyle(Brand.red)
+      }
+    }
+  }
 }

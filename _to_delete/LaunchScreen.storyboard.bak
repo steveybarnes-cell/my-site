@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Launch screen for MPG Site Records.
+
+  A storyboard rather than the simpler UILaunchScreen plist dict, because that
+  one only takes a static image and the wordmark has to be real text. Baking
+  "MY SITE" into a PNG would ship a rasterised approximation of the system
+  font, sitting one screen away from ContentView drawing the real thing.
+
+  Everything sits in a single centred vertical stack — mark, MY, SITE, tagline.
+  A stack view rather than a chain of constraints because centring a chain
+  leaves the group hanging off whichever element you anchored, which is exactly
+  how the first attempt ended up sitting high and left of centre.
+-->
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="22505" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22504"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <scene sceneID="EHf-IW-A2E">
+            <objects>
+                <viewController id="01J-lp-oVM" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="stk-lockup">
+                                <rect key="frame" x="46.5" y="286" width="300" height="280"/>
+                                <subviews>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="LaunchLogo" translatesAutoresizingMaskIntoConstraints="NO" id="mrk-img">
+                                        <rect key="frame" x="75" y="0.0" width="150" height="150"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="150" id="mrk-w"/>
+                                            <constraint firstAttribute="height" constant="150" id="mrk-h"/>
+                                        </constraints>
+                                    </imageView>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="MY" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-my">
+                                        <rect key="frame" x="84" y="156" width="132" height="105"/>
+                                        <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="88"/>
+                                        <color key="textColor" red="0.49019607843137253" green="0.6078431372549019" blue="0.38431372549019605" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="S I T E" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-site">
+                                        <rect key="frame" x="98" y="267" width="104" height="34"/>
+                                        <fontDescription key="fontDescription" type="system" weight="bold" pointSize="28"/>
+                                        <color key="textColor" white="1" alpha="0.92000000000000004" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="spacer-1">
+                                        <rect key="frame" x="150" y="307" width="1" height="14"/>
+                                        <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="14" id="sp-h"/>
+                                            <constraint firstAttribute="width" constant="1" id="sp-w"/>
+                                        </constraints>
+                                    </view>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="All you need for your site in one place" textAlignment="center" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-tag">
+                                        <rect key="frame" x="0.0" y="327" width="300" height="21"/>
+                                        <fontDescription key="fontDescription" type="system" weight="medium" pointSize="17"/>
+                                        <color key="textColor" white="1" alpha="0.80000000000000004" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                            </stackView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
+                        <color key="backgroundColor" name="LaunchBackground"/>
+                        <constraints>
+                            <constraint firstItem="stk-lockup" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="stk-cx"/>
+                            <constraint firstItem="stk-lockup" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="stk-cy"/>
+                            <constraint firstItem="stk-lockup" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="Bcu-3y-fUS" secondAttribute="leading" constant="28" id="stk-lead"/>
+                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="stk-lockup" secondAttribute="trailing" constant="28" id="stk-trail"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="53" y="375"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="LaunchLogo" width="120" height="120"/>
+        <namedColor name="LaunchBackground">
+            <color red="0.16470588235294117" green="0.1803921568627451" blue="0.16862745098039217" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
+</document>

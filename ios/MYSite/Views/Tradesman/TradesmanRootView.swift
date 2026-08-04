@@ -5,15 +5,18 @@ struct TradesmanRootView: View {
 
   var body: some View {
     Group {
+      // Today sits in the middle on purpose. It is the screen a man on site
+      // opens twenty times a day, and the middle of five is the one position
+      // a thumb reaches without looking or shifting grip.
       TabView {
         Tab("Team", systemImage: "bubble.left.and.bubble.right.fill") {
           CompanyFeedView()
         }
-        Tab("Today", systemImage: "sun.max.fill") {
-          TradesmanTodayView()
-        }
         Tab("Files", systemImage: "folder.fill") {
           FilesView()
+        }
+        Tab("Today", systemImage: "sun.max.fill") {
+          TradesmanTodayView()
         }
         Tab("Alerts", systemImage: "bell.fill") {
           NotificationsView()
@@ -64,74 +67,6 @@ struct TradesmanMoreView: View {
         ) { ProfileView() },
       ]
     )
-  }
-}
-
-// MARK: - Today
-
-struct TradesmanTodayView: View {
-  @Environment(AppStore.self) private var store
-
-  private var me: AppUser? { store.currentUser }
-
-  var body: some View {
-    NavigationStack {
-      ZStack {
-        MPGBackground()
-        ScrollView {
-          VStack(spacing: 16) {
-            greeting
-            ScanReceiptCard()
-            let allocs = me.map { store.todaysAllocations(for: $0.id) } ?? []
-            if allocs.isEmpty {
-              EmptyStateView(
-                symbol: "checkmark.circle", title: "No work scheduled",
-                message: "You have no allocations for today or tomorrow. Enjoy the break."
-              )
-              .mpgCard()
-            } else {
-              ForEach(allocs) { alloc in
-                NavigationLink(value: alloc) {
-                  AllocationCard(allocation: alloc, showTradesman: false)
-                }
-                .buttonStyle(.plain)
-              }
-            }
-          }
-          .padding(16)
-        }
-      }
-      .navigationTitle("Today's Work")
-      .navigationDestination(for: WorkAllocation.self) { AllocationDetailView(allocation: $0) }
-      .toolbar {
-        ToolbarItem(placement: .topBarTrailing) {
-          NavigationLink {
-            NotificationsView()
-          } label: {
-            Image(systemName: "bell")
-          }
-        }
-      }
-    }
-  }
-
-  private var greeting: some View {
-    let first = (me?.name.split(separator: " ").first).map(String.init) ?? "there"
-    return VStack(alignment: .leading, spacing: 14) {
-      MPGLogo(height: 34)
-        .frame(maxWidth: .infinity, alignment: .leading)
-      VStack(alignment: .leading, spacing: 6) {
-        Text("Good morning, \(first)")
-          .font(.title2.bold())
-          .foregroundStyle(.white)
-        Text(Date().formatted(.dateTime.weekday(.wide).day().month(.wide)))
-          .font(.subheadline)
-          .foregroundStyle(.white.opacity(0.75))
-      }
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(18)
-    .background(Brand.charcoal, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
   }
 }
 

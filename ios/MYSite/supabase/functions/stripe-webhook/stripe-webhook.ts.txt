@@ -1,0 +1,196 @@
+// stripe-webhook: turn Stripe's billing events into a company's subscription row.
+//
+// Deploy with **verify_jwt = OFF**. Stripe is not a signed-in user and has no
+// Supabase token; it proves who it is with a signature over the raw body,
+// which is what `verifySignature` below checks. Leaving JWT verification on
+// is the single most common reason a webhook silently 401s for weeks while
+// everyone assumes billing is working.
+//
+// Secrets:
+//   STRIPE_SECRET_KEY       sk_live_… — used to read back the subscription
+//   STRIPE_WEBHOOK_SECRET   whsec_…   — used to verify the signature
+//   (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are injected automatically)
+//
+// The company is identified by `client_reference_id` at checkout, or by
+// `metadata.company_id`. Set one of them when you create the session — without
+// it there is no way to know whose subscription this is, and the event is
+// dropped rather than guessed at.
+
+import { createClient } from "jsr:@supabase/supabase-js@2";
+
+const STRIPE_API = "https://api.stripe.com/v1";
+
+function admin() {
+  return createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    { auth: { persistSession: false } },
+  );
+}
+
+/// Verifies Stripe's `Stripe-Signature` header against the raw request body.
+///
+/// Written out rather than pulled from the Stripe SDK because the SDK's own
+/// verifier needs Node crypto that Deno Deploy does not provide, and because
+/// this is thirty lines of HMAC that should be readable by whoever inherits it.
+///
+/// The timestamp check is not optional: without it, anyone who ever captures
+/// one valid request can replay it forever.
+async function verifySignature(raw: string, header: string, secret: string): Promise<boolean> {
+  const parts = Object.fromEntries(
+    header.split(",").map((p) => p.split("=") as [string, string]),
+  );
+  const timestamp = parts["t"];
+  const signature = parts["v1"];
+  if (!timestamp || !signature) return false;
+
+  const age = Math.abs(Date.now() / 1000 - Number(timestamp));
+  if (!isFinite(age) || age > 300) return false; // five minutes
+
+  const key = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
+  );
+  const mac = await crypto.subtle.sign(
+    "HMAC", key, new TextEncoder().encode(`${timestamp}.${raw}`),
+  );
+  const expected = Array.from(new Uint8Array(mac))
+    .map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  // Constant-time compare. A plain === leaks, through timing, how much of a
+  // guessed signature was right — which is enough to forge one given patience.
+  if (expected.length !== signature.length) return false;
+  let diff = 0;
+  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ signature.charCodeAt(i);
+  return diff === 0;
+}
+
+async function stripeGet(path: string): Promise<any> {
+  const res = await fetch(`${STRIPE_API}${path}`, {
+    headers: { Authorization: `Bearer ${Deno.env.get("STRIPE_SECRET_KEY")}` },
+  });
+  if (!res.ok) throw new Error(`Stripe ${res.status}: ${await res.text()}`);
+  return res.json();
+}
+
+/// Stripe's statuses are not ours. `incomplete` and `unpaid` both mean "we are
+/// not being paid", but only `past_due` should start the grace clock, so they
+/// are mapped deliberately rather than passed through.
+function mapStatus(s: string): string {
+  switch (s) {
+    case "trialing": return "trialing";
+    case "active": return "active";
+    case "past_due":
+    case "unpaid":
+    case "incomplete": return "past_due";
+    case "paused": return "paused";
+    case "canceled":
+    case "incomplete_expired": return "canceled";
+    default: return "past_due";
+  }
+}
+
+const iso = (unix: number | null | undefined) =>
+  unix ? new Date(unix * 1000).toISOString() : null;
+
+Deno.serve(async (req) => {
+  if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
+
+  const secret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+  if (!secret) {
+    console.error("stripe-webhook: STRIPE_WEBHOOK_SECRET is not set");
+    return new Response("Not configured", { status: 503 });
+  }
+
+  // Read the body as text ONCE, before parsing. The signature covers the exact
+  // bytes Stripe sent; re-serialising the parsed object changes them and every
+  // verification fails.
+  const raw = await req.text();
+  const sig = req.headers.get("Stripe-Signature") ?? "";
+  if (!await verifySignature(raw, sig, secret)) {
+    console.error("stripe-webhook: bad signature");
+    return new Response("Bad signature", { status: 400 });
+  }
+
+  let event: any;
+  try { event = JSON.parse(raw); } catch { return new Response("Bad JSON", { status: 400 }); }
+
+  const db = admin();
+  const obj = event.data?.object ?? {};
+
+  try {
+    let companyId: string | null =
+      obj.client_reference_id ?? obj.metadata?.company_id ?? null;
+    let subscriptionId: string | null = null;
+
+    switch (event.type) {
+      case "checkout.session.completed":
+        subscriptionId = obj.subscription ?? null;
+        break;
+      case "customer.subscription.created":
+      case "customer.subscription.updated":
+      case "customer.subscription.deleted":
+        subscriptionId = obj.id;
+        companyId = companyId ?? obj.metadata?.company_id ?? null;
+        break;
+      case "invoice.payment_failed":
+      case "invoice.payment_succeeded":
+        subscriptionId = obj.subscription ?? null;
+        break;
+      default:
+        // Acknowledged and ignored. Returning an error for events we don't
+        // care about makes Stripe retry them for days and marks the endpoint
+        // unhealthy.
+        return new Response(JSON.stringify({ ignored: event.type }), { status: 200 });
+    }
+
+    if (!subscriptionId) {
+      console.error(`stripe-webhook: ${event.type} carried no subscription id`);
+      return new Response(JSON.stringify({ ignored: "no subscription" }), { status: 200 });
+    }
+
+    // Always read the subscription back from Stripe rather than trusting the
+    // event payload. Events can arrive out of order — a "created" landing
+    // after an "updated" would otherwise roll the row backwards.
+    const sub = await stripeGet(`/subscriptions/${subscriptionId}`);
+    companyId = companyId ?? sub.metadata?.company_id ?? null;
+
+    if (!companyId) {
+      const { data } = await db.from("subscriptions")
+        .select("company_id").eq("stripe_subscription_id", subscriptionId).maybeSingle();
+      companyId = data?.company_id ?? null;
+    }
+    if (!companyId) {
+      console.error(`stripe-webhook: cannot map subscription ${subscriptionId} to a company`);
+      return new Response(JSON.stringify({ error: "unmapped" }), { status: 200 });
+    }
+
+    const item = sub.items?.data?.[0];
+    const row = {
+      company_id: companyId,
+      plan: item?.price?.lookup_key ?? item?.price?.nickname ?? "starter",
+      status: mapStatus(sub.status),
+      seats: item?.quantity ?? 5,
+      stripe_customer_id: sub.customer,
+      stripe_subscription_id: sub.id,
+      current_period_end: iso(sub.current_period_end),
+      trial_ends_at: iso(sub.trial_end),
+      cancel_at_period_end: !!sub.cancel_at_period_end,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await db.from("subscriptions").upsert(row, { onConflict: "company_id" });
+    if (error) {
+      // A 500 makes Stripe retry with backoff, which is what we want — the
+      // alternative is a company silently stuck on a stale plan.
+      console.error(`stripe-webhook: upsert failed for ${companyId}: ${error.message}`);
+      return new Response("Could not record subscription", { status: 500 });
+    }
+
+    console.log(`stripe-webhook: ${event.type} → ${companyId} is ${row.status} on ${row.plan}`);
+    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+  } catch (e) {
+    console.error("stripe-webhook: unexpected", e);
+    return new Response("Error", { status: 500 });
+  }
+});

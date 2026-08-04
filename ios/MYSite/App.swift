@@ -24,8 +24,18 @@ struct MPGSiteRecordsApp: App {
 }
 
 private struct RootContainer: View {
+  @Environment(AuthManager.self) private var auth
+
   var body: some View {
+    @Bindable var auth = auth
     ContentView()
       .onAppear { LocalNotificationService.requestAuthorization() }
+      // Password-reset emails come back in on the app's URL scheme.
+      .onOpenURL { url in
+        Task { await auth.handleIncoming(url) }
+      }
+      .fullScreenCover(isPresented: $auth.pendingPasswordReset) {
+        SetNewPasswordView()
+      }
   }
 }

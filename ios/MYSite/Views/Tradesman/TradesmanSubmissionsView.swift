@@ -12,11 +12,13 @@ struct TradesmanSubmissionsView: View {
           ScrollView {
             VStack(spacing: 16) {
               deadlineBanner
+              thisWeekCard
               let subs = me.map { store.submissions(for: $0.id) } ?? []
               if subs.isEmpty {
                 EmptyStateView(
                   symbol: "sterlingsign.circle", title: "No invoices yet",
-                  message: "Your weekly invoices and their payment status will appear here."
+                  message: "Finish your days on the Today screen and this week's invoice builds "
+                    + "itself from them."
                 ).mpgCard()
               } else {
                 ForEach(subs) { sub in
@@ -35,6 +37,96 @@ struct TradesmanSubmissionsView: View {
       }
     }
     .__tenxTrackView("TradesmanSubmissionsView")
+  }
+
+  // MARK: - This week
+
+  /// Builds the week's invoice from the day sheets.
+  ///
+  /// This is the piece that was missing. `saveSubmission` existed and nothing
+  /// in the app called it, so every invoice on screen came from seed data and
+  /// a real subcontractor had no way to bill for a week he had worked. The
+  /// hours here are the day sheets added up — nothing is retyped, which is the
+  /// whole point: the figure the office queries is the figure the phone
+  /// captured.
+  @ViewBuilder private var thisWeekCard: some View {
+    if let me {
+      let week = store.weekEnding(for: Date())
+      let days = store.dayRecords(for: me.id, weekEnding: week)
+      let hours = days.reduce(0.0) { $0 + $1.totalHours }
+      let existing = store.submissions(for: me.id).first {
+        store.weekEnding(for: $0.weekEnding) == week
+      }
+      let locked = existing.map { $0.status != .draft } ?? false
+
+      VStack(alignment: .leading, spacing: 12) {
+        SectionHeader(
+          title: "This week",
+          subtitle: "Week ending \(Fmt.date(week))")
+
+        if days.isEmpty {
+          Text(
+            "No days closed off yet. Finish a day on the Today screen and it lands here."
+          )
+          .font(.subheadline)
+          .foregroundStyle(Brand.inkSoft)
+          .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+          VStack(spacing: 0) {
+            ForEach(days) { day in
+              HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                  Text(day.date.formatted(.dateTime.weekday(.wide)))
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Brand.ink)
+                  Text(store.site(day.siteId)?.name ?? "Site")
+                    .font(.caption)
+                    .foregroundStyle(Brand.inkSoft)
+                }
+                Spacer()
+                Text(Fmt.hours(day.totalHours))
+                  .font(.subheadline.weight(.semibold))
+                  .monospacedDigit()
+                  .foregroundStyle(Brand.oliveDark)
+              }
+              .padding(.vertical, 9)
+              if day.id != days.last?.id { Divider().overlay(Brand.hairline) }
+            }
+          }
+          HStack {
+            Text("\(days.count) day\(days.count == 1 ? "" : "s")")
+              .font(.footnote).foregroundStyle(Brand.inkSoft)
+            Spacer()
+            Text(Fmt.hours(hours))
+              .font(.headline).monospacedDigit().foregroundStyle(Brand.ink)
+          }
+
+          if locked {
+            Label(
+              "Already with the office — \(existing?.status.rawValue ?? "")",
+              systemImage: "lock.fill"
+            )
+            .font(.caption).foregroundStyle(Brand.inkSoft)
+          } else {
+            Button {
+              store.buildWeeklyInvoice(for: me.id, weekEnding: week)
+            } label: {
+              Label(
+                existing == nil ? "Build this week's invoice" : "Update the draft",
+                systemImage: "sterlingsign.circle.fill"
+              )
+              .font(.headline)
+              .frame(maxWidth: .infinity)
+              .padding(.vertical, 14)
+              .background(Brand.olive, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+              .foregroundStyle(.white)
+            }
+            .buttonStyle(.plain)
+          }
+        }
+      }
+      .mpgCard()
+    }
   }
 
   private var deadlineBanner: some View {

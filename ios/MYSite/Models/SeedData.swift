@@ -402,8 +402,9 @@ extension AppStore {
       FeedPost(
         authorId: dan.id, authorName: dan.name, authorRole: .tradesman,
         text:
-          "Rear utility dig-out done at Clifton Village. Ready for the sub-base tomorrow. Photos attached for the variation.",
-        photos: [.scene("digOut"), .scene("screed")], siteId: clifton.id, timestamp: hrsAgo(20),
+          "Gable end timbers up at Clifton Village and the joists are all hung. Felt and batten tomorrow if the weather holds. Photos on for the variation.",
+        photos: [.scene("roofTimbers"), .scene("joists")], siteId: clifton.id,
+        timestamp: hrsAgo(20),
         likedBy: [paulSM.id, steve.id],
         comments: [
           FeedComment(
@@ -419,8 +420,9 @@ extension AppStore {
         comments: []),
       FeedPost(
         authorId: brandon.id, authorName: brandon.name, authorRole: .tradesman,
-        text: "Communal hallway second coat finished at Marlborough. Looking clean ✨",
-        photos: [.scene("hallwayPaint"), .scene("kitchenFit")], siteId: marlborough.id,
+        text:
+          "Arch formwork struck at Marlborough and the opening has come out spot on. Steel went in first thing — took the four of us to walk it through.",
+        photos: [.scene("archFormwork"), .scene("beamLift")], siteId: marlborough.id,
         timestamp: minsAgo(45),
         likedBy: [jenny.id, steve.id, mike.id],
         comments: [
@@ -432,7 +434,7 @@ extension AppStore {
         authorId: mike.id, authorName: mike.name, authorRole: .tradesman,
         text:
           "Brickwork to the rear extension up to DPC at Clifton. Blockwork inner leaf going in this afternoon. On programme.",
-        photos: [.scene("brickwork"), .scene("screed")], siteId: clifton.id, timestamp: hrsAgo(9),
+        photos: [.scene("brickwork")], siteId: clifton.id, timestamp: hrsAgo(9),
         likedBy: [steve.id, paulSM.id, jenny.id],
         comments: [
           FeedComment(
@@ -446,8 +448,9 @@ extension AppStore {
       FeedPost(
         authorId: paulSM.id, authorName: paulSM.name, authorRole: .siteManager,
         text:
-          "Scaffold inspection tag updated on Redcliffe — signed off and safe to use. Weekly check due next Friday.",
-        photos: [.scene("scaffold")], siteId: redcliffe.id, timestamp: hrsAgo(4),
+          "Roof structure framed and blockwork up to first lift at Redcliffe. Scaffold inspection tag updated while I was up there — signed off and safe to use, weekly check due Friday.",
+        photos: [.scene("roofStructure"), .scene("blockwork")], siteId: redcliffe.id,
+        timestamp: hrsAgo(4),
         likedBy: [steve.id, mike.id, dan.id],
         comments: []),
       FeedPost(
@@ -462,10 +465,21 @@ extension AppStore {
             text: "Mine's already in 👍", timestamp: hrsAgo(2))
         ]),
       FeedPost(
+        authorId: paulSM.id, authorName: paulSM.name, authorRole: .siteManager,
+        text:
+          "Sedum roof and the frameless rooflight finished on the Redcliffe single storey. Signed off this afternoon — one for the handover file.",
+        photos: [.scene("sedumRoof")], siteId: redcliffe.id, timestamp: minsAgo(90),
+        likedBy: [steve.id, jenny.id, brandon.id],
+        comments: [
+          FeedComment(
+            authorId: steve.id, authorName: steve.name,
+            text: "That's a smart finish 👌", timestamp: minsAgo(70))
+        ]),
+      FeedPost(
         authorId: brandon.id, authorName: brandon.name, authorRole: .tradesman,
         text:
-          "New kitchen units landed at Marlborough — carcasses in, worktops templated. Should be finished by end of week.",
-        photos: [.scene("kitchenFit")], siteId: marlborough.id, timestamp: minsAgo(20),
+          "Oak frame landed at Marlborough and set out ready to lift in the morning. Every piece numbered, nothing missing off the schedule.",
+        photos: [.scene("timberFrame")], siteId: marlborough.id, timestamp: minsAgo(20),
         likedBy: [jenny.id, steve.id],
         comments: [
           FeedComment(

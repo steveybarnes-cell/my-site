@@ -405,19 +405,16 @@ struct FeedPostCard: View {
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(Brand.surface)
-    // MPG identity: an olive accent rail down the leading edge of every card.
-    .overlay(alignment: .leading) {
+    // Edge to edge, no rounding, no shadow, no side margins — the photo is the
+    // post, and anything framing it is competing with the thing people came to
+    // look at. A hairline underneath is enough to separate one post from the
+    // next; the old floating card, accent rail and drop shadow were three
+    // separate devices all doing that same job.
+    .overlay(alignment: .bottom) {
       Rectangle()
-        .fill(liked ? Brand.olive : Brand.hairline)
-        .frame(width: 4)
+        .fill(Brand.hairline.opacity(0.7))
+        .frame(height: 1)
     }
-    .clipShape(RoundedRectangle(cornerRadius: Brand.Radius.card, style: .continuous))
-    .overlay(
-      RoundedRectangle(cornerRadius: Brand.Radius.card, style: .continuous)
-        .stroke(Brand.hairline.opacity(0.8), lineWidth: 1)
-    )
-    .shadow(color: Brand.cardShadow, radius: 10, x: 0, y: 4)
-    .padding(.horizontal, 12)
     .sheet(isPresented: $showComments) {
       FeedCommentsView(postId: post.id)
     }
@@ -495,27 +492,36 @@ struct FeedAuthorHeader: View {
 struct FeedPhotoGrid: View {
   let photos: [FeedPhoto]
 
-  /// Every feed photo renders at this fixed height so all posts are uniform and
-  /// nothing overflows the card, regardless of the source image dimensions.
-  private let photoHeight: CGFloat = 300
+  /// Photos run the full width of the screen and take their height from it,
+  /// rather than sitting in a fixed 300pt letterbox inside a padded card.
+  ///
+  /// 4:3 because that is what a phone camera gives you and what site photos
+  /// actually are — a square crop would throw away a third of every wide shot
+  /// of a room or an elevation.
+  private let aspect: CGFloat = 4.0 / 3.0
 
   var body: some View {
-    if photos.count == 1, let photo = photos.first {
-      FeedPhotoView(photo: photo)
-        .frame(maxWidth: .infinity)
-        .frame(height: photoHeight)
-        .clipped()
-    } else {
-      TabView {
-        ForEach(photos) { photo in
+    GeometryReader { geo in
+      let h = geo.size.width / aspect
+      Group {
+        if photos.count == 1, let photo = photos.first {
           FeedPhotoView(photo: photo)
-            .frame(maxWidth: .infinity)
+            .frame(width: geo.size.width, height: h)
             .clipped()
+        } else {
+          TabView {
+            ForEach(photos) { photo in
+              FeedPhotoView(photo: photo).clipped()
+            }
+          }
+          .tabViewStyle(.page(indexDisplayMode: .automatic))
+          .frame(width: geo.size.width, height: h)
         }
       }
-      .tabViewStyle(.page(indexDisplayMode: .automatic))
-      .frame(height: photoHeight)
     }
+    // GeometryReader is greedy, so the aspect ratio outside it is what gives
+    // the whole thing a definite height in the surrounding stack.
+    .aspectRatio(aspect, contentMode: .fit)
   }
 }
 

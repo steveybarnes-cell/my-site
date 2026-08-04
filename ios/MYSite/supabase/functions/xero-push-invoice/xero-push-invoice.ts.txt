@@ -6,15 +6,31 @@
 //   reference?: string,
 //   lineItems: { description: string, quantity: number, unitAmount: number, accountCode?: string }[]
 // }
-// Returns: { invoiceId, invoiceNumber, status } or { error }.
+// Returns: { invoiceId, invoiceNumber, status } or { error, message }.
 //
-// Uses stored Xero tokens (auto-refreshing when expired) from public.xero_connections.
+// Uses stored Xero tokens (auto-refreshing when expired) from public.xero_connections,
+// scoped to the calling user's company.
+//
+// ---------------------------------------------------------------------------
+// This function was broken from the moment 0005 (multi-tenancy) was applied.
+// It looked its connection up with `.eq("company_key", "mpg")`, and 0005 drops
+// that column — so the query errored, the error was discarded by destructuring
+// only `data`, `conn` came back undefined, and every push returned
+// "Xero is not connected." No log, no trace, no clue.
+//
+// Worth recording what it did BEFORE that too: the company was a hardcoded
+// string, so in a multi-tenant database every firm's invoices would have gone
+// into MPG's Xero. The migration breaking it was the safer of the two failures.
+//
+// Two things changed here, and the second matters as much as the first:
+//   • The company now comes from the caller's JWT, like xero-oauth does.
+//   • Postgres errors are read and surfaced instead of silently dropped.
+// ---------------------------------------------------------------------------
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const XERO_TOKEN = "https://identity.xero.com/connect/token";
 const XERO_INVOICES = "https://api.xero.com/api.xro/2.0/Invoices";
-const COMPANY_KEY = "mpg";
 const DEFAULT_ACCOUNT = "200";
 
 const clientId = Deno.env.get("XERO_CLIENT_ID") ?? "";
@@ -41,18 +57,61 @@ function json(body: unknown, status = 200) {
   });
 }
 
-async function refreshIfNeeded(db: ReturnType<typeof admin>) {
-  const { data: conn } = await db
+class HttpError extends Error {
+  constructor(readonly status: number, readonly code: string, message: string) {
+    super(message);
+  }
+}
+
+/// Resolves the company from the caller's token.
+///
+/// Never from the request body. An invoice is money owed to a specific firm,
+/// and a client-supplied company id would let anyone raise one against anyone.
+async function callerCompany(req: Request): Promise<string> {
+  const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  if (!jwt) throw new HttpError(401, "no_token", "Sign in before pushing invoices.");
+
+  const db = admin();
+  const { data: userData, error: userErr } = await db.auth.getUser(jwt);
+  if (userErr || !userData?.user) {
+    throw new HttpError(401, "invalid_token", "Your session has expired. Sign in again.");
+  }
+
+  const { data: profile, error } = await db
+    .from("profiles").select("company_id, role").eq("id", userData.user.id).maybeSingle();
+  if (error) throw new HttpError(500, "profile_lookup_failed", error.message);
+  if (!profile?.company_id) {
+    throw new HttpError(409, "no_company", "Your account isn't attached to a company yet.");
+  }
+  // Invoicing a client is an office job. The app only offers it to admins, but
+  // the app is not where that decision should be enforced.
+  if (profile.role !== "Admin") {
+    throw new HttpError(403, "not_admin", "Only an admin can raise invoices in Xero.");
+  }
+  return profile.company_id as string;
+}
+
+/// The company's Xero connection, refreshed if the access token has expired.
+async function connectionFor(db: ReturnType<typeof admin>, companyId: string) {
+  const { data: conn, error } = await db
     .from("xero_connections")
     .select("access_token, refresh_token, tenant_id, expires_at")
-    .eq("company_key", COMPANY_KEY)
+    .eq("company_id", companyId)
     .maybeSingle();
-  if (!conn?.access_token || !conn?.tenant_id) return null;
+
+  // Read rather than discard. Dropping this is what turned a schema mismatch
+  // into a silent "not connected" for weeks.
+  if (error) {
+    console.error(`xero-push-invoice: connection lookup failed for ${companyId}: ${error.message}`);
+    throw new HttpError(500, "connection_lookup_failed", error.message);
+  }
+  if (!conn?.access_token || !conn?.tenant_id) {
+    throw new HttpError(409, "not_connected", "Xero is not connected for your company.");
+  }
 
   const expiresAt = conn.expires_at ? new Date(conn.expires_at).getTime() : 0;
   if (Date.now() < expiresAt - 60_000) return conn;
 
-  // Refresh
   const res = await fetch(XERO_TOKEN, {
     method: "POST",
     headers: {
@@ -64,15 +123,32 @@ async function refreshIfNeeded(db: ReturnType<typeof admin>) {
       refresh_token: conn.refresh_token,
     }),
   });
-  if (!res.ok) return null;
+  if (!res.ok) {
+    const detail = await res.text();
+    console.error(`xero-push-invoice: token refresh ${res.status} for ${companyId}: ${detail}`);
+    // A dead refresh token means the connection needs redoing by hand — worth
+    // saying so rather than reporting a generic failure.
+    throw new HttpError(
+      409, "refresh_failed",
+      "Your Xero connection has expired. Reconnect it in Profile → Integrations.",
+    );
+  }
+
   const tokens = await res.json();
   const newExpiry = new Date(Date.now() + (tokens.expires_in ?? 1800) * 1000).toISOString();
-  await db.from("xero_connections").update({
+  const { error: updateErr } = await db.from("xero_connections").update({
     access_token: tokens.access_token,
     refresh_token: tokens.refresh_token ?? conn.refresh_token,
     expires_at: newExpiry,
     updated_at: new Date().toISOString(),
-  }).eq("company_key", COMPANY_KEY);
+  }).eq("company_id", companyId);
+
+  // The push can still go ahead on the token we hold — it just means the next
+  // call will refresh again. Not worth failing the invoice over.
+  if (updateErr) {
+    console.error(`xero-push-invoice: token store failed for ${companyId}: ${updateErr.message}`);
+  }
+
   return { ...conn, access_token: tokens.access_token };
 }
 
@@ -81,17 +157,18 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
 
   try {
-    const body = await req.json();
-    const contactName: string = body.contactName ?? "";
+    const body = await req.json().catch(() => ({}));
+    const contactName: string = (body.contactName ?? "").trim();
     const reference: string | undefined = body.reference;
     const lineItems: Array<Record<string, unknown>> = body.lineItems ?? [];
     if (!contactName || lineItems.length === 0) {
-      return json({ error: "invalid_request", message: "contactName and lineItems required" }, 400);
+      throw new HttpError(
+        400, "invalid_request", "contactName and at least one line item are required.");
     }
 
+    const companyId = await callerCompany(req);
     const db = admin();
-    const conn = await refreshIfNeeded(db);
-    if (!conn) return json({ error: "not_connected", message: "Xero is not connected." }, 409);
+    const conn = await connectionFor(db, companyId);
 
     const payload = {
       Invoices: [
@@ -121,17 +198,25 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify(payload),
     });
-    const result = await res.json();
+
+    const result = await res.json().catch(() => ({}));
     if (!res.ok) {
+      console.error(
+        `xero-push-invoice: Xero ${res.status} for ${companyId}: ${JSON.stringify(result)}`);
       return json({ error: "xero_rejected", detail: result }, 502);
     }
+
     const inv = result?.Invoices?.[0];
+    console.log(
+      `xero-push-invoice: created ${inv?.InvoiceNumber ?? "(no number)"} for company ${companyId}`);
     return json({
       invoiceId: inv?.InvoiceID ?? null,
       invoiceNumber: inv?.InvoiceNumber ?? null,
       status: inv?.Status ?? "DRAFT",
     });
   } catch (e) {
+    if (e instanceof HttpError) return json({ error: e.code, message: e.message }, e.status);
+    console.error("xero-push-invoice: unexpected", e);
     return json({ error: "xero_error", message: String(e) }, 500);
   }
 });

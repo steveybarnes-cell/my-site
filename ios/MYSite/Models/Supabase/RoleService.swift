@@ -152,3 +152,156 @@ enum RoleService {
     return d
   }()
 }
+
+// MARK: - Onboarding
+// =====================================================================
+
+/// Someone who has created an account but hasn't been attached to a company
+/// yet. Until an admin adopts them they can sign in but see nothing, because
+/// every row in the database is scoped to a company.
+struct PendingSignup: Identifiable, Decodable, Equatable {
+  let id: UUID
+  let name: String?
+  let email: String?
+  let createdAt: Date?
+
+  enum CodingKeys: String, CodingKey {
+    case id, name, email
+    case createdAt = "created_at"
+  }
+
+  /// Signups made through the web form sometimes arrive with a blank name, so
+  /// fall back to the email rather than showing an empty row.
+  var displayName: String {
+    let trimmed = (name ?? "").trimmingCharacters(in: .whitespaces)
+    if !trimmed.isEmpty { return trimmed }
+    return email ?? "Unnamed account"
+  }
+}
+
+/// A profile row inside the caller's own company.
+struct CompanyMember: Identifiable, Decodable, Equatable {
+  let id: UUID
+  let name: String?
+  let email: String?
+  let role: UserRole
+  let active: Bool?
+
+  var displayName: String {
+    let trimmed = (name ?? "").trimmingCharacters(in: .whitespaces)
+    if !trimmed.isEmpty { return trimmed }
+    return email ?? "Unnamed account"
+  }
+}
+
+/// Letting new signups in, and changing the role of people already in.
+///
+/// Both writes are Postgres functions, not table updates. That matters more
+/// than it looks: the RLS policy on `profiles` scopes rows to the caller's
+/// company, and a brand-new signup has no company — so a plain `update` matches
+/// zero rows and reports success while doing nothing. The functions raise a
+/// specific error instead, which is what the screens below display.
+enum OnboardingService {
+
+  /// Everyone waiting to be let into a company. Admins only; the view returns
+  /// nothing for anyone else.
+  static func pendingSignups(token: String) async throws -> [PendingSignup] {
+    let data = try await SupabaseClient.shared.get(
+      table: "pending_signups", query: "select=*&order=created_at.desc", accessToken: token)
+    return (try? decoder.decode([PendingSignup].self, from: data)) ?? []
+  }
+
+  /// Everyone already in the caller's company.
+  static func members(token: String) async throws -> [CompanyMember] {
+    let data = try await SupabaseClient.shared.get(
+      table: "profiles",
+      query: "select=id,name,email,role,active&order=name.asc", accessToken: token)
+    return (try? decoder.decode([CompanyMember].self, from: data)) ?? []
+  }
+
+  /// Adds a signup to the caller's company with the given role.
+  static func adopt(user: UUID, role: UserRole, token: String) async throws {
+    let body = try JSONSerialization.data(withJSONObject: [
+      "p_user": user.uuidString.lowercased(),
+      "p_role": role.rawValue,
+    ])
+    _ = try await SupabaseClient.shared.rpc(
+      "adopt_user_into_company", body: body, accessToken: token)
+  }
+
+  /// Changes the role of someone already in the caller's company.
+  static func setRole(user: UUID, role: UserRole, token: String) async throws {
+    let body = try JSONSerialization.data(withJSONObject: [
+      "p_user": user.uuidString.lowercased(),
+      "p_role": role.rawValue,
+    ])
+    _ = try await SupabaseClient.shared.rpc("set_user_role", body: body, accessToken: token)
+  }
+
+  private static let decoder: JSONDecoder = {
+    let d = JSONDecoder()
+    d.dateDecodingStrategy = .custom { decoder in
+      let raw = try decoder.singleValueContainer().decode(String.self)
+      let iso = ISO8601DateFormatter()
+      iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+      if let date = iso.date(from: raw) { return date }
+      iso.formatOptions = [.withInternetDateTime]
+      return iso.date(from: raw) ?? Date()
+    }
+    return d
+  }()
+}
+
+// MARK: - Signing a firm up
+// =====================================================================
+
+extension OnboardingService {
+
+  /// What the app needs before it can decide which screen to show.
+  ///
+  /// Asked through a function rather than read from `companies`, because the
+  /// select policy on that table scopes rows to your own company — which is
+  /// precisely the thing a new signup doesn't have yet.
+  struct MyState: Decodable, Equatable {
+    let hasCompany: Bool
+    let companyName: String?
+    let role: UserRole?
+    let needsHubdoc: Bool
+
+    enum CodingKeys: String, CodingKey {
+      case hasCompany = "has_company"
+      case companyName = "company_name"
+      case role
+      case needsHubdoc = "needs_hubdoc"
+    }
+
+    static let unknown = MyState(
+      hasCompany: false, companyName: nil, role: nil, needsHubdoc: false)
+  }
+
+  /// Whether this account belongs to a company yet, and what it still needs.
+  static func myState(token: String) async throws -> MyState {
+    let body = try JSONSerialization.data(withJSONObject: [String: String]())
+    let data = try await SupabaseClient.shared.rpc(
+      "my_onboarding_state", body: body, accessToken: token)
+    let rows = (try? JSONDecoder().decode([MyState].self, from: data)) ?? []
+    return rows.first ?? .unknown
+  }
+
+  /// Creates a company and makes the caller its admin.
+  ///
+  /// Only works for an account that doesn't already belong to one — the
+  /// database refuses otherwise, because leaving a company would strand every
+  /// record the person had created in it.
+  static func createCompany(
+    name: String, hubdocEmail: String, token: String
+  ) async throws {
+    var args: [String: Any] = ["p_name": name]
+    // Sent as a real null rather than "" so the column stays null and the
+    // "needs a Hubdoc address" prompt keeps firing.
+    let trimmed = hubdocEmail.trimmingCharacters(in: .whitespaces)
+    args["p_hubdoc_email"] = trimmed.isEmpty ? NSNull() : trimmed
+    let body = try JSONSerialization.data(withJSONObject: args)
+    _ = try await SupabaseClient.shared.rpc("create_company", body: body, accessToken: token)
+  }
+}

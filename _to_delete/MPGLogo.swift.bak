@@ -1,0 +1,149 @@
+import SwiftUI
+
+/// The MY Site bracket: an open rounded frame that wraps the wordmark.
+///
+/// Replaces the earlier gable "^". The bracket runs from a short stub at the
+/// bottom-left, up the left side, across the top, and stops partway down the
+/// right — deliberately open, so the wordmark sits *in* it rather than under a
+/// closed box.
+struct MYSiteMark: View {
+  /// Colour of the bracket stroke.
+  var stroke: Color = Brand.logoGreen
+  /// Retained for source compatibility with older call sites.
+  var accent: Color = Brand.logoGreen
+
+  var body: some View {
+    GeometryReader { geo in
+      BracketShape()
+        .stroke(
+          stroke,
+          style: StrokeStyle(
+            lineWidth: max(1.5, min(geo.size.width, geo.size.height) * 0.052),
+            lineCap: .round,
+            lineJoin: .round)
+        )
+    }
+  }
+}
+
+/// The open frame. Proportions traced from the brand sheet.
+private struct BracketShape: Shape {
+  func path(in rect: CGRect) -> Path {
+    let w = rect.width
+    let h = rect.height
+    func p(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
+      CGPoint(x: rect.minX + x * w, y: rect.minY + y * h)
+    }
+    // Corner radius as a fraction of the shorter side, so the curve stays
+    // circular rather than stretching when the frame isn't square.
+    let r: CGFloat = 0.17
+
+    var path = Path()
+    // Bottom-left stub, running inward from the left.
+    path.move(to: p(0.22, 0.97))
+    path.addLine(to: p(0.03 + r, 0.97))
+    path.addQuadCurve(to: p(0.03, 0.97 - r), control: p(0.03, 0.97))
+    // Up the left side.
+    path.addLine(to: p(0.03, 0.03 + r))
+    path.addQuadCurve(to: p(0.03 + r, 0.03), control: p(0.03, 0.03))
+    // Across the top.
+    path.addLine(to: p(0.97 - r, 0.03))
+    path.addQuadCurve(to: p(0.97, 0.03 + r), control: p(0.97, 0.03))
+    // Short stub down the right, then stop — the frame stays open.
+    path.addLine(to: p(0.97, 0.26))
+    return path
+  }
+}
+
+/// "MY Site" logo lockup: the bracket with the wordmark set inside it.
+///
+/// Kept named `MPGLogo` so existing call sites continue to work.
+struct MPGLogo: View {
+  /// Overall height of the lockup. Everything scales from this.
+  var height: CGFloat = 72
+  /// Render for a dark background (white "MY") when true.
+  var onDark: Bool = true
+  /// Lay the mark and wordmark side-by-side instead of nested.
+  var horizontal: Bool = false
+  /// Retained for source compatibility with older call sites.
+  var showTagline: Bool = false
+
+  private var myColor: Color { onDark ? .white : Brand.ink }
+  private var accentColor: Color { onDark ? Brand.logoGreen : Brand.oliveDark }
+
+  var body: some View {
+    if horizontal {
+      horizontalLockup
+    } else {
+      nestedLockup
+    }
+  }
+
+  /// "MY" over "SITE", sized relative to the frame they sit in.
+  private func wordmark(_ s: CGFloat) -> some View {
+    VStack(spacing: -s * 0.02) {
+      Text("MY")
+        .font(.system(size: s * 0.44, weight: .heavy, design: .rounded))
+        .foregroundStyle(myColor)
+        .kerning(-s * 0.010)
+      Text("SITE")
+        .font(.system(size: s * 0.165, weight: .bold, design: .rounded))
+        .kerning(s * 0.10)
+        // Tracking adds a trailing gap after the final letter, which drags the
+        // word left of centre. Padding the leading edge by the same amount puts
+        // it back.
+        .padding(.leading, s * 0.10)
+        .foregroundStyle(accentColor)
+    }
+  }
+
+  /// The brand-sheet lockup: wordmark inside the bracket.
+  private var nestedLockup: some View {
+    let s = height
+    return ZStack {
+      MYSiteMark(stroke: accentColor)
+      wordmark(s)
+        // Nudged down and barely right — the bracket is open on the bottom and
+        // right, so the wordmark sits toward those gaps rather than centred in
+        // a frame that isn't actually closed.
+        .offset(x: s * 0.015, y: s * 0.055)
+    }
+    .frame(width: s, height: s)
+  }
+
+  /// Bracket beside the wordmark, for tight horizontal spaces like nav bars.
+  private var horizontalLockup: some View {
+    let s = height
+    return HStack(spacing: s * 0.22) {
+      MYSiteMark(stroke: accentColor)
+        .frame(width: s * 0.82, height: s * 0.82)
+      VStack(alignment: .leading, spacing: -s * 0.03) {
+        Text("MY")
+          .font(.system(size: s * 0.46, weight: .heavy, design: .rounded))
+          .foregroundStyle(myColor)
+        Text("SITE")
+          .font(.system(size: s * 0.16, weight: .bold, design: .rounded))
+          .kerning(s * 0.10)
+          .foregroundStyle(accentColor)
+      }
+    }
+    .fixedSize()
+  }
+}
+
+#Preview {
+  VStack(spacing: 0) {
+    ZStack {
+      Brand.charcoal.ignoresSafeArea()
+      MPGLogo(height: 160)
+    }
+    ZStack {
+      Color.white.ignoresSafeArea()
+      MPGLogo(height: 120, onDark: false)
+    }
+    ZStack {
+      Brand.charcoal.ignoresSafeArea()
+      MPGLogo(height: 44, horizontal: true)
+    }
+  }
+}

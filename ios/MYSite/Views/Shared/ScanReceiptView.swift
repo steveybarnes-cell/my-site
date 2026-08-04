@@ -28,6 +28,13 @@ struct ScanReceiptView: View {
   @State private var scanNote: String?
   @State private var pendingScan: ReceiptScanService.ScannedReceipt?
 
+  /// The figures the scan produced, kept as numbers.
+  ///
+  /// `details` only ever held them as prose — "Screwfix — timber — £48.00 inc
+  /// VAT" — which reads fine and is useless to the cost tracker. Holding the
+  /// approved values means the purchase can become an actual material line.
+  @State private var approvedScan: ReceiptReviewSheet.ApprovedReceipt?
+
   // MARK: - Scope
 
   /// Sites this user may file evidence against, matching the app's privacy
@@ -267,12 +274,18 @@ struct ScanReceiptView: View {
       do {
         pendingScan = try await ReceiptScanService.scan(imageData: data, token: token)
       } catch {
-        scanError = "Couldn't read it automatically. Enter the details manually."
+        // The reason is included deliberately. When this said only "couldn't
+        // read it", an out-of-credit OpenAI account looked identical to a
+        // blurry photo, and the only way to tell them apart was reading the
+        // server logs.
+        let reason = (error as? SupabaseError)?.errorDescription ?? error.localizedDescription
+        scanError = "Couldn't read it automatically — \(reason) Enter the details manually."
       }
     }
   }
 
   private func apply(_ approved: ReceiptReviewSheet.ApprovedReceipt) {
+    approvedScan = approved
     var parts: [String] = []
     if !approved.supplier.isEmpty { parts.append(approved.supplier) }
     if !approved.description.isEmpty { parts.append(approved.description) }
@@ -286,13 +299,50 @@ struct ScanReceiptView: View {
 
   private func save() {
     guard let site else { return }
-    store.uploadFile(
+
+    // A scanned receipt is a cost, not just a picture of one.
+    //
+    // This screen read the receipt, showed you the figures, and then flattened
+    // them into a sentence — so the image was filed as evidence and the money
+    // never reached the job. Nothing appeared under Materials because nothing
+    // was ever created. The scan is only half the job; this is the other half.
+    var materialId: UUID?
+    if let scan = approvedScan, scan.costExVat + scan.vatAmount > 0,
+      let me = store.currentUser
+    {
+      let id = UUID()
+      store.addMaterial(
+        MaterialItem(
+          id: id,
+          userId: me.id,
+          siteId: site.id,
+          dailyRecordId: nil,
+          date: scan.purchaseDate,
+          supplier: scan.supplier,
+          description: scan.description.isEmpty ? details : scan.description,
+          reason: "",
+          costExVat: scan.costExVat,
+          vatAmount: scan.vatAmount,
+          receiptUploaded: true,
+          // Left for someone to decide rather than guessed. Whether a cost is
+          // rechargeable to the client isn't on the receipt.
+          chargeable: .tbc,
+          approved: false,
+          notes: ""))
+      materialId = id
+    }
+
+    let uploaded = store.uploadFile(
       type: type,
       description: details,
       source: .camera,
       ext: "jpg",
       site: site,
+      materialId: materialId,
       imageData: imageData)
+    // Emails the receipt to the company's Hubdoc inbox. No-ops quietly if no
+    // Hubdoc address has been set, so this is safe for every company.
+    store.sendToHubdoc(uploaded.id)
     dismiss()
   }
 }

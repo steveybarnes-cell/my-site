@@ -12,6 +12,10 @@ enum SupabaseConfig {
   /// Deep-link scheme used for the OAuth callback (must match Info.plist + Supabase redirect URLs).
   static let callbackScheme = "mpgsiterecords"
   static let callbackURL = "\(callbackScheme)://auth-callback"
+  /// Where a password-reset email sends the user. Must also be listed under
+  /// Supabase → Authentication → URL Configuration → Redirect URLs, or the
+  /// auth server refuses to redirect there and the link dead-ends.
+  static let passwordResetURL = "\(callbackScheme)://reset-password"
 
   /// Client-safe public defaults baked into the app so device / TestFlight / App Store
   /// builds work even when no environment variables or Info.plist build settings are

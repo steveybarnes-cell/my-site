@@ -8,6 +8,7 @@ struct LoginView: View {
   @State private var isSignUp = false
   @State private var selectedRole: UserRole = .tradesman
   @State private var showDemo = false
+  @State private var showForgotPassword = false
 
   private var quickUsers: [AppUser] {
     store.users.filter { $0.role == selectedRole && $0.active }
@@ -28,6 +29,9 @@ struct LoginView: View {
             aiReceiptBanner
             signInCard
             demoButton
+              .sheet(isPresented: $showForgotPassword) {
+                ForgotPasswordSheet(initialEmail: email)
+              }
             // Demo sign-in lets you run and demonstrate the app (including as
             // Admin) without a real Supabase account. Compiled into DEBUG builds
             // only — it is never present in the App Store / Release build.
@@ -117,7 +121,7 @@ struct LoginView: View {
 
   private var header: some View {
     VStack(spacing: 18) {
-      MPGLogo(height: 62)
+      MPGLogo(height: 120)
         .padding(.top, 6)
       Text("Site Record & Invoice")
         .font(.title3.bold())
@@ -147,6 +151,19 @@ struct LoginView: View {
 
       field(icon: "envelope", placeholder: "Email address", text: $email, secure: false)
       field(icon: "lock", placeholder: "Password", text: $password, secure: true)
+
+      if !isSignUp {
+        Button {
+          auth.errorMessage = nil
+          showForgotPassword = true
+        } label: {
+          Text("Forgotten your password?")
+            .font(.caption.weight(.medium))
+            .foregroundStyle(Brand.olive)
+        }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity, alignment: .trailing)
+      }
 
       if let message = auth.errorMessage {
         infoBanner(message, symbol: "exclamationmark.circle.fill", tint: .red)
@@ -289,3 +306,214 @@ private struct LoginPreview: View {
 }
 
 #Preview { LoginPreview() }
+
+// =====================================================================
+// MARK: - Company setup
+// =====================================================================
+
+/// Shown after signing up, to an account that doesn't belong to a company yet.
+///
+/// Before this screen existed, that account saw the normal app with every list
+/// empty and nothing explaining why — every row in the database is scoped to a
+/// company, and they had none. There was no way forward from inside the app at
+/// all; someone had to run SQL.
+///
+/// Two ways out, depending on whether the firm is already here:
+///   • First person from a firm — create the company, become its admin.
+///   • Everyone after them — an invite code from that admin.
+struct CompanySetupView: View {
+  @Environment(AppStore.self) private var store
+  @Environment(AuthManager.self) private var auth
+
+  private enum Route: String, CaseIterable, Identifiable {
+    case create = "Set up my firm"
+    case join = "I have an invite code"
+    var id: String { rawValue }
+  }
+
+  @State private var route: Route = .create
+  @State private var companyName = ""
+  @State private var hubdocEmail = ""
+  @State private var inviteCode = ""
+  @State private var working = false
+  @State private var errorMessage: String?
+
+  private var canCreate: Bool {
+    companyName.trimmingCharacters(in: .whitespaces).count >= 2 && !working
+  }
+  private var canJoin: Bool {
+    inviteCode.trimmingCharacters(in: .whitespaces).count >= 4 && !working
+  }
+
+  var body: some View {
+    NavigationStack {
+      ZStack {
+        MPGBackground()
+        ScrollView {
+          VStack(spacing: 18) {
+            header
+            Picker("Route", selection: $route) {
+              ForEach(Route.allCases) { Text($0.rawValue).tag($0) }
+            }
+            .pickerStyle(.segmented)
+
+            switch route {
+            case .create: createCard
+            case .join: joinCard
+            }
+
+            if let errorMessage {
+              Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
+                .font(.caption).foregroundStyle(Brand.red)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .mpgCard(padding: 12)
+            }
+
+            Button("Sign out") { Task { await auth.signOut() } }
+              .font(.footnote)
+              .foregroundStyle(Brand.inkSoft)
+          }
+          .padding(16)
+        }
+      }
+      .navigationTitle("Almost there")
+      .navigationBarTitleDisplayMode(.inline)
+    }
+    .__tenxTrackView("CompanySetupView")
+  }
+
+  private var header: some View {
+    VStack(spacing: 8) {
+      MPGLogo(height: 92).padding(.top, 8)
+      Text("Your account isn't linked to a firm yet")
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(Brand.ink)
+      Text(
+        "Sites, jobs and costs all belong to a firm, so there's nothing to show until this is sorted."
+      )
+      .font(.caption)
+      .foregroundStyle(Brand.inkSoft)
+      .multilineTextAlignment(.center)
+    }
+  }
+
+  private var createCard: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      SectionHeader(
+        title: "Set up your firm",
+        subtitle: "You'll be its admin — everyone else joins by invite")
+
+      field("Company name", text: $companyName, symbol: "building.2")
+
+      SectionHeader(
+        title: "Hubdoc address",
+        subtitle: "Optional — receipts are emailed here automatically")
+
+      field(
+        "yourfirm-abc123@hubdoc.com", text: $hubdocEmail, symbol: "tray.and.arrow.up",
+        email: true)
+
+      // Asked here rather than left to a settings screen because a firm that
+      // never sets one has receipts going quietly nowhere, and the moment
+      // someone is setting up their firm is the moment they know the answer.
+      Text(
+        "Find it in Hubdoc under Upload Document, or Organization settings. "
+          + "You can add it later in Profile → Integrations."
+      )
+      .font(.caption2).foregroundStyle(Brand.inkSoft)
+
+      PrimaryButton(
+        title: working ? "Setting up…" : "Create firm",
+        symbol: working ? "hourglass" : "checkmark"
+      ) {
+        Task { await create() }
+      }
+      .disabled(!canCreate)
+      .opacity(canCreate ? 1 : 0.6)
+    }
+    .mpgCard()
+  }
+
+  private var joinCard: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      SectionHeader(
+        title: "Join your firm",
+        subtitle: "Ask your admin for a code — it's single-use")
+
+      field("MPG-K7P4-N2WX", text: $inviteCode, symbol: "key.fill")
+
+      PrimaryButton(
+        title: working ? "Joining…" : "Join",
+        symbol: working ? "hourglass" : "arrow.right"
+      ) {
+        Task { await join() }
+      }
+      .disabled(!canJoin)
+      .opacity(canJoin ? 1 : 0.6)
+
+      Text("No code? An admin can also add you from Manage → Team once you've signed up.")
+        .font(.caption2).foregroundStyle(Brand.inkSoft)
+    }
+    .mpgCard()
+  }
+
+  private func field(
+    _ placeholder: String, text: Binding<String>, symbol: String, email: Bool = false
+  ) -> some View {
+    HStack(spacing: 10) {
+      Image(systemName: symbol).foregroundStyle(Brand.olive).frame(width: 20)
+      TextField(placeholder, text: text)
+        .font(.subheadline)
+        .autocorrectionDisabled()
+        .keyboardType(email ? .emailAddress : .default)
+        .textInputAutocapitalization(email ? .never : .words)
+    }
+    .padding(.vertical, 12).padding(.horizontal, 14)
+    .background(
+      RoundedRectangle(cornerRadius: Brand.Radius.inner, style: .continuous)
+        .fill(Brand.lightGreen.opacity(0.5))
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: Brand.Radius.inner, style: .continuous)
+        .stroke(Brand.hairline, lineWidth: 1)
+    )
+  }
+
+  private func create() async {
+    guard let token = store.currentBackendToken else {
+      errorMessage = "Your session has expired. Sign in again."
+      return
+    }
+    working = true
+    errorMessage = nil
+    defer { working = false }
+    do {
+      try await OnboardingService.createCompany(
+        name: companyName.trimmingCharacters(in: .whitespaces),
+        hubdocEmail: hubdocEmail,
+        token: token)
+      // Re-reads the profile, which is what puts the new company id and the
+      // Admin role into the store and lets ContentView route onward.
+      _ = await auth.refreshRole()
+    } catch {
+      errorMessage = (error as? SupabaseError)?.errorDescription ?? error.localizedDescription
+    }
+  }
+
+  private func join() async {
+    guard let token = store.currentBackendToken else {
+      errorMessage = "Your session has expired. Sign in again."
+      return
+    }
+    working = true
+    errorMessage = nil
+    defer { working = false }
+    do {
+      _ = try await RoleService.redeemInvite(
+        code: inviteCode.trimmingCharacters(in: .whitespaces), token: token)
+      _ = await auth.refreshRole()
+    } catch {
+      errorMessage = (error as? SupabaseError)?.errorDescription ?? error.localizedDescription
+    }
+  }
+}
