@@ -1,0 +1,13 @@
+{
+  "name": "mysite-crew-tests",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Headless verification of the MY Site crew app against a stand-in Supabase.",
+  "scripts": {
+    "test": "node run.js",
+    "shots": "node shots.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1"
+  }
+}
