@@ -17,7 +17,7 @@
 /* Bump this on every deploy. It is the only thing that evicts an old
    shell — a crew phone that never clears its cache will otherwise run
    last month's app for as long as it stays installed. */
-const CACHE = "mysite-crew-v2";
+const CACHE = "mysite-crew-v3";
 
 const SHELL = [
   "./",

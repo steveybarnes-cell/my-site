@@ -1,0 +1,7 @@
+{
+  "name": "mysite-office-tests",
+  "private": true,
+  "description": "Headless checks of the office portal against a stand-in Supabase.",
+  "scripts": { "test": "node run.js" },
+  "devDependencies": { "playwright": "^1.62.1" }
+}

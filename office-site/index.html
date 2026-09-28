@@ -88,6 +88,16 @@
   .btn.grey{background:#EEF0EE;color:var(--soft)}
   .btn:disabled{opacity:.45;cursor:default}
   .row-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .badge{display:inline-block;min-width:18px;padding:1px 6px;border-radius:99px;margin-left:4px;
+    background:var(--red);color:#fff;font-size:11px;font-weight:700;line-height:16px;text-align:center}
+  .badge[hidden]{display:none}
+  .btn.red{background:#FBEAE8;color:var(--red)}
+  .join-code{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    background:var(--light);border-radius:12px;padding:12px 14px;margin:4px 0 14px}
+  .join-code .code{font-family:ui-monospace,Menlo,monospace;font-size:22px;font-weight:700;
+    letter-spacing:4px;color:var(--ink)}
+  .join-code .muted{max-width:420px}
+  .card h3{margin:0 0 6px;font-size:15px}
 
   select.inline{padding:6px 9px;border-radius:9px;border:1px solid var(--line);background:#fff}
   input.inline{padding:6px 9px;border-radius:9px;border:1px solid var(--line);width:92px}
@@ -142,7 +152,7 @@
 <nav id="nav">
   <button data-p="today" class="on">Today</button>
   <button data-p="week">This week</button>
-  <button data-p="people">People</button>
+  <button data-p="people">People <span class="badge" id="joinBadge" hidden></span></button>
   <button data-p="sites">Sites</button>
   <button data-p="invoices">Invoices</button>
   <button data-p="evidence">Receipts &amp; photos</button>
@@ -153,6 +163,7 @@
   <div id="banner"></div>
 
   <section class="panel on" id="p-today">
+    <div id="joinNudge"></div>
     <h2>Right now</h2>
     <p class="lede" id="todayDate"></p>
     <div class="tiles" id="todayTiles"></div>
@@ -170,6 +181,7 @@
   </section>
 
   <section class="panel" id="p-people">
+    <div id="joinBox"></div>
     <h2>People</h2>
     <p class="lede">Role and rate. Changes save straight away — there's no separate save button.</p>
     <div class="card"><div id="peopleTable"></div></div>
@@ -252,6 +264,10 @@ async function api(path, opts) {
     throw new Error(msg || ("HTTP " + res.status));
   }
   return text ? JSON.parse(text) : null;
+}
+
+async function rpc(name, args) {
+  return api("rpc/" + name, { method: "POST", body: JSON.stringify(args || {}) });
 }
 
 async function signIn(email, password) {
@@ -355,8 +371,25 @@ async function loadAll() {
       .forEach(x => { rates[x.user_id] = x.hourly_rate; });
   } catch (e) { /* rates stay blank */ }
 
+  // Joining (0013). Admin only, and a missing function means the
+  // migration has not been run yet — the card says so rather than the
+  // whole page failing.
+  let joins = null, joinCode = null, joinErr = null;
+  if (ME && ME.role === "Admin") {
+    try {
+      [joins, joinCode] = await Promise.all([
+        rpc("pending_join_requests"), rpc("company_join_code")]);
+    } catch (e) { joinErr = e.message; }
+  }
+
+  // An admin's RLS can also return people who have asked to join and are
+  // not in the company yet. They belong in the waiting card, not the list.
+  const mine = ME && ME.company_id
+    ? profiles.filter(p => p.company_id === ME.company_id) : profiles;
+
   DATA = {
-    profiles, sites, clocks, work, days, subs, mats, photos, rates,
+    profiles: mine, sites, clocks, work, days, subs, mats, photos, rates,
+    joins: joins || [], joinCode, joinErr,
     company: (company && company[0]) || null, week
   };
   DATA.siteName = id => (sites.find(s => s.id === id) || {}).name || "—";
@@ -367,7 +400,7 @@ async function loadAll() {
 /* ---------- panels ---------- */
 
 function render() {
-  renderToday(); renderWeek(); renderPeople(); renderSites();
+  renderToday(); renderWeek(); renderJoins(); renderPeople(); renderSites();
   renderInvoices(); renderEvidence(); renderSettings();
 }
 
@@ -449,6 +482,99 @@ function renderWeek() {
     { t: "Sites", sm: true, f: r => esc([...new Set(r.days.map(d => DATA.siteName(d.site_id)))].join(", ")) },
     { t: "Hours", num: true, f: r => "<b>" + hrs(r.hours) + "</b>" }
   ], rows, "No days closed off this week yet.");
+}
+
+function ago(ts) {
+  const m = Math.round((Date.now() - new Date(ts).getTime()) / 60000);
+  if (m < 2) return "just now";
+  if (m < 60) return m + " min ago";
+  const h = Math.round(m / 60);
+  if (h < 24) return h + (h === 1 ? " hour ago" : " hours ago");
+  const d = Math.round(h / 24);
+  return d === 1 ? "yesterday" : d + " days ago";
+}
+
+function renderJoins() {
+  const isAdmin = ME && ME.role === "Admin";
+  const n = (DATA.joins || []).length;
+  el("joinBadge").hidden = !n; el("joinBadge").textContent = n;
+  el("joinNudge").innerHTML = n
+    ? '<div class="err" style="background:#FCF3E2;border-color:#F1DDB4;color:#7A5410">'
+      + (n === 1 ? "1 person is" : n + " people are") + " waiting to join. "
+      + '<a href="#" onclick="goPanel(\'people\');return false">Let them in or turn them away →</a></div>'
+    : "";
+  if (!isAdmin) { el("joinBox").innerHTML = ""; return; }
+
+  let h = '<h2>Waiting to join</h2><div class="card">';
+  if (DATA.joinErr) {
+    h += '<div class="err" style="margin:0">Joining with a company code is not switched on yet: '
+      + "run migration 0013 on the database. (" + esc(DATA.joinErr) + ")</div></div>";
+    el("joinBox").innerHTML = h; return;
+  }
+  h += '<div class="join-code"><div><div class="muted">Your company code</div>'
+    + '<div class="code" id="joinCode">' + esc(DATA.joinCode || "—") + "</div></div>"
+    + '<div class="muted">Give this to new starters, or pin it up in the site cabin. '
+    + "They type it after creating an account, and appear here for you to approve. "
+    + "It only lets them ask — nobody gets in until you say so.</div>"
+    + '<button class="btn grey" id="resetCode" onclick="resetCode(this)">Change code</button></div>';
+  if (!n) {
+    h += '<div class="empty">Nobody is waiting.</div>';
+  } else {
+    h += table([
+      { t: "Who", f: r => "<b>" + esc(r.name || "—") + "</b><div class='muted'>" + esc(r.email || "") + "</div>" },
+      { t: "Asked", sm: true, f: r => '<span class="muted">' + esc(ago(r.created_at)) + "</span>" },
+      { t: "Let in as", f: r => '<select class="inline" id="jr-role-' + r.id + '">'
+          + ["Tradesman", "Site Manager", "Admin"].map(o => "<option>" + o + "</option>").join("")
+          + "</select>" },
+      { t: "", f: r => '<div class="row-actions">'
+          + '<button class="btn" data-approve="' + r.id + '" onclick="decideJoin(\'' + r.id + '\',true,this)">Approve</button>'
+          + '<button class="btn red" data-decline="' + r.id + '" onclick="decideJoin(\'' + r.id + '\',false,this)">Decline</button>'
+          + "</div>" }
+    ], DATA.joins);
+  }
+  el("joinBox").innerHTML = h + "</div>";
+}
+
+function goPanel(name) {
+  const b = document.querySelector('#nav button[data-p="' + name + '"]');
+  if (b) b.click();
+}
+
+/* Decline and change-code are two taps, not a browser confirm() — a
+   dialog like that blocks the page and is easy to click through. */
+function armed(btn, label) {
+  if (btn.dataset.armed === "1") return true;
+  btn.dataset.armed = "1";
+  const was = btn.textContent;
+  btn.textContent = label;
+  setTimeout(() => { if (btn.isConnected) { btn.dataset.armed = ""; btn.textContent = was; } }, 4000);
+  return false;
+}
+
+async function decideJoin(id, approve, btn) {
+  if (!approve && !armed(btn, "Sure? Decline")) return;
+  const r = (DATA.joins || []).find(x => x.id === id) || {};
+  const role = approve ? (el("jr-role-" + id) || {}).value || "Tradesman" : undefined;
+  btn.disabled = true;
+  try {
+    await rpc("decide_join_request", approve
+      ? { p_id: id, p_approve: true, p_role: role }
+      : { p_id: id, p_approve: false });
+    banner("ok", approve
+      ? (r.name || "They") + " can now sign in as " + role + "."
+      : (r.name || "Their") + (r.name ? "'s" : "") + " request was declined.");
+    await loadAll();
+  } catch (e) { btn.disabled = false; banner("err", e.message); }
+}
+
+async function resetCode(btn) {
+  if (!armed(btn, "Sure? The old code stops working")) return;
+  btn.disabled = true;
+  try {
+    const code = await rpc("reset_join_code");
+    banner("ok", "New company code: " + code + ". The old one no longer works.");
+    await loadAll();
+  } catch (e) { btn.disabled = false; banner("err", e.message); }
 }
 
 function renderPeople() {
@@ -571,7 +697,9 @@ async function setInv(id, status) {
 
 async function setRole(id, role) {
   try {
-    await api("profiles?id=eq." + id, { method: "PATCH", body: JSON.stringify({ role: role }) });
+    // set_user_role (0006) rather than a PATCH: a PATCH that RLS refuses
+    // updates zero rows and reports success.
+    await rpc("set_user_role", { p_user: id, p_role: role });
     banner("ok", "Role updated.");
     await loadAll();
   } catch (e) { banner("err", e.message); }

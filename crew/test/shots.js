@@ -186,6 +186,34 @@ async function main() {
   console.log("  12-invite-code.png");
   await ctx2.close();
 
+  // Signing up and waiting to be let in.
+  const ctx3 = await browser.newContext({ viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+  const p3 = await ctx3.newPage();
+  const FIRM = { id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", name: "Smith Building", join_code: "K7M4QX" };
+  const b3 = makeBackend({ email: "x@x", password: "x", me: { id: "99999999-9999-4999-8999-999999999999" },
+    profiles: [], sites: [], work_allocations: [], tradesman_details: [], companies: [FIRM] });
+  await b3.install(p3);
+  await p3.goto(BASE);
+  const snap = async name => { await sleep(350); await p3.screenshot({ path: path.join(OUT, name + ".png") }); console.log("  " + name + ".png"); };
+  await snap("13-signin-with-signup");
+  await p3.click("#tosignup");
+  await p3.fill("#su-name", "Dan Newman"); await p3.fill("#su-email", "dan@new.example");
+  await p3.fill("#su-pass", "a-good-long-one");
+  await snap("14-create-account");
+  await p3.click("#su-go");
+  await p3.waitForSelector("#setup:not([hidden])");
+  await p3.fill("#invite", "K7M4QX");
+  await snap("15-company-code");
+  await p3.click("#redeem");
+  await p3.waitForFunction(() => document.getElementById("setuph").innerText.includes("Waiting"));
+  await snap("16-waiting");
+  b3.decide(false);
+  await p3.click("#setupretry");
+  await p3.waitForFunction(() => document.getElementById("setuph").innerText.includes("Not let in"));
+  await snap("17-declined");
+  await ctx3.close();
+
   await browser.close();
   server.close();
   console.log("\nScreenshots in " + OUT);

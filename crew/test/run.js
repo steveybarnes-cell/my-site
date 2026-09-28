@@ -624,6 +624,133 @@ async function main() {
       .includes("No signal")), await p4.$eval("#setupmsg", n => n.innerText));
   await ctx4.close();
 
+  /* ================= 12b. signing up and asking to join ================= */
+  section("12b. Signing up, asking to join, being let in or turned away");
+  const FIRM = { id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", name: "Smith Building", join_code: "K7M4QX" };
+  const NEWID = "99999999-9999-4999-8999-999999999999";
+
+  // --- A man with no account, on a project with email confirmation OFF.
+  const ctx5 = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const p5 = await ctx5.newPage();
+  p5.on("pageerror", e => pageErrors.push(String(e)));
+  const newMe = { id: NEWID };
+  const b5 = makeBackend({ email: "nobody@nowhere", password: "x", me: newMe, profiles: [],
+    sites: [SITE_A], work_allocations: [], tradesman_details: [], companies: [FIRM] });
+  await b5.install(p5);
+  await p5.goto(BASE);
+  const t5 = sel => p5.$eval(sel, n => n.innerText).catch(() => "");
+
+  check("the sign-in screen offers to create an account", await p5.isVisible("#tosignup"));
+  await p5.click("#tosignup");
+  check("tapping it opens the sign-up screen", await p5.isVisible("#signup") && !(await p5.isVisible("#gate")));
+  await p5.click("#su-go");
+  check("a blank form is caught on the phone, nothing sent",
+    (await t5("#sumsg")).includes("Put your name in") && b5.signedUp.length === 0);
+  await p5.fill("#su-name", "  Dan   Newman ");
+  await p5.fill("#su-email", "dan@new.example");
+  await p5.fill("#su-pass", "short");
+  await p5.click("#su-go");
+  check("a short password is caught on the phone", (await t5("#sumsg")).includes("8 or more"));
+  await p5.fill("#su-pass", "a-good-long-one");
+  await p5.press("#su-pass", "Enter");
+  check("creating the account lands him on the company-code screen",
+    await waitFor(async () => await p5.isVisible("#setup") && (await t5("#setuph")).includes("Nearly there")));
+  const su = b5.signedUp[0] || {};
+  check("his name went with the signup, tidied, so the office knows who he is",
+    su.name === "Dan Newman" && su.meta && su.meta.full_name === "Dan Newman", JSON.stringify(su.meta));
+  check("the confirmation link would come back to this app",
+    (su.redirect || "").startsWith(BASE), su.redirect);
+  check("the signup carried no company and no role",
+    b5.calls.filter(c => c.path === "/auth/v1/signup").every(c =>
+      !("company_id" in (c.body || {})) && !("role" in (c.body || {})) && !("role" in ((c.body || {}).data || {}))));
+
+  await p5.fill("#invite", "k7m 4qx");
+  await p5.click("#redeem");
+  check("a company code sends a request and says who to",
+    await waitFor(async () => (await t5("#setuph")).includes("Waiting to be let in")
+      && (await t5("#setupsub")).includes("Smith Building")), await t5("#setup"));
+  const jr = b5.calls.filter(c => c.path === "/rest/v1/rpc/request_to_join").pop() || {};
+  check("the code was tidied to K7M4QX and sent on its own",
+    jr.body && jr.body.p_code === "K7M4QX" && Object.keys(jr.body).length === 1, JSON.stringify(jr.body));
+  check("it did not try it as an invite code",
+    !b5.calls.some(c => c.path === "/rest/v1/rpc/redeem_role_invite"));
+  check("while waiting, the code box is put away", !(await p5.isVisible("#invite")));
+  check("…but he can change a wrong code", await p5.isVisible("#setupchange"));
+  check("the request is waiting at the office", b5.joinRequests.length === 1
+    && b5.joinRequests[0].status === "Pending");
+
+  await p5.click("#setupretry");
+  check("Check now, before anyone has decided, says not yet",
+    await waitFor(async () => (await t5("#setupmsg")).includes("Not yet")));
+
+  // The office approves. He does nothing: the waiting screen notices.
+  await p5.evaluate(() => { JOIN_POLL_MS = 250; renderSetup(); });
+  b5.decide(true, "Tradesman");
+  check("once approved, the waiting screen moves him into the app by itself",
+    await waitFor(async () => await p5.isVisible("#v-today"), 6000));
+  check("he is welcomed by name",
+    await waitFor(async () => (await t5("#toast")).includes("Dan")));
+  check("and the app is now his, in the firm that approved him",
+    (await p5.evaluate(() => (window.localStorage.getItem("mysite.crew.me") || ""))).includes(FIRM.id)
+    || b5.db.profiles[0].company_id === FIRM.id);
+  await ctx5.close();
+
+  // --- Approved while the app was in his pocket.
+  const ctx6 = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const p6 = await ctx6.newPage();
+  const b6 = makeBackend({ email: "x@x", password: "x", me: { id: NEWID }, profiles: [],
+    sites: [SITE_A], work_allocations: [], tradesman_details: [], companies: [FIRM] });
+  await b6.install(p6);
+  await p6.goto(BASE);
+  await p6.click("#tosignup");
+  await p6.fill("#su-name", "Pocket Pete"); await p6.fill("#su-email", "pete@new.example");
+  await p6.fill("#su-pass", "a-good-long-one"); await p6.click("#su-go");
+  await p6.waitForSelector("#setup:not([hidden])");
+  await p6.fill("#invite", "K7M4QX"); await p6.click("#redeem");
+  await p6.waitForFunction(() => document.getElementById("setuph").innerText.includes("Waiting"));
+  b6.decide(true);
+  await p6.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+  check("approved while the app was closed: reopening it goes straight in",
+    await waitFor(async () => await p6.isVisible("#v-today"), 6000));
+  await ctx6.close();
+
+  // --- Email confirmation ON, then turned away.
+  const ctx7 = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const p7 = await ctx7.newPage();
+  const b7 = makeBackend({ email: "taken@firm.example", password: "x", me: { id: NEWID }, profiles: [],
+    sites: [], work_allocations: [], tradesman_details: [], companies: [FIRM], signupMode: "confirm" });
+  await b7.install(p7);
+  await p7.goto(BASE);
+  const t7 = sel => p7.$eval(sel, n => n.innerText).catch(() => "");
+  await p7.click("#tosignup");
+  await p7.fill("#su-name", "Tom Taken"); await p7.fill("#su-email", "taken@firm.example");
+  await p7.fill("#su-pass", "a-good-long-one"); await p7.click("#su-go");
+  check("an email that already has an account is told to sign in (confirmation on)",
+    await waitFor(async () => (await t7("#sumsg")).includes("already an account")), await t7("#sumsg"));
+  await p7.fill("#su-email", "ed@new.example");
+  await p7.click("#su-go");
+  check("with confirmation on, he is sent to check his email",
+    await waitFor(async () => await p7.isVisible("#gate") && (await t7("#gatemsg")).includes("emailed ed@new.example")));
+  check("and his email is already filled in to sign in with", (await p7.inputValue("#email")) === "ed@new.example");
+  await p7.fill("#pass", "a-good-long-one"); await p7.click("#signin");
+  await p7.waitForSelector("#setup:not([hidden])");
+  await p7.fill("#invite", "K7M4QX"); await p7.click("#redeem");
+  await p7.waitForFunction(() => document.getElementById("setuph").innerText.includes("Waiting"));
+  b7.decide(false);
+  await p7.click("#setupretry");
+  check("turned away: he is told plainly, with the firm's name",
+    await waitFor(async () => (await t7("#setuph")).includes("Not let in")
+      && (await t7("#setupsub")).includes("Smith Building")), await t7("#setup"));
+  check("…and can try a different code", await p7.isVisible("#invite"));
+  check("…and is still not in the app", !(await p7.isVisible("#app")));
+
+  // Before 0013 is run on the database: say so, don't show a raw error.
+  b7.setRpcMissing(true);
+  await p7.fill("#invite", "K7M4QX"); await p7.click("#redeem");
+  check("if the database is not updated yet, it says company codes are not on yet",
+    await waitFor(async () => (await t7("#setupmsg")).includes("not switched on yet")), await t7("#setupmsg"));
+  await ctx7.close();
+
   /* ================= 13. session refresh ================= */
   section("13. An expired token");
   const before = backend.refreshCount;
@@ -646,7 +773,7 @@ async function main() {
   // is the wrong password, the 401 is the expired token, and the
   // disconnection is the offline run. Anything else is a real fault.
   const realErrors = pageErrors.filter(e =>
-    !/status of 400|status of 401|status of 403|ERR_INTERNET_DISCONNECTED|net::ERR_FAILED/.test(e));
+    !/status of 400|status of 401|status of 403|status of 404|status of 422|ERR_INTERNET_DISCONNECTED|net::ERR_FAILED/.test(e));
   check("no uncaught errors anywhere in the run",
     realErrors.length === 0, realErrors.slice(0, 3).join(" ¦ "));
 

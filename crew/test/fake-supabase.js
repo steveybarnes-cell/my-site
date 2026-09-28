@@ -26,6 +26,7 @@ function makeBackend(seed) {
   };
 
   const calls = [];          // every request the app made
+  const signedUp = [];       // signups the app made
   const uploads = [];        // storage uploads
   let refreshCount = 0;
   let failNetwork = false;   // flip to simulate no signal
@@ -33,6 +34,10 @@ function makeBackend(seed) {
 
   const me = seed.me;
   const invites = seed.invites || [];   // role_invites rows
+  const companies = seed.companies || []; // { id, name, join_code, active }
+  const joinRequests = [];               // { id, user_id, company_id, status, created_at }
+  let signupMode = seed.signupMode || "session";   // "session" | "confirm"
+  let rpcMissing = false;                // simulate 0013 not yet run
 
   function parseQuery(qs) {
     const out = {};
@@ -126,6 +131,36 @@ function makeBackend(seed) {
     }
     if (url.pathname === "/auth/v1/recover") { await json(200, {}); return; }
 
+    /* GoTrue signup. Two shapes, as the real one: with email confirmation
+       off it signs him straight in; with it on it returns a bare user, and
+       for an email that already exists it returns a user with no
+       identities rather than an error. */
+    if (url.pathname === "/auth/v1/signup" && method === "POST") {
+      const email = String((body && body.email) || "").toLowerCase();
+      const exists = email === String(seed.email).toLowerCase()
+        || db.profiles.some(p => String(p.email).toLowerCase() === email);
+      if (exists && signupMode === "session") {
+        await json(422, { code: 422, msg: "User already registered" }); return;
+      }
+      if (exists) {
+        await json(200, { id: "fake-" + Date.now(), email, identities: [] }); return;
+      }
+      const name = (body.data && (body.data.full_name || body.data.name)) || "";
+      // What handle_new_user does: a profile with no company.
+      me.id = me.id || "99999999-9999-4999-8999-999999999999";
+      Object.assign(me, { email, name, company_id: null, role: "Tradesman" });
+      if (!db.profiles.includes(me)) db.profiles.push(me);
+      seed.email = email; seed.password = body.password;
+      signedUp.push({ email, name, redirect: url.searchParams.get("redirect_to"), meta: body.data });
+      if (signupMode === "confirm") {
+        await json(200, { id: me.id, email, identities: [{ id: "x" }], confirmation_sent_at: new Date().toISOString() });
+      } else {
+        await json(200, { access_token: "tok-1", refresh_token: "ref-1", expires_in: 3600,
+          user: { id: me.id, email } });
+      }
+      return;
+    }
+
     /* ---------------- Storage ---------------- */
     if (url.pathname.startsWith("/storage/v1/object/sign/")) {
       const paths = (body && body.paths) || [];
@@ -138,6 +173,37 @@ function makeBackend(seed) {
       const key = url.pathname.replace("/storage/v1/object/site-evidence/", "");
       uploads.push({ path: key, bytes: (request.postDataBuffer() || { length: 0 }).length });
       await json(200, { Key: "site-evidence/" + key });
+      return;
+    }
+
+    /* ---------------- PostgREST RPC: 0013 join requests ---------------- */
+    if (/^\/rest\/v1\/rpc\/(request_to_join|my_join_request)$/.test(url.pathname)) {
+      if (rpcMissing) {
+        await json(404, { code: "PGRST202", message:
+          "Could not find the function public." + url.pathname.split("/").pop() + " in the schema cache" });
+        return;
+      }
+      const row = db.profiles.find(r => r.id === me.id);
+      if (url.pathname.endsWith("my_join_request")) {
+        const r = joinRequests.filter(x => x.user_id === me.id && x.status !== "Withdrawn").pop();
+        const c = r && companies.find(c => c.id === r.company_id);
+        await json(200, r ? [{ status: r.status, company_name: c.name, created_at: r.created_at,
+          decided_at: r.decided_at || null }] : []);
+        return;
+      }
+      const code = String((body && body.p_code) || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+      const refuse = (status, errcode, message) =>
+        json(status, { code: errcode, details: null, hint: null, message });
+      if (row && row.company_id) return refuse(403, "42501", "Your account already belongs to a company.");
+      const c = companies.find(c => c.join_code === code && c.active !== false);
+      if (!c) return refuse(400, "22023", "That company code was not recognised. Check it with the office.");
+      const open = joinRequests.find(x => x.user_id === me.id && x.status === "Pending");
+      if (!(open && open.company_id === c.id)) {
+        if (open) open.status = "Withdrawn";
+        joinRequests.push({ id: "jr-" + (joinRequests.length + 1), user_id: me.id, company_id: c.id,
+          status: "Pending", created_at: new Date().toISOString() });
+      }
+      await json(200, c.name);
       return;
     }
 
@@ -217,7 +283,20 @@ function makeBackend(seed) {
   }
 
   return {
-    db, calls, uploads, invites,
+    db, calls, uploads, invites, companies, joinRequests, signedUp,
+    setSignupMode(m) { signupMode = m; },
+    setRpcMissing(v) { rpcMissing = !!v; },
+    /** What decide_join_request does, for the office side of a test. */
+    decide(approve, role) {
+      const r = joinRequests.find(x => x.user_id === me.id && x.status === "Pending");
+      if (!r) throw new Error("no pending request");
+      r.status = approve ? "Approved" : "Declined"; r.decided_at = new Date().toISOString();
+      if (approve) {
+        const row = db.profiles.find(p => p.id === me.id);
+        row.company_id = r.company_id; row.role = role || "Tradesman";
+        me.company_id = r.company_id;
+      }
+    },
     get refreshCount() { return refreshCount; },
     setOffline(v) { failNetwork = !!v; },
     expireTokens(n) { expireNext = n; },

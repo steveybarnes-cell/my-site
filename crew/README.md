@@ -15,7 +15,7 @@ the iOS build.
 | `sw.js` | Service worker. Caches the shell so the app opens with no signal. It never caches Supabase. |
 | `manifest.webmanifest` | Makes it installable. Bump nothing here without bumping `CACHE` in `sw.js`. |
 | `icon-*.png` | Home-screen icons, cut from the iOS app icon so both look the same on a shelf. |
-| `test/` | The headless test run. 106 assertions. |
+| `test/` | The headless test run. 132 assertions. |
 
 ## The URL
 
@@ -45,7 +45,7 @@ the folder moves the app without editing anything.
 ```bash
 cd test
 npm install
-node run.js      # 106 assertions
+node run.js      # 132 assertions
 node shots.js    # screenshots of every screen into ../shots/
 ```
 
@@ -76,23 +76,34 @@ That check has to run somewhere with network to the live project.
   upsert, and a week that has been invoiced must still show what it was
   built from.
 
-## Joining a company
+## Signing up and joining a company
 
-A man who signs up and isn't in a company yet lands on "Nearly there".
-There are two ways off it:
+A new man taps **New here? Create an account** (name, email, password).
+He then lands on "Nearly there", which has one box that takes either code
+the office can give him:
 
-- **An invite code.** The office makes one in the portal
-  (`create_role_invite`, any role since 0005) and reads or texts it to him.
-  He types it in; `redeem_role_invite` checks it, attaches him to that
-  company and sets his role in one server call. The phone sends only the
-  code — it learns its company by reloading its own profile afterwards.
-  Codes are forgiving to type: `ab3d 7kq2`, `MPGAB3D7KQ2` and
-  `mpg-ab3d-7kq2` all become `MPG-AB3D-7KQ2`.
-- **The office adopts him** (`adopt_user_into_company`) and he taps
-  *Check again*.
+- **Company code** (`K7M4QX`, six characters, reusable). Shown to admins in
+  the office portal under People, to pin up in the site cabin. Typing it
+  sends a *join request* (`request_to_join`, migration 0013) that only that
+  company's admins can see. He waits on "Waiting to be let in", which
+  checks every 20 seconds while it's on screen and moves him into the app
+  by itself once approved. Declined, he is told so with the firm's name.
+- **Invite code** (`MPG-AB3D-7KQ2`, single use). Lets him straight in with
+  the role it was made for (`redeem_role_invite`). No approval.
 
-Starting a new company (`create_company`, 0009) is deliberately not here —
-that is the office's first step, not a crew one.
+The box tells them apart by shape and is forgiving to type:
+`k7m 4qx`, `ab3d 7kq2` and `mpg-ab3d-7kq2` all work.
+
+The office decides in the portal: **People → Waiting to join**, with a
+role picker, **Approve** and **Decline**. The iPhone app's Manage → Team
+"Add to company" approves the same requests.
+
+The phone never sends a company id or a role. It learns its company by
+reloading its own profile after the server has decided.
+
+If the Supabase project has email confirmation on, sign-up tells him to
+check his email and sign in afterwards; the link comes back to this app,
+so this URL must be in Authentication → URL Configuration → Redirect URLs.
 
 ## Known limits
 
