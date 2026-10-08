@@ -1,4 +1,5 @@
 import CoreLocation
+import PhotosUI
 import SwiftUI
 
 /// Confirmation sheet shown when clocking in or out — resolves a single GPS fix, shows the
@@ -16,6 +17,9 @@ struct ClockConfirmSheet: View {
   @State private var reason = ""
   @State private var addPhoto = false
   @State private var photoNote = ""
+  @State private var showCamera = false
+  @State private var pickerItem: PhotosPickerItem?
+  @State private var photoData: Data?
 
   private var isOut: Bool { event == .clockOut }
   private var title: String { isOut ? "Clock Out" : "Clock In" }
@@ -48,6 +52,17 @@ struct ClockConfirmSheet: View {
               }
             }
             .padding(16)
+          }
+        }
+        .sheet(isPresented: $showCamera) {
+          CameraCaptureView { data in photoData = data }
+        }
+        .onChange(of: pickerItem) { _, item in
+          guard let item else { return }
+          Task {
+            if let data = try? await item.loadTransferable(type: Data.self) {
+              photoData = data
+            }
           }
         }
         .navigationTitle(title)
@@ -140,6 +155,8 @@ struct ClockConfirmSheet: View {
     .mpgCard()
   }
 
+  /// The photo itself, not just a note about one. Camera first, gallery as
+  /// the fallback, and a thumbnail so the man can see what he is attaching.
   private var photoCard: some View {
     VStack(alignment: .leading, spacing: 10) {
       Toggle(isOn: $addPhoto) {
@@ -148,17 +165,53 @@ struct ClockConfirmSheet: View {
       }
       .tint(Brand.olive)
       if addPhoto {
-        TextField("Photo description", text: $photoNote)
+        HStack(spacing: 10) {
+          Button { showCamera = true } label: {
+            photoSourceCard(symbol: "camera.fill", title: "Take photo")
+          }
+          .buttonStyle(.plain)
+          PhotosPicker(selection: $pickerItem, matching: .images) {
+            photoSourceCard(symbol: "photo.on.rectangle.angled", title: "From gallery")
+          }
+          .buttonStyle(.plain)
+        }
+        if let photoData, let image = UIImage(data: photoData) {
+          HStack(spacing: 10) {
+            Image(uiImage: image)
+              .resizable().scaledToFill()
+              .frame(width: 64, height: 64)
+              .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            Label("Photo attached", systemImage: "checkmark.circle.fill")
+              .font(.subheadline.weight(.semibold)).foregroundStyle(Brand.paidGreen)
+            Spacer()
+            Button("Remove") {
+              self.photoData = nil
+              pickerItem = nil
+            }
+            .font(.caption).foregroundStyle(Brand.red)
+          }
+        }
+        TextField("Photo description (optional)", text: $photoNote)
           .padding(10)
           .background(Brand.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
           .overlay(
             RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(
               Brand.hairline, lineWidth: 1))
-        Text("Saved to Drive under Clock In Evidence / \(site.name).")
+        Text("Filed under Clock In Evidence / \(site.name).")
           .font(.caption2).foregroundStyle(Brand.inkSoft)
       }
     }
     .mpgCard()
+  }
+
+  private func photoSourceCard(symbol: String, title: String) -> some View {
+    VStack(spacing: 6) {
+      Image(systemName: symbol).font(.title2).foregroundStyle(Brand.olive)
+      Text(title).font(.caption.weight(.semibold)).foregroundStyle(Brand.ink)
+    }
+    .frame(maxWidth: .infinity)
+    .padding(.vertical, 14)
+    .background(Brand.lightGreen, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
   }
 
   // MARK: - Actions
@@ -176,16 +229,19 @@ struct ClockConfirmSheet: View {
 
   private func submit() {
     guard let fix else { return }
-    let photoDesc: String? = addPhoto ? photoNote : nil
+    // Only a real photo counts as a photo. A ticked toggle with nothing
+    // captured must not file an empty evidence record.
+    let photoDesc: String? = (addPhoto && photoData != nil) ? photoNote : nil
     if isOut {
       if let open = store.openClockRecord(for: store.currentUser?.id ?? UUID()) {
         store.clockOut(
-          recordId: open.id, site: site, fix: fix, reasonNote: reason, photoDescription: photoDesc)
+          recordId: open.id, site: site, fix: fix, reasonNote: reason,
+          photoDescription: photoDesc, photoData: photoData)
       }
     } else {
       store.clockIn(
         site: site, fix: fix, device: location.deviceName, reasonNote: reason,
-        photoDescription: photoDesc)
+        photoDescription: photoDesc, photoData: photoData)
     }
     dismiss()
   }

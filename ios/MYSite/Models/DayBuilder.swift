@@ -98,6 +98,99 @@ extension AppStore {
     }
   }
 
+  // MARK: - Editing what is already on record
+
+  /// The week's invoice for someone, if one has been built.
+  func submission(for userId: UUID, weekEnding week: Date) -> WeeklySubmission? {
+    let week = weekEnding(for: week)
+    return submissions.first { $0.userId == userId && weekEnding(for: $0.weekEnding) == week }
+  }
+
+  /// Once a day has been closed off or its week invoiced, the line is on
+  /// record. From then on the safety rule applies: what was done can be
+  /// corrected, but when, where and for how long cannot.
+  func isOnRecord(_ e: WorkLogEntry) -> Bool {
+    dayRecord(for: e.userId, on: e.date) != nil
+      || submission(for: e.userId, weekEnding: e.date) != nil
+  }
+
+  /// Whether an invoice can still have its job details corrected. Once the
+  /// office has approved or paid it, it is history.
+  func canAmend(_ s: WeeklySubmission) -> Bool {
+    switch s.status {
+    case .draft, .submitted, .queryRaised, .awaitingSM, .rejected, .onHold: return true
+    case .approvedSM, .approvedPayment, .paid: return false
+    }
+  }
+
+  /// Corrects the job details on a line that is already on record.
+  ///
+  /// Only the description and type of work move. Site, date and duration are
+  /// left exactly as captured — that is the safety feature, and it is enforced
+  /// here rather than in the form so no other screen can route around it.
+  /// The office is told every time, and if the week has an invoice the edit is
+  /// written into that invoice's thread so the manager sees it next to the
+  /// figures it affects.
+  func amendWorkLine(_ id: UUID, description: String, category: WorkCategory) {
+    guard let i = workLogEntries.firstIndex(where: { $0.id == id }) else { return }
+    let old = workLogEntries[i]
+    let text = description.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !text.isEmpty, old.description != text || old.category != category else { return }
+
+    var e = old
+    e.description = text
+    e.category = category
+    workLogEntries[i] = e
+    sync(queued: SupabaseData.operation(for: e)) { try await SupabaseData.save(e, token: $0) }
+
+    // Keep the day sheet's text in step with its lines. Hours are recomputed
+    // from the same unchanged minutes, so the total cannot move.
+    if dayRecord(for: e.userId, on: e.date) != nil {
+      closeDay(for: e.userId, on: e.date)
+    }
+
+    var changes: [String] = []
+    if old.description != text { changes.append("\u{201C}\(old.description)\u{201D} \u{2192} \u{201C}\(text)\u{201D}") }
+    if old.category != category { changes.append("\(old.category.rawValue) \u{2192} \(category.rawValue)") }
+    let detail = changes.joined(separator: "; ")
+    let who = user(e.userId)?.name ?? "A tradesman"
+    let when = Fmt.date(e.date)
+    let siteName = self.site(e.siteId)?.name ?? "site"
+
+    notifyOffice(
+      category: .pendingReview,
+      message: "\(who) edited a job on \(when) at \(siteName) after it was recorded: \(detail). "
+        + "Hours, site and clock times are unchanged.")
+
+    if let sub = submission(for: e.userId, weekEnding: e.date),
+      let office = users.first(where: { $0.role == .admin })
+    {
+      addQuery(
+        submissionId: sub.id, toUserId: office.id,
+        message: "Edited after recording \u{2014} job on \(when) (\(siteName)): \(detail)",
+        fromAdmin: false)
+    }
+    confirm("Job updated \u{2014} office notified")
+  }
+
+  /// Photos taken by someone in a week, oldest first.
+  func photos(for userId: UUID, weekEnding week: Date) -> [SitePhoto] {
+    let week = weekEnding(for: week)
+    return photos
+      .filter { $0.userId == userId && weekEnding(for: $0.timestamp) == week }
+      .sorted { $0.timestamp < $1.timestamp }
+  }
+
+  /// Something a photo can be attached to for a day: the line's own job if it
+  /// has one, otherwise any job allocated to that person that day.
+  func allocationForPhotos(userId: UUID, on date: Date, preferring allocationId: UUID?) -> WorkAllocation? {
+    if let allocationId, let a = allocations.first(where: { $0.id == allocationId }) { return a }
+    return allocations.first {
+      $0.tradesmanId == userId && Calendar.current.isDate($0.date, inSameDayAs: date)
+        && $0.status != .cancelled
+    }
+  }
+
   // MARK: - Closing a day
 
   /// Whether a day has anything worth closing off.
@@ -158,6 +251,7 @@ extension AppStore {
       existing.category = category
       if !notes.isEmpty { existing.notes = notes }
       updateRecord(existing)
+      confirm("Day sheet updated")
       return existing
     }
 
@@ -239,6 +333,7 @@ extension AppStore {
     sub.labourRate = existing?.labourRate ?? prof?.hourlyRate ?? 0
     sub.vatRegistered = prof?.vatRegistered ?? sub.vatRegistered
     saveSubmission(sub)
+    confirm("Invoice \(sub.invoiceNumber) ready")
     return sub
   }
 

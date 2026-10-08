@@ -1,89 +1,106 @@
-# Privacy Policy
+# Privacy Policy — MY Site
 
-**My Project Group Ltd — MPG Site Records**
+**Last updated: 21 September 2026**
 
-**Last updated:** 15 July 2026
+MY Site is a construction site-records app made by **My Project Group Limited** ("we", "us", "our"). This policy explains what information the app collects, why, who it is shared with, and the choices you have. It applies to the MY Site iOS app, the MY Site office portal and crew web app, and any support we provide for them.
 
-This Privacy Policy explains how **My Project Group Ltd** ("MPG", "we", "us", or "our"), a company registered in England & Wales, collects, uses, and protects your personal data when you use the MPG Site Records mobile application (the "App"). MPG is the data controller for the personal data described here.
+MY Site is sold to construction businesses of any size. Each business (a "company") creates its own account and invites its own staff and subcontractors. If you use MY Site through your employer or a contractor you work for, that company decides what work information it asks you to record; we process that information on the company's behalf.
 
-By using the App you agree to the collection and use of information in accordance with this Policy.
+**Contact:** My Project Group Limited · info@my-project.co.uk · 0117 251 0565
 
-## 1. Who this Policy applies to
+---
 
-The App is a private business tool used by staff, subcontractors, and site managers who work with or for MPG. It is not a consumer app and access requires an authorised account.
+## 1. What we collect
 
-## 2. Data we collect
+**Account information** — your name, email address, the company you belong to and your role in it (admin, site manager or tradesman). Created when you or your company registers you.
 
-We collect only the data needed to run site records, timesheets, invoicing, and payments:
+**Profile information you choose to enter** — trade, business name, hourly rate, VAT status and CIS status, and if you enter them for invoicing, your UTR and National Insurance number. These are only used to build your invoices and are only visible to you and your company's office staff.
 
-- **Name** — to identify you within the company and on records you submit.
-- **Email address** — for account access, sign-in, and communication.
-- **Photos** — site photos, evidence, and receipt images you capture or upload.
-- **Precise location** — used for geofenced clock-in / clock-out and attendance records, when you use those features and grant permission.
-- **Messages** — posts and comments you send in the in-app team feed / company chat.
-- **Work records** — daily site records, timesheets, invoices, allocations, and expenses you enter.
+**Work records** — jobs allocated to you, tasks you log, hours, day sheets, materials and receipts, invoices, progress updates, and any notes you type or dictate.
 
-We do **not** collect this data for advertising or profiling.
+**Photos and files** — photos you take or choose from your library and attach to a job, receipt or site record, and files uploaded to a site's file hub. Photos are stored in a private storage bucket that only your company can access.
 
-## 3. How we use your data
+**Location** — a single location reading at the moment you clock in or clock out, used to confirm you were at the assigned site. Location is never read at any other time, never tracked in the background, and cannot be edited after the fact.
 
-We use your data to:
+**Voice** — when you dictate a note, your speech is transcribed by Apple's on-device speech recognition. We do not receive or store the audio.
 
-- provide and operate the App and your account;
-- record and review site work, attendance, and evidence;
-- process timesheets, invoices, expenses, and payments;
-- enable team communication within the company;
-- scan receipts using AI to extract amounts and details;
-- keep business and accounting records as required by law.
+**Company feed** — posts, comments, photos and reactions you share with your company's feed. These are visible only to members of your company. Every post can be reported to your company's admins or blocked from your view.
 
-## 4. Third-party services
+**Payment information** — companies pay for MY Site by card through Stripe. Card details are entered on Stripe's secure checkout and never reach our servers; we receive only the subscription status and a Stripe reference.
 
-The App uses trusted third-party providers to deliver its features:
+**Support and device information** — if you contact us, the details you give us; and basic technical information (app version, iOS version, error reports) needed to keep the app working.
 
-- **Supabase** — secure hosting of your account, data, and uploaded files (authentication and storage).
-- **OpenAI** — AI-assisted receipt scanning. When you scan a receipt, the receipt image is sent to OpenAI to extract the relevant details. It is not used to train models on your data under our configuration.
-- **Xero** — accounting and invoice processing, where invoices are pushed to MPG's Xero account.
+We do **not** collect contacts, browsing history, health data, advertising identifiers or any data for advertising.
 
-These providers process data on our behalf. Your use of these features may also be subject to those providers' own privacy terms.
+## 2. Why we use it
 
-## 5. Tracking
+- To run the app: sign you in, show your allocated work, let you record your day, and let your company's office review, approve and pay it.
+- To build your weekly invoice from the records you make, and to let the office see when a record has been corrected after it was made.
+- To confirm site attendance at clock-in and clock-out.
+- To read receipts you photograph and pre-fill the supplier, cost, VAT and date so you don't have to type them (see AI services below).
+- To tidy dictated notes into clear written records, if you use that feature.
+- To forward receipts to your company's bookkeeping (Hubdoc) if your company has switched that on.
+- To manage your company's subscription.
+- To answer support requests and to fix bugs.
 
-The App does **not** track you across other companies' apps or websites, and does **not** use advertising identifiers, third-party analytics, or ad networks. We do not sell your personal data.
+Our legal bases under UK GDPR are: performance of a contract (providing the service to you and your company); our and your company's legitimate interests in running a construction business, keeping accurate records and preventing fraud; and legal obligation (tax and employment record-keeping).
 
-## 6. Data storage and security
+## 3. AI services
 
-- Your data is stored securely using Supabase, including a private storage bucket for photos and receipts.
-- Access is restricted to authorised MPG users and role-based permissions.
-- We take reasonable technical and organisational measures to protect your data, though no system can be guaranteed to be completely secure.
+Two features send text or images to an AI provider (OpenAI) through our servers:
 
-## 7. Data retention
+- **Receipt scanning** — the receipt photo is sent to extract supplier, cost, VAT and date. You can check and correct the result before it is saved.
+- **Tidy note** — the text of a note you dictated or typed is sent to be reformatted. Nothing is added to what you wrote.
 
-We keep your data for as long as needed to operate the App and to meet MPG's legal, accounting, and business record-keeping obligations. Financial and invoicing records may be retained for the period required by UK law.
+Only the receipt image or the note text is sent, with no name, account or location attached. Our provider is contractually barred from using this data to train its models. You can use MY Site without either feature.
 
-## 8. Your rights
+## 4. Who we share it with
 
-Under UK data protection law (UK GDPR and the Data Protection Act 2018) you have the right to:
+We share information only with the services needed to run MY Site:
 
-- access the personal data we hold about you;
-- request correction of inaccurate data;
-- request deletion of your data, subject to our legal record-keeping obligations;
-- object to or restrict certain processing;
-- request a copy of your data in a portable format.
+| Service | What for | Where |
+|---|---|---|
+| Supabase | Authentication, database and private photo storage | EU region |
+| Apple | On-device speech recognition; App Store, TestFlight and push notifications | Device / Apple |
+| OpenAI | Receipt scanning and note tidying (see section 3) | USA — under UK-approved contract terms |
+| Stripe | Company subscription payments | USA / EU — under UK-approved contract terms |
+| Hubdoc (Xero) | Receipt forwarding, only if your company enables it | Your company's Hubdoc account |
 
-You can delete your account and associated personal data directly in the App via the **Delete my account** option, subject to records we must retain by law. To exercise any other right, contact us using the details below.
+Your work records are visible to your company's admins and site managers, as you'd expect for site records. Photos, invoices and profile details are never visible to other companies using MY Site — every company's data is separated at the database level.
 
-## 9. Children
+We do not sell personal information, and we do not use it for advertising or share it with data brokers. We will disclose information if the law requires it.
 
-The App is a business tool intended for users aged 18 and over. It is not directed at children.
+## 5. Where it is stored and how it is protected
 
-## 10. Changes to this Policy
+Data is stored on Supabase's EU infrastructure, encrypted in transit and at rest. Access is enforced by row-level security so that each user can only reach the data their role and company allow. Photos live in a private bucket and are served through short-lived signed links. Where data leaves the UK/EU (OpenAI, Stripe), it does so under the UK International Data Transfer Addendum or equivalent safeguards.
 
-We may update this Policy from time to time. Material changes will be communicated through the App or by other appropriate means. The "Last updated" date above shows the latest revision.
+## 6. How long we keep it
 
-## 11. Contact us
+- **Work records, photos, invoices and clock records** are kept for as long as your company's account is active, and then for up to 6 years after, because construction companies are required to keep tax, CIS and employment records for that period. Your company can ask us to delete them sooner where the law allows.
+- **Account and profile information** is deleted when you delete your account (see section 7), except where a record must be retained for the reasons above — in which case your name is retained only on those records.
+- **Receipt images and note text sent to the AI provider** are not retained by the provider beyond processing.
+- **Support emails** are kept for 2 years.
 
-If you have questions about this Policy or how your data is handled, contact:
+## 7. Your rights and choices
 
-**My Project Group Ltd**
-Email: info@my-project.co.uk
-Website: https://my-project.co.uk
+**Delete your account in the app** — go to *More → Profile → Delete account*. This removes your sign-in and profile immediately and requests deletion of your data from your company's account. Records your company must keep for legal reasons are kept as described in section 6.
+
+**Permissions** — camera, photo library, microphone, speech recognition and location can each be turned off at any time in iOS Settings. The app explains why it needs each one when it first asks.
+
+**Report and block** — any post in the company feed can be reported to your company's admins or blocked from your view.
+
+Under UK GDPR you can also ask us to access, correct, delete or restrict the information we hold about you, to receive a copy of it, or to object to how it is used. Email **info@my-project.co.uk** and we will respond within one month. You can also complain to the Information Commissioner's Office at ico.org.uk.
+
+If your company is the controller of your data (for example, your employer), some requests may need to go to them; we will help either way.
+
+## 8. Children
+
+MY Site is a work tool. It is not intended for anyone under 16, and we do not knowingly collect information from children.
+
+## 9. Changes to this policy
+
+We'll post any changes here with a new "last updated" date, and tell you in the app if the changes are significant.
+
+---
+
+My Project Group Limited · info@my-project.co.uk · 0117 251 0565

@@ -1,0 +1,84 @@
+import SwiftUI
+
+/// A description field with a "Tidy up" button beside it.
+///
+/// The tidy is always previewed, never applied straight to the field. It is the
+/// tradesman's record of his own day, and a button that silently rewrites what
+/// he typed is one he stops trusting the second it gets something wrong. He
+/// sees both versions and picks.
+struct TidyNoteField: View {
+  @Environment(AppStore.self) private var store
+
+  let title: String
+  let placeholder: String
+  @Binding var text: String
+
+  @State private var working = false
+  @State private var suggestion: String?
+  @State private var note: String?
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      TextField(placeholder, text: $text, axis: .vertical)
+        .lineLimit(3...8)
+
+      HStack {
+        Button {
+          Task { await tidy() }
+        } label: {
+          if working {
+            HStack(spacing: 6) {
+              ProgressView().controlSize(.small)
+              Text("Tidying…")
+            }
+          } else {
+            Label("Tidy up for the log", systemImage: "wand.and.sparkles")
+          }
+        }
+        .font(.footnote.weight(.medium))
+        .disabled(working || text.trimmingCharacters(in: .whitespacesAndNewlines).count < 15)
+        Spacer()
+      }
+
+      if let note {
+        Text(note).font(.caption).foregroundStyle(Brand.inkSoft)
+      }
+
+      if let suggestion {
+        VStack(alignment: .leading, spacing: 8) {
+          Text("Suggested").font(.caption.weight(.semibold)).foregroundStyle(Brand.oliveDark)
+          Text(suggestion).font(.subheadline).foregroundStyle(Brand.ink)
+          HStack(spacing: 8) {
+            Button("Use this") {
+              text = suggestion
+              self.suggestion = nil
+            }
+            .font(.footnote.weight(.semibold))
+            Button("Keep mine") { self.suggestion = nil }
+              .font(.footnote)
+              .foregroundStyle(Brand.inkSoft)
+          }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Brand.lightGreen, in: RoundedRectangle(cornerRadius: 10))
+      }
+    }
+  }
+
+  private func tidy() async {
+    guard let token = store.backendToken else {
+      note = "You need to be signed in for this."
+      return
+    }
+    working = true
+    note = nil
+    let result = await TidyNoteService.tidy(text, token: token)
+    working = false
+    if result.changed, result.text != text {
+      suggestion = result.text
+    } else {
+      note = TidyNoteService.message(for: result.reason) ?? "Nothing to change — it reads fine."
+    }
+  }
+}

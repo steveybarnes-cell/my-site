@@ -1,6 +1,13 @@
 import SwiftUI
 
-/// The working day, on one screen.
+/// The working day, on one screen — for whoever is holding the phone.
+///
+/// Started as the tradesman's screen and is now everybody's. In a firm this
+/// size the person running the office is often also on site, and the old
+/// arrangement made them choose: office screens or your own job list, never
+/// both. Nothing here is role-specific — it shows the signed-in person's own
+/// clock, work and jobs, whatever their role says.
+///
 ///
 /// Today used to be a greeting, a receipt-scanning shortcut and a list of
 /// allocations — a noticeboard. Everything a man actually does during a day
@@ -12,12 +19,13 @@ import SwiftUI
 /// photos, and close it off. The hours that reach the invoice are the hours
 /// recorded here, which is the point — the figure the office queries is the
 /// figure the phone captured.
-struct TradesmanTodayView: View {
+struct TodayView: View {
   @Environment(AppStore.self) private var store
 
   @State private var showAddWork = false
   @State private var editing: WorkLogEntry?
   @State private var showClock = false
+  @State private var showAddTask = false
   @State private var closedRecord: DailyRecord?
   @State private var showClosedConfirmation = false
 
@@ -78,6 +86,7 @@ struct TradesmanTodayView: View {
         WorkLineSheet(existing: entry, site: store.site(entry.siteId), date: entry.date)
       }
       .sheet(isPresented: $showClock) { ClockInView() }
+      .sheet(isPresented: $showAddTask) { TaskFormView(site: defaultSite) }
       .alert("Day closed off", isPresented: $showClosedConfirmation) {
         Button("OK", role: .cancel) {}
       } message: {
@@ -97,7 +106,7 @@ struct TradesmanTodayView: View {
     let hour = Calendar.current.component(.hour, from: Date())
     let part = hour < 12 ? "morning" : (hour < 18 ? "afternoon" : "evening")
     return VStack(alignment: .leading, spacing: 14) {
-      MPGLogo(height: 40, horizontal: true)
+      MPGLogo(height: 44)
         .frame(maxWidth: .infinity, alignment: .leading)
       VStack(alignment: .leading, spacing: 6) {
         Text("Good \(part), \(first)")
@@ -342,16 +351,26 @@ struct TradesmanTodayView: View {
 
   @ViewBuilder private var allocationsSection: some View {
     let allocs = me.map { store.todaysAllocations(for: $0.id) } ?? []
-    if !allocs.isEmpty {
-      VStack(alignment: .leading, spacing: 10) {
-        SectionHeader(title: "Allocated to you", subtitle: "Today and tomorrow")
-        ForEach(allocs) { alloc in
-          NavigationLink(value: alloc) {
-            AllocationCard(allocation: alloc, showTradesman: false)
-          }
-          .buttonStyle(.plain)
+    VStack(alignment: .leading, spacing: 10) {
+      SectionHeader(
+        title: "Jobs",
+        subtitle: allocs.isEmpty
+          ? "Set out what you're doing today" : "Today and tomorrow")
+      ForEach(allocs) { alloc in
+        NavigationLink(value: alloc) {
+          AllocationCard(allocation: alloc, showTradesman: false)
         }
+        .buttonStyle(.plain)
       }
+      Button { showAddTask = true } label: {
+        Label("Add a task", systemImage: "plus.circle.fill")
+          .font(.subheadline.weight(.semibold))
+          .frame(maxWidth: .infinity)
+          .padding(.vertical, 12)
+          .background(Brand.lightGreen, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+          .foregroundStyle(Brand.oliveDark)
+      }
+      .buttonStyle(.plain)
     }
   }
 }
@@ -386,32 +405,54 @@ struct WorkLineSheet: View {
       && minutes > 0 && siteId != nil
   }
 
+  /// Once the day is closed off or the week invoiced, only the job details can
+  /// change. Where, when and how long stay as captured.
+  private var locked: Bool { existing.map { store.isOnRecord($0) } ?? false }
+
   var body: some View {
     NavigationStack {
       Form {
         Section("What did you do?") {
-          TextField("First fix to plots 3 and 4", text: $description, axis: .vertical)
-            .lineLimit(2...4)
+          DictationField(
+            placeholder: "First fix to plots 3 and 4", text: $description, lines: 2...4)
         }
-        Section("Where") {
-          Picker("Site", selection: $siteId) {
-            ForEach(availableSites) { s in
-              Text(s.name).tag(Optional(s.id))
+        if locked, let existing {
+          Section {
+            LabeledContent("Site", value: store.site(existing.siteId)?.name ?? "Site")
+            LabeledContent("Date", value: Fmt.date(existing.date))
+            LabeledContent("Time", value: existing.durationLabel)
+            Picker("Type of work", selection: $category) {
+              ForEach(WorkCategory.allCases) { c in Text(c.rawValue).tag(c) }
+            }
+          } header: {
+            Text("On record")
+          } footer: {
+            Label(
+              "This job is already on a day sheet or invoice. You can correct what was done, "
+                + "but the site, date and time are locked and the office is told about any change.",
+              systemImage: "lock.fill")
+          }
+        } else {
+          Section("Where") {
+            Picker("Site", selection: $siteId) {
+              ForEach(availableSites) { s in
+                Text(s.name).tag(Optional(s.id))
+              }
+            }
+            Picker("Type of work", selection: $category) {
+              ForEach(WorkCategory.allCases) { c in Text(c.rawValue).tag(c) }
             }
           }
-          Picker("Type of work", selection: $category) {
-            ForEach(WorkCategory.allCases) { c in Text(c.rawValue).tag(c) }
-          }
-        }
-        Section("How long") {
-          Picker("Time", selection: $minutes) {
-            ForEach(Array(stride(from: 15, through: 720, by: 15)), id: \.self) { m in
-              Text(durationLabel(m)).tag(m)
+          Section("How long") {
+            Picker("Time", selection: $minutes) {
+              ForEach(Array(stride(from: 15, through: 720, by: 15)), id: \.self) { m in
+                Text(durationLabel(m)).tag(m)
+              }
             }
+            .pickerStyle(.wheel)
           }
-          .pickerStyle(.wheel)
         }
-        if existing != nil {
+        if existing != nil && !locked {
           Section {
             Button(role: .destructive) {
               if let existing { store.voidWorkLogEntry(existing.id) }
@@ -460,7 +501,9 @@ struct WorkLineSheet: View {
   private func save() {
     guard let userId = store.currentUser?.id, let siteId else { return }
     let text = description.trimmingCharacters(in: .whitespacesAndNewlines)
-    if var entry = existing {
+    if let existing, locked {
+      store.amendWorkLine(existing.id, description: text, category: category)
+    } else if var entry = existing {
       entry.description = text
       entry.category = category
       entry.siteId = siteId

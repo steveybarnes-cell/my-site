@@ -1,6 +1,10 @@
 import Observation
 import SwiftUI
 
+#if canImport(UIKit)
+  import UIKit
+#endif
+
 @Observable
 final class AppStore {
   // Session
@@ -19,6 +23,13 @@ final class AppStore {
   var notifications: [AppNotification] = []
   var clockRecords: [ClockRecord] = []
   var workLogEntries: [WorkLogEntry] = []
+  var allocationProgress: [AllocationProgress] = []
+  var materialRequests: [MaterialRequest] = []
+
+  /// The most recent "that saved" message, or nil. Cleared on a timer.
+  var confirmation: String?
+  /// Identifies the live timer so an older one cannot clear a newer message.
+  private var confirmationToken = UUID()
   var siteFiles: [SiteFile] = []
   var feedPosts: [FeedPost] = []
 
@@ -42,6 +53,10 @@ final class AppStore {
   /// Number of writes captured offline and waiting to reach Supabase.
   var pendingSyncCount = 0
 
+  /// True while the device has no usable network. Captures still save; they
+  /// queue and go automatically when signal returns.
+  var isOffline = false
+
   var isLiveBackend: Bool { backendToken != nil }
 
   /// Read-only access to the signed-in user's Supabase JWT for authorised Edge Function calls.
@@ -55,6 +70,19 @@ final class AppStore {
   init() {
     seed()
     pendingSyncCount = SyncQueue.shared.count
+    startConnectivityWatch()
+  }
+
+  /// Drains the offline queue the moment the network comes back.
+  private func startConnectivityWatch() {
+    ConnectivityMonitor.shared.onChange = { [weak self] online in
+      guard let self else { return }
+      self.isOffline = !online
+      if online {
+        Task { @MainActor in await self.drainSyncQueue() }
+      }
+    }
+    ConnectivityMonitor.shared.start()
   }
 
   // MARK: - Auth (mock)
@@ -104,6 +132,8 @@ final class AppStore {
       clockRecords = try await SupabaseData.loadClockRecords(token: token)
       dailyRecords = try await SupabaseData.loadDailyRecords(token: token)
       workLogEntries = try await SupabaseData.loadWorkLog(token: token)
+      allocationProgress = try await SupabaseData.loadProgress(token: token)
+      materialRequests = try await SupabaseData.loadMaterialRequests(token: token)
       submissions = try await SupabaseData.loadSubmissions(token: token)
       allocations = try await SupabaseData.loadAllocations(token: token)
       materials = try await SupabaseData.loadMaterials(token: token)
@@ -569,6 +599,50 @@ final class AppStore {
         message: "You have been allocated work at \(site(a.siteId)?.name ?? "a site") on "
           + "\(Fmt.date(a.date)).")
     }
+    confirm(isNew ? "Job allocated" : "Job updated")
+  }
+
+  /// Cancels a job. The allocation is kept (it stays in reporting as cancelled)
+  /// but the tradesman is told so it drops off their day.
+  func cancelAllocation(_ a: WorkAllocation) {
+    var c = a
+    c.status = .cancelled
+    if let i = allocations.firstIndex(where: { $0.id == a.id }) {
+      allocations[i] = c
+    } else {
+      allocations.append(c)
+    }
+    sync(queued: SupabaseData.operation(for: c)) { try await SupabaseData.save(c, token: $0) }
+    notify(
+      c.tradesmanId, category: .workAllocated,
+      message: "Your job at \(site(c.siteId)?.name ?? "a site") on \(Fmt.date(c.date)) has been cancelled.")
+    confirm("Job cancelled")
+  }
+
+  /// Removes a job entirely. For mistakes — the wrong site, the wrong day,
+  /// a duplicate. Once anyone has worked against it, cancel it instead so the
+  /// day sheets and photos still have something to point at.
+  func deleteAllocation(_ a: WorkAllocation) {
+    allocations.removeAll { $0.id == a.id }
+    if let token = backendToken {
+      Task { @MainActor in
+        do {
+          try await SupabaseData.deleteAllocation(id: a.id, token: token)
+        } catch {
+          self.liveDataError =
+            (error as? SupabaseError)?.errorDescription ?? error.localizedDescription
+        }
+      }
+    }
+    confirm("Job removed")
+  }
+
+  /// Whether anything has been recorded against a job yet.
+  func allocationHasActivity(_ a: WorkAllocation) -> Bool {
+    a.percentComplete > 0
+      || workLogEntries.contains { $0.allocationId == a.id }
+      || photos.contains { $0.allocationId == a.id }
+      || dailyRecords.contains { $0.allocationId == a.id }
   }
 
   func addRecord(_ r: DailyRecord) {
@@ -579,6 +653,90 @@ final class AppStore {
     notifyOffice(
       category: .recordSubmitted,
       message: "\(who) submitted a daily site record for \(where0).")
+    confirm("Day sheet saved")
+  }
+
+  // MARK: - Job progress
+
+  /// Moves a job's progress bar.
+  ///
+  /// Inserting the progress row IS the update: a database trigger sets the
+  /// allocation's percentage, note and status in the same write. Patching the
+  /// allocation here as well would give two writers for one fact and let them
+  /// disagree — so the local copy is nudged only so the screen redraws
+  /// immediately, and the server's version wins on the next load.
+  func setProgress(_ allocationId: UUID, to percent: Int, note: String = "") {
+    guard let me = currentUser?.id else { return }
+    let entry = AllocationProgress(
+      allocationId: allocationId, userId: me, percent: percent, note: note)
+    allocationProgress.insert(entry, at: 0)
+
+    if let i = allocations.firstIndex(where: { $0.id == allocationId }) {
+      allocations[i].percentComplete = entry.percent
+      allocations[i].progressNote = note
+      allocations[i].progressUpdatedAt = entry.createdAt
+      if entry.percent >= 100 {
+        allocations[i].status = .completed
+      } else if allocations[i].status == .allocated || allocations[i].status == .accepted {
+        // `.inProgress`, not `.started` — 0011's trigger writes 'In Progress'.
+        // Setting anything else here means the screen shows one status until
+        // the next reload quietly replaces it with another.
+        allocations[i].status = .inProgress
+      }
+    }
+    sync(queued: SupabaseData.operation(for: entry)) {
+      try await SupabaseData.save(entry, token: $0)
+    }
+    confirm(entry.percent >= 100 ? "Marked done" : "Saved at \(entry.percent)%")
+  }
+
+  /// The history behind a job's current percentage, newest first.
+  func progressHistory(for allocationId: UUID) -> [AllocationProgress] {
+    allocationProgress
+      .filter { $0.allocationId == allocationId }
+      .sorted { $0.createdAt > $1.createdAt }
+  }
+
+  // MARK: - Material requests
+
+  func addMaterialRequest(_ r: MaterialRequest) {
+    materialRequests.insert(r, at: 0)
+    sync(queued: SupabaseData.operation(for: r)) { try await SupabaseData.save(r, token: $0) }
+    // Built up in steps rather than one interpolated string. Nesting string
+    // literals inside a ternary inside an interpolation is legal Swift and
+    // unreadable in equal measure.
+    let who = user(r.userId)?.name ?? "Someone"
+    let what = r.quantity.isEmpty ? r.description : "\(r.quantity) \(r.description)"
+    let place = site(r.siteId)?.name ?? "site"
+    notifyOffice(category: .recordSubmitted, message: "\(who) needs \(what) at \(place).")
+    confirm("Sent to the office")
+  }
+
+  /// Requests raised by one person, newest first.
+  func materialRequests(for userId: UUID) -> [MaterialRequest] {
+    materialRequests.filter { $0.userId == userId }.sorted { $0.createdAt > $1.createdAt }
+  }
+
+  // MARK: - Confirmations
+
+  /// Says, briefly, that something landed.
+  ///
+  /// Also fires a haptic, because the phone is often at arm's length or being
+  /// looked at in bright sun where a small dark pill is easy to miss — a bump
+  /// in the hand is the part that actually gets noticed on site.
+  func confirm(_ text: String) {
+    confirmation = text
+    let token = UUID()
+    confirmationToken = token
+    #if canImport(UIKit)
+      UINotificationFeedbackGenerator().notificationOccurred(.success)
+    #endif
+    Task { @MainActor in
+      try? await Task.sleep(for: .seconds(2.2))
+      // Only clear if no later confirmation has replaced this one — otherwise
+      // saving twice quickly makes the second message vanish early.
+      if confirmationToken == token { confirmation = nil }
+    }
   }
 
   /// Corrects a day sheet in place.
@@ -727,6 +885,7 @@ final class AppStore {
         message: "\(tradesman) uploaded \(type.rawValue) for \(site.name) — linked to \(register).",
         symbol: type.symbol)
     }
+    if type != .clockIn { confirm("\(type.rawValue) uploaded") }
     return photo
   }
 
@@ -1111,7 +1270,7 @@ final class AppStore {
   @discardableResult
   func clockIn(
     site: Site, fix: LocationFix, device: String, reasonNote: String,
-    photoDescription: String? = nil
+    photoDescription: String? = nil, photoData: Data? = nil
   ) -> ClockRecord {
     let me = currentUser
     let name = me?.name ?? "Unknown"
@@ -1121,7 +1280,7 @@ final class AppStore {
     if let desc = photoDescription {
       let p = uploadFile(
         type: .clockIn, description: desc.isEmpty ? "Clock-in photo" : desc, source: .camera,
-        site: site)
+        site: site, imageData: photoData)
       photoId = p.id
     }
 
@@ -1136,13 +1295,14 @@ final class AppStore {
       try await SupabaseData.save(record, token: $0)
     }
     notifyAttendance(record: record, event: "clocked in")
+    confirm("Clocked in at \(site.name)")
     return record
   }
 
   /// Closes an open clock record with a clock-out event.
   func clockOut(
     recordId: UUID, site: Site, fix: LocationFix, reasonNote: String,
-    claimedHours: Double = 0, photoDescription: String? = nil
+    claimedHours: Double = 0, photoDescription: String? = nil, photoData: Data? = nil
   ) {
     guard let i = clockRecords.firstIndex(where: { $0.id == recordId }) else { return }
     let st = status(for: fix)
@@ -1150,7 +1310,7 @@ final class AppStore {
     if let desc = photoDescription {
       let p = uploadFile(
         type: .clockIn, description: desc.isEmpty ? "Clock-out photo" : desc, source: .camera,
-        site: site)
+        site: site, imageData: photoData)
       clockRecords[i].clockOutPhotoId = p.id
     }
 
@@ -1168,6 +1328,7 @@ final class AppStore {
     sync(queued: SupabaseData.operation(for: updated)) {
       try await SupabaseData.save(updated, token: $0)
     }
+    confirm(updated.timeOnSite.map { "Clocked out — \(Fmt.hours($0)) on site" } ?? "Clocked out")
   }
 
   func setClockApproval(_ id: UUID, approved: Bool) {

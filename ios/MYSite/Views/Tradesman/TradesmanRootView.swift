@@ -16,7 +16,7 @@ struct TradesmanRootView: View {
           FilesView()
         }
         Tab("Today", systemImage: "sun.max.fill") {
-          TradesmanTodayView()
+          TodayView()
         }
         Tab("Alerts", systemImage: "bell.fill") {
           NotificationsView()
@@ -25,7 +25,23 @@ struct TradesmanRootView: View {
         Tab("More", systemImage: "ellipsis.circle.fill") {
           TradesmanMoreView()
         }
+        // On an iPad the More hub unfolds into the sidebar, so every tool is
+        // one tap away. Hidden from the phone's tab bar, where More does the job.
+        TabSection("Tools") {
+          Tab("Scan Receipt", systemImage: "doc.text.viewfinder") {
+            ScanReceiptView(presentedModally: false)
+          }
+          Tab("My Records", systemImage: "list.clipboard.fill") { TradesmanRecordsView() }
+          Tab("Ask for Materials", systemImage: "cart.badge.plus") { MaterialRequestView() }
+          Tab("Invoices & Timesheets", systemImage: "sterlingsign.circle.fill") {
+            TradesmanSubmissionsView()
+          }
+          .badge(store.invoiceActionCount)
+          Tab("Profile", systemImage: "person.crop.circle.fill") { ProfileView() }
+        }
+        .defaultVisibility(.hidden, for: .tabBar)
       }
+      .tabViewStyle(.sidebarAdaptable)
     }
     .__tenxTrackView("TradesmanRootView")
   }
@@ -52,6 +68,12 @@ struct TradesmanMoreView: View {
           subtitle: "Daily records, photos & materials",
           symbol: "list.clipboard.fill"
         ) { TradesmanRecordsView() },
+        MoreHubItem(
+          title: "Ask for Materials",
+          subtitle: "Tell the office what you're short of",
+          symbol: "cart.badge.plus",
+          tint: Brand.amber
+        ) { MaterialRequestView() },
         MoreHubItem(
           title: "Invoices & Timesheets",
           subtitle: "Submit and track weekly pay",

@@ -83,6 +83,15 @@ struct SupabaseClient {
     return try decodeSession(data)
   }
 
+  /// Exchanges a native identity token (Sign in with Apple) for a Supabase
+  /// session. `nonce` is the raw nonce whose SHA-256 was put in the request.
+  func signInWithIdToken(provider: String, idToken: String, nonce: String) async throws
+    -> SupabaseSession
+  {
+    try await token(
+      grant: "id_token", body: ["provider": provider, "id_token": idToken, "nonce": nonce])
+  }
+
   /// Refresh an access token using the stored refresh token.
   func refresh(refreshToken: String) async throws -> SupabaseSession {
     try await token(grant: "refresh_token", body: ["refresh_token": refreshToken])
@@ -208,6 +217,13 @@ struct SupabaseClient {
   func patch(table: String, query: String, body: Data, accessToken: String) async throws {
     try await write(
       table: table, query: query, method: "PATCH", body: body,
+      accessToken: accessToken, prefer: "return=minimal")
+  }
+
+  /// Deletes the rows matching `query` (PostgREST filter, e.g. `id=eq.<uuid>`).
+  func delete(table: String, query: String, accessToken: String) async throws {
+    try await write(
+      table: table, query: query, method: "DELETE", body: Data(),
       accessToken: accessToken, prefer: "return=minimal")
   }
 

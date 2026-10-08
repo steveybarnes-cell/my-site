@@ -20,6 +20,8 @@ struct AllocationFormView: View {
   @State private var requiredMaterials = ""
   @State private var notes = ""
   @State private var status: AllocationStatus = .allocated
+  @State private var confirmCancel = false
+  @State private var confirmRemove = false
 
   private var isEditing: Bool { allocation != nil }
   private var canSave: Bool { siteId != nil && tradesmanId != nil && !taskDescription.isEmpty }
@@ -40,14 +42,37 @@ struct AllocationFormView: View {
               ) { save() }
               .disabled(!canSave)
               .opacity(canSave ? 1 : 0.5)
+              if isEditing && status != .cancelled {
+                cancelJobButton
+              }
+              if isEditing {
+                removeJobButton
+              }
             }
             .padding(16)
           }
+        }
+        .confirmationDialog(
+          "Cancel this job?", isPresented: $confirmCancel, titleVisibility: .visible
+        ) {
+          Button("Cancel Job", role: .destructive) { cancelJob() }
+          Button("Keep Job", role: .cancel) {}
+        } message: {
+          Text("The tradesman will be notified and the job will be removed from their day. "
+            + "It stays in your records as cancelled.")
         }
         .navigationTitle(isEditing ? "Edit Allocation" : "Allocate Work")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
           ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+        }
+        .confirmationDialog(
+          "Remove this job?", isPresented: $confirmRemove, titleVisibility: .visible
+        ) {
+          Button("Remove Job", role: .destructive) { removeJob() }
+          Button("Keep Job", role: .cancel) {}
+        } message: {
+          Text(removeMessage)
         }
         .onAppear(perform: load)
       }
@@ -117,6 +142,59 @@ struct AllocationFormView: View {
       .pickerStyle(.menu).tint(Brand.olive).frame(maxWidth: .infinity, alignment: .leading)
     }
     .mpgFormSection()
+  }
+
+  /// Sits under Save Changes: a quiet outlined button so it can't be hit by
+  /// accident, with a confirmation before anything happens.
+  private var cancelJobButton: some View {
+    Button { confirmCancel = true } label: {
+      HStack(spacing: 8) {
+        Image(systemName: "xmark.circle")
+        Text("Cancel Job").fontWeight(.semibold)
+      }
+      .frame(maxWidth: .infinity)
+      .padding(.vertical, 15)
+      .foregroundStyle(Brand.red)
+      .background(
+        RoundedRectangle(cornerRadius: Brand.Radius.inner, style: .continuous)
+          .stroke(Brand.red.opacity(0.6), lineWidth: 1.5))
+    }
+    .buttonStyle(.plain)
+  }
+
+  private var hasActivity: Bool { allocation.map { store.allocationHasActivity($0) } ?? false }
+
+  private var removeMessage: String {
+    hasActivity
+      ? "Work has already been logged against this job. Removing it deletes the job itself; "
+        + "the hours, photos and day sheets stay on record but will no longer be linked to it. "
+        + "If the job is simply not going ahead, use Cancel Job instead."
+      : "This deletes the job. Nothing has been recorded against it yet."
+  }
+
+  /// Plain text link under the two main buttons: it is the destructive one,
+  /// so it should be the least prominent.
+  private var removeJobButton: some View {
+    Button { confirmRemove = true } label: {
+      Label("Remove job", systemImage: "trash")
+        .font(.subheadline.weight(.medium))
+        .foregroundStyle(Brand.inkSoft)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+    }
+    .buttonStyle(.plain)
+  }
+
+  private func removeJob() {
+    guard let allocation else { return }
+    store.deleteAllocation(allocation)
+    dismiss()
+  }
+
+  private func cancelJob() {
+    guard let allocation else { return }
+    store.cancelAllocation(allocation)
+    dismiss()
   }
 
   private func load() {

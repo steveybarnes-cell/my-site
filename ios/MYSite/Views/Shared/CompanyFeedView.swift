@@ -14,6 +14,13 @@ struct CompanyFeedView: View {
   @State private var showCall = false
   @State private var selectedSiteId: UUID?
   @State private var needsActionOnly = false
+  /// The post whose reason sheet is open.
+  ///
+  /// Held here rather than inside the card because every card is re-identified
+  /// each time `liveTick` fires — five seconds after opening, a dialog owned by
+  /// the card would vanish under the reader's thumb. The feed view itself keeps
+  /// its identity, so a dialog anchored here stays put.
+  @State private var reportingPost: FeedPost?
   /// Ticks every few seconds to keep relative timestamps fresh (live feel).
   @State private var liveTick = Date()
 
@@ -23,10 +30,11 @@ struct CompanyFeedView: View {
 
   private let liveTimer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
 
+  /// Goes through `moderatedFeed` rather than `feed` so anyone the signed-in
+  /// person has blocked is gone from here — posts and replies both. Filtering
+  /// at the one place the feed is read means no screen can forget to do it.
   private var visiblePosts: [FeedPost] {
-    needsActionOnly
-      ? store.needsActionFeed(siteId: selectedSiteId)
-      : store.feed(siteId: selectedSiteId)
+    store.moderatedFeed(siteId: selectedSiteId, needsActionOnly: needsActionOnly)
   }
 
   var body: some View {
@@ -66,6 +74,23 @@ struct CompanyFeedView: View {
             } label: {
               Label("Start a call", systemImage: "phone.fill")
             }
+            // Only appears once somebody has actually been blocked. A
+            // permanently visible "Blocked people (0)" invites a man to go
+            // looking for a feature he has no use for.
+            if !store.blockedPeople.isEmpty {
+              Divider()
+              Menu {
+                ForEach(store.blockedPeople) { person in
+                  Button {
+                    store.unblockAuthor(person.id)
+                  } label: {
+                    Label("Unblock \(person.name)", systemImage: "arrow.uturn.backward")
+                  }
+                }
+              } label: {
+                Label("Hidden people", systemImage: "eye.slash")
+              }
+            }
           } label: {
             Image(systemName: "plus")
           }
@@ -76,6 +101,26 @@ struct CompanyFeedView: View {
       }
       .sheet(isPresented: $showCall) {
         StartCallView()
+      }
+      .confirmationDialog(
+        "Report this post",
+        isPresented: Binding(
+          get: { reportingPost != nil },
+          set: { if !$0 { reportingPost = nil } }),
+        titleVisibility: .visible
+      ) {
+        ForEach(ContentReport.Reason.allCases) { reason in
+          Button(reason.rawValue) {
+            if let post = reportingPost { store.reportPost(post, reason: reason) }
+            reportingPost = nil
+          }
+        }
+        Button("Cancel", role: .cancel) { reportingPost = nil }
+      } message: {
+        Text(
+          "The office will see this post and why you flagged it. "
+            + "The person who posted it is not told, and it stays where it is "
+            + "until somebody in the office decides otherwise.")
       }
       .onReceive(liveTimer) { _ in liveTick = Date() }
     }
@@ -116,7 +161,7 @@ struct CompanyFeedView: View {
             .padding(.horizontal, 14)
           } else {
             ForEach(visiblePosts) { post in
-              FeedPostCard(post: post)
+              FeedPostCard(post: post, onReport: { reportingPost = post })
                 .id("\(post.id)-\(liveTick.timeIntervalSince1970)")
             }
           }
@@ -268,6 +313,8 @@ struct FilterChip: View {
 struct FeedPostCard: View {
   @Environment(AppStore.self) private var store
   let post: FeedPost
+  /// Raised to the feed, which owns the reason dialog — see `reportingPost`.
+  var onReport: () -> Void = {}
   @State private var showComments = false
   @State private var burst = false
 
@@ -280,7 +327,11 @@ struct FeedPostCard: View {
         name: post.authorName, role: post.authorRole, timestamp: post.timestamp,
         siteName: siteName,
         canDelete: canDelete,
-        onDelete: { store.deleteFeedPost(post.id) }
+        onDelete: { store.deleteFeedPost(post.id) },
+        canReport: canReport,
+        alreadyReported: store.hasReported(post.id),
+        onReport: onReport,
+        onBlock: { store.blockAuthor(post.authorId, named: post.authorName) }
       )
       .padding(.horizontal, 14)
       .padding(.top, 14)
@@ -424,6 +475,13 @@ struct FeedPostCard: View {
     guard let me = store.currentUser else { return false }
     return me.id == post.authorId || me.role == .admin
   }
+
+  /// Your own posts get Delete, not Report. Reporting yourself is noise, and
+  /// hiding yourself from your own feed is nonsense.
+  private var canReport: Bool {
+    guard let me = store.currentUser else { return false }
+    return me.id != post.authorId
+  }
 }
 
 // MARK: - Author header
@@ -435,6 +493,17 @@ struct FeedAuthorHeader: View {
   var siteName: String? = nil
   var canDelete: Bool = false
   var onDelete: () -> Void = {}
+  /// Reporting and hiding are offered on other people's posts only, and both
+  /// live inside the same "⋯" the delete option already uses. A flag icon sat
+  /// permanently next to every colleague's name would change what the feed
+  /// feels like — a wall of accusations waiting to be made — for a control
+  /// almost nobody will ever touch.
+  var canReport: Bool = false
+  var alreadyReported: Bool = false
+  var onReport: () -> Void = {}
+  var onBlock: () -> Void = {}
+
+  private var showsMenu: Bool { canDelete || canReport }
 
   var body: some View {
     HStack(alignment: .top, spacing: 10) {
@@ -471,10 +540,27 @@ struct FeedAuthorHeader: View {
       .frame(maxWidth: .infinity, alignment: .leading)
       Spacer(minLength: 8)
 
-      if canDelete {
+      if showsMenu {
         Menu {
-          Button(role: .destructive, action: onDelete) {
-            Label("Delete post", systemImage: "trash")
+          if canDelete {
+            Button(role: .destructive, action: onDelete) {
+              Label("Delete post", systemImage: "trash")
+            }
+          }
+          if canReport {
+            if alreadyReported {
+              // Disabled Button rather than a bare Label: a Menu only lays out
+              // control-shaped children, and a plain Label silently vanishes.
+              Button {} label: { Label("Already reported", systemImage: "checkmark") }
+                .disabled(true)
+            } else {
+              Button(action: onReport) {
+                Label("Report this", systemImage: "flag")
+              }
+            }
+            Button(action: onBlock) {
+              Label("Hide \(name) from my feed", systemImage: "eye.slash")
+            }
           }
         } label: {
           Image(systemName: "ellipsis")
@@ -613,8 +699,40 @@ struct FeedPhotoView: View {
 struct FeedCommentRow: View {
   let comment: FeedComment
   var compact: Bool = false
+  /// Reporting a comment is on a long press rather than a visible control.
+  /// There is no room beside a one-line reply for a button, and a flag on
+  /// every comment in the thread would read as an invitation.
+  var canModerate: Bool = false
+  var alreadyReported: Bool = false
+  var onReport: () -> Void = {}
+  var onBlock: () -> Void = {}
 
   var body: some View {
+    // The menu is attached only when there is something in it. An empty
+    // context menu still lifts the view under the finger, which looks like a
+    // bug to the person holding the phone.
+    if canModerate {
+      bubble.contextMenu { menuItems }
+    } else {
+      bubble
+    }
+  }
+
+  @ViewBuilder private var menuItems: some View {
+    if alreadyReported {
+      Button {} label: { Label("Already reported", systemImage: "checkmark") }
+        .disabled(true)
+    } else {
+      Button(action: onReport) {
+        Label("Report this comment", systemImage: "flag")
+      }
+    }
+    Button(action: onBlock) {
+      Label("Hide \(comment.authorName) from my feed", systemImage: "eye.slash")
+    }
+  }
+
+  private var bubble: some View {
     VStack(alignment: .leading, spacing: 3) {
       HStack(spacing: 6) {
         Text(comment.authorName)

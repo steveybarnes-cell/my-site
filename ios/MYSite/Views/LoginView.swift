@@ -1,8 +1,11 @@
+import AuthenticationServices
+import CryptoKit
 import SwiftUI
 
 struct LoginView: View {
   @Environment(AppStore.self) private var store
   @Environment(AuthManager.self) private var auth
+  @State private var appleNonce: String?
   @State private var email = ""
   @State private var password = ""
   @State private var isSignUp = false
@@ -44,7 +47,6 @@ struct LoginView: View {
               .padding(.top, 4)
           }
           .padding(20)
-          .frame(maxWidth: 520)
           .frame(maxWidth: .infinity)
         }
       }
@@ -80,11 +82,11 @@ struct LoginView: View {
         Image(systemName: "arrow.right").font(.caption2).foregroundStyle(.white.opacity(0.4))
         Text("AI reads it").font(.caption2.weight(.medium)).foregroundStyle(.white.opacity(0.85))
         Image(systemName: "arrow.right").font(.caption2).foregroundStyle(.white.opacity(0.4))
-        Text("Hubdoc / Xero").font(.caption2.weight(.bold)).foregroundStyle(Brand.olive)
+        Text("Hubdoc").font(.caption2.weight(.bold)).foregroundStyle(Brand.olive)
       }
 
       Text(
-        "Receipts are scanned and uploaded to Hubdoc and Xero automatically — no more lost paperwork or manual data entry."
+        "Receipts are scanned and sent straight through to Hubdoc — no more lost paperwork or manual data entry."
       )
       .font(.caption2)
       .foregroundStyle(.white.opacity(0.6))
@@ -201,10 +203,54 @@ struct LoginView: View {
         Rectangle().fill(Brand.hairline).frame(height: 1)
       }
 
+      appleButton
       googleButton
     }
     .padding(18)
     .background(.white, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+  }
+
+  /// Sign in with Apple, offered first: it is the option that lets a
+  /// tradesman keep his email private, which the guidelines require of any
+  /// app that also offers a third-party login.
+  private var appleButton: some View {
+    SignInWithAppleButton(.continue) { request in
+      let raw = Self.randomNonce()
+      appleNonce = raw
+      request.requestedScopes = [.fullName, .email]
+      request.nonce = Self.sha256(raw)
+    } onCompletion: { result in
+      switch result {
+      case .success(let authorization):
+        guard
+          let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+          let tokenData = credential.identityToken,
+          let idToken = String(data: tokenData, encoding: .utf8),
+          let nonce = appleNonce
+        else { return }
+        Task {
+          await auth.signInWithApple(idToken: idToken, nonce: nonce, fullName: credential.fullName)
+        }
+      case .failure:
+        break  // Cancelled or failed in Apple's sheet; nothing to report.
+      }
+    }
+    .signInWithAppleButtonStyle(.black)
+    .frame(height: 46)
+    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    .disabled(auth.isWorking || !auth.isConfigured)
+    .opacity(auth.isConfigured ? 1 : 0.5)
+  }
+
+  private static func randomNonce(length: Int = 32) -> String {
+    let charset = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._")
+    var bytes = [UInt8](repeating: 0, count: length)
+    _ = SecRandomCopyBytes(kSecRandomDefault, length, &bytes)
+    return String(bytes.map { charset[Int($0) % charset.count] })
+  }
+
+  private static func sha256(_ input: String) -> String {
+    SHA256.hash(data: Data(input.utf8)).map { String(format: "%02x", $0) }.joined()
   }
 
   private var googleButton: some View {

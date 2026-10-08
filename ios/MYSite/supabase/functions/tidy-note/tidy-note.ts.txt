@@ -1,0 +1,108 @@
+// tidy-note: turn a rough site note into a clean entry for the log.
+//
+// POST /tidy-note  { "text": "...", "kind": "daily" | "task" }
+//   -> 200 { tidied: "...", changed: true }
+//   -> 200 { tidied: <original>, changed: false, reason: "..." }
+//
+// Secrets: OPENAI_API_KEY, optional OPENAI_MODEL.
+//
+// Two rules run through this, and both are about trust:
+//
+//   It tidies. It does not add. The model is told, firmly, that inventing a
+//   detail is worse than leaving the note rough — these entries end up in a
+//   handover file and can be read back in a dispute months later. A tidy note
+//   containing a measurement nobody took is a liability, not a feature.
+//
+//   It never hard-fails. If the key is missing, the model is down, or the
+//   answer looks wrong, the original text comes straight back with a reason.
+//   A man who has typed out his day should never lose it because a tidy-up
+//   button had a bad afternoon.
+
+const cors = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status, headers: { ...cors, "Content-Type": "application/json" },
+  });
+}
+
+const SYSTEM = [
+  "You tidy up notes written by UK building tradesmen into clear entries for a",
+  "site log. British English and trade vocabulary throughout.",
+  "",
+  "Rules, in order of importance:",
+  "1. Never invent anything. No measurements, quantities, times, names or",
+  "   materials that are not already in the note. If it is vague, leave it",
+  "   vague. A wrong detail in a site log is worse than a rough one.",
+  "2. Keep it to what was done, where, and anything that held it up.",
+  "3. Two or three short sentences at most. No headings, no bullet points, no",
+  "   preamble like 'Here is the tidied note'. Return the entry only.",
+  "4. Fix spelling, punctuation and capitalisation. Expand obvious trade",
+  "   shorthand only when the meaning is beyond doubt (pb -> plasterboard).",
+  "5. Keep the tradesman's own voice. Do not make it corporate.",
+].join("\n");
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+
+  let body: { text?: string; kind?: string };
+  try { body = await req.json(); } catch { return json({ error: "Invalid JSON body" }, 400); }
+
+  const original = (body.text ?? "").trim();
+  if (!original) return json({ error: "Nothing to tidy." }, 400);
+  // Below this there is nothing to improve, and a model asked to improve
+  // nothing will pad it out — which is exactly what rule 1 forbids.
+  if (original.length < 15) {
+    return json({ tidied: original, changed: false, reason: "too_short" });
+  }
+
+  const key = Deno.env.get("OPENAI_API_KEY");
+  if (!key) return json({ tidied: original, changed: false, reason: "not_configured" });
+
+  try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: Deno.env.get("OPENAI_MODEL") ?? "gpt-5.6-terra",
+        temperature: 0.2,
+        max_tokens: 300,
+        messages: [
+          { role: "system", content: SYSTEM },
+          { role: "user", content: original },
+        ],
+      }),
+    });
+
+    const text = await res.text();
+    if (!res.ok) {
+      // Surfaced, not swallowed. An out-of-credit account looking like a
+      // blurry photo cost days on the receipt scanner; the reason travels.
+      console.error(`tidy-note: OpenAI ${res.status}: ${text}`);
+      return json({
+        tidied: original, changed: false,
+        reason: res.status === 429 ? "no_credit" : `openai_${res.status}`,
+      });
+    }
+
+    const tidied = (JSON.parse(text)?.choices?.[0]?.message?.content ?? "").trim();
+    if (!tidied) return json({ tidied: original, changed: false, reason: "empty_reply" });
+
+    // A crude guard against a model that has decided to write an essay. Three
+    // times the original is well beyond tidying and into inventing.
+    if (tidied.length > Math.max(400, original.length * 3)) {
+      console.error("tidy-note: reply far longer than the input; returning the original");
+      return json({ tidied: original, changed: false, reason: "reply_too_long" });
+    }
+
+    return json({ tidied, changed: tidied !== original });
+  } catch (e) {
+    console.error("tidy-note: unexpected", e);
+    return json({ tidied: original, changed: false, reason: "error" });
+  }
+});

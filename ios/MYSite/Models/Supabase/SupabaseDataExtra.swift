@@ -67,6 +67,11 @@ extension SupabaseData {
     let required_materials: String?
     let notes: String?
     let status: String?
+    // Added by 0011. Optional so a database that has not had that migration
+    // applied still decodes rather than failing the whole allocation load.
+    let percent_complete: Int?
+    let progress_note: String?
+    let progress_updated_at: String?
 
     var model: WorkAllocation? {
       guard let uid = UUID(uuidString: id), let siteUUID = UUID(uuidString: site_id),
@@ -81,7 +86,9 @@ extension SupabaseData {
         category: WorkCategory(rawValue: category ?? "") ?? .contract,
         priority: Priority(rawValue: priority ?? "") ?? .normal,
         requiredPhotos: required_photos ?? false, requiredMaterials: required_materials ?? "",
-        notes: notes ?? "", status: AllocationStatus(rawValue: status ?? "") ?? .allocated)
+        notes: notes ?? "", status: AllocationStatus(rawValue: status ?? "") ?? .allocated,
+        percentComplete: percent_complete ?? 0, progressNote: progress_note ?? "",
+        progressUpdatedAt: parseTimestamp(progress_updated_at))
     }
   }
 
@@ -116,6 +123,11 @@ extension SupabaseData {
   static func save(_ a: WorkAllocation, token: String) async throws {
     try await SupabaseClient.shared.upsert(
       table: "work_allocations", body: try encode(body(for: a)), accessToken: token)
+  }
+
+  static func deleteAllocation(id: UUID, token: String) async throws {
+    try await SupabaseClient.shared.delete(
+      table: "work_allocations", query: "id=eq.\(id.uuidString.lowercased())", accessToken: token)
   }
 
   // MARK: - Materials

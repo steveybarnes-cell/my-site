@@ -7,6 +7,9 @@ struct FeedCommentsView: View {
   let postId: UUID
 
   @State private var draft = ""
+  /// The comment whose reason sheet is open. A value rather than a bool, so
+  /// the dialog cannot be presented without knowing what it is about.
+  @State private var reporting: FeedComment?
 
   private var post: FeedPost? { store.feedPosts.first { $0.id == postId } }
 
@@ -34,13 +37,24 @@ struct FeedCommentsView: View {
 
                   Divider().overlay(Brand.hairline)
 
-                  if post.comments.isEmpty {
+                  // Read through `moderatedComments`, not `post.comments`:
+                  // this view looks the post up in the store itself, so it
+                  // would otherwise show replies from someone the reader has
+                  // hidden everywhere else.
+                  if store.moderatedComments(of: post).isEmpty {
                     Text("No comments yet. Be the first to reply.")
                       .font(.footnote).foregroundStyle(Brand.inkSoft)
                       .frame(maxWidth: .infinity, alignment: .leading)
                   } else {
-                    ForEach(post.comments) { comment in
-                      FeedCommentRow(comment: comment)
+                    ForEach(store.moderatedComments(of: post)) { comment in
+                      FeedCommentRow(
+                        comment: comment,
+                        canModerate: comment.authorId != store.currentUser?.id,
+                        alreadyReported: store.hasReported(comment.id),
+                        onReport: { reporting = comment },
+                        onBlock: {
+                          store.blockAuthor(comment.authorId, named: comment.authorName)
+                        })
                     }
                   }
                 }
@@ -59,6 +73,27 @@ struct FeedCommentsView: View {
           ToolbarItem(placement: .confirmationAction) {
             Button("Done") { dismiss() }
           }
+        }
+        .confirmationDialog(
+          "Report this comment",
+          isPresented: Binding(
+            get: { reporting != nil },
+            set: { if !$0 { reporting = nil } }),
+          titleVisibility: .visible
+        ) {
+          ForEach(ContentReport.Reason.allCases) { reason in
+            Button(reason.rawValue) {
+              if let comment = reporting, let post {
+                store.reportComment(comment, in: post, reason: reason)
+              }
+              reporting = nil
+            }
+          }
+          Button("Cancel", role: .cancel) { reporting = nil }
+        } message: {
+          Text(
+            "The office will see the comment and why you flagged it. "
+              + "The person who wrote it is not told.")
         }
       }
     }

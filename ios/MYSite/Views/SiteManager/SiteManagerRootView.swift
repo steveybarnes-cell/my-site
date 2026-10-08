@@ -12,18 +12,36 @@ struct SiteManagerRootView: View {
         Tab("My Sites", systemImage: "mappin.and.ellipse") {
           SiteManagerSitesView()
         }
+        Tab("Today", systemImage: "sun.max.fill") {
+          TodayView()
+        }
         Tab("Records", systemImage: "list.clipboard.fill") {
           SiteManagerRecordsView()
         }
         .badge(store.invoiceActionCount)
-        Tab("Alerts", systemImage: "bell.fill") {
-          NotificationsView()
-        }
-        .badge(store.unreadCount)
         Tab("More", systemImage: "ellipsis.circle.fill") {
           SiteManagerMoreView()
         }
+        // iPad only: the sidebar carries the whole office. On the phone these
+        // stay behind More.
+        TabSection("Sites") {
+          Tab("Site Board", systemImage: "rectangle.3.group.fill") { SiteBoardView() }
+          Tab("Alerts", systemImage: "bell.fill") { NotificationsView() }
+            .badge(store.unreadCount)
+          Tab("Dashboard", systemImage: "square.grid.2x2.fill") { DashboardView() }
+          Tab("Attendance", systemImage: "person.badge.clock.fill") { AttendanceView() }
+          Tab("Files", systemImage: "folder.fill") { FilesView() }
+        }
+        .defaultVisibility(.hidden, for: .tabBar)
+        TabSection("Tools") {
+          Tab("Scan Receipt", systemImage: "doc.text.viewfinder") {
+            ScanReceiptView(presentedModally: false)
+          }
+          Tab("Profile", systemImage: "person.crop.circle.fill") { SiteManagerProfileView() }
+        }
+        .defaultVisibility(.hidden, for: .tabBar)
       }
+      .tabViewStyle(.sidebarAdaptable)
     }
     .__tenxTrackView("SiteManagerRootView")
   }
@@ -153,11 +171,20 @@ struct SiteManagerRecordsView: View {
 // MARK: - More hub
 
 struct SiteManagerMoreView: View {
+  @Environment(AppStore.self) private var store
+
   var body: some View {
     MoreHubView(
       roleTitle: "Site Manager",
       roleSymbol: "person.bust",
       items: [
+        MoreHubItem(
+          title: "Alerts",
+          subtitle: "Notifications and things needing a look",
+          symbol: "bell.fill",
+          tint: Brand.amber,
+          badge: store.unreadCount
+        ) { NotificationsView() },
         MoreHubItem(
           title: "Scan Invoice / Receipt",
           subtitle: "Photograph it — details read for you",
@@ -224,6 +251,7 @@ struct SiteManagerProfileView: View {
               // into the tradesman app instead of signing them out.
               Task { await auth.signOut() }
             }
+            DeleteAccountSection()
           }
           .padding(16)
         }
@@ -240,4 +268,183 @@ struct SiteManagerProfileView: View {
       s.login(as: s.siteManagers().first!)
       return s
     }())
+}
+
+// MARK: - Site Board (iPad)
+
+/// Every live site on one screen: who is on it right now, what is being done,
+/// how far along it is, and what evidence came in today.
+///
+/// Only offered from the iPad sidebar. On a phone the same information is a
+/// screen per site and that is right for a phone; a board needs the width.
+/// Reads straight from the store, so it moves as the crew clock on and move
+/// jobs along — a wall screen in the office, not a report.
+struct SiteBoardView: View {
+  @Environment(AppStore.self) private var store
+
+  private var sites: [Site] {
+    guard let me = store.currentUser else { return [] }
+    let mine = me.role == .admin ? store.sites : store.sitesManaged(by: me.id)
+    return mine.filter { $0.status == .active }.sorted { $0.name < $1.name }
+  }
+
+  private let columns = [
+    GridItem(.adaptive(minimum: 340, maximum: 520), spacing: 16, alignment: .top)
+  ]
+
+  var body: some View {
+    NavigationStack {
+      ZStack {
+        MPGBackground()
+        ScrollView {
+          VStack(alignment: .leading, spacing: 16) {
+            headline
+            if sites.isEmpty {
+              EmptyStateView(
+                symbol: "mappin.slash", title: "No active sites",
+                message: "Sites you manage show up here as soon as they're set to Active."
+              ).mpgCard()
+            } else {
+              LazyVGrid(columns: columns, alignment: .leading, spacing: 16) {
+                ForEach(sites) { site in
+                  SiteBoardCard(site: site)
+                }
+              }
+            }
+          }
+          .padding(16)
+        }
+      }
+      .navigationTitle("Site Board")
+      .navigationDestination(for: WorkAllocation.self) { AllocationDetailView(allocation: $0) }
+    }
+  }
+
+  private var headline: some View {
+    let onSite = store.clockRecords.filter {
+      $0.isOpen && Calendar.current.isDateInToday($0.date)
+    }.count
+    let jobs = store.allocations.filter {
+      Calendar.current.isDateInToday($0.date) && $0.status != .cancelled
+    }
+    let done = jobs.filter { $0.status == .completed }.count
+    return HStack(spacing: 12) {
+      boardStat("\(onSite)", "on site now", "person.2.fill")
+      boardStat("\(jobs.count)", "jobs today", "hammer.fill")
+      boardStat("\(done)", "finished", "checkmark.circle.fill")
+      Spacer()
+      Text(Date().formatted(.dateTime.weekday(.wide).day().month(.wide)))
+        .font(.subheadline).foregroundStyle(Brand.inkSoft)
+    }
+    .mpgCard()
+  }
+
+  private func boardStat(_ value: String, _ label: String, _ symbol: String) -> some View {
+    HStack(spacing: 8) {
+      Image(systemName: symbol).foregroundStyle(Brand.olive)
+      VStack(alignment: .leading, spacing: 0) {
+        Text(value).font(.title3.bold()).monospacedDigit().foregroundStyle(Brand.ink)
+        Text(label).font(.caption).foregroundStyle(Brand.inkSoft)
+      }
+    }
+    .padding(.trailing, 8)
+  }
+}
+
+private struct SiteBoardCard: View {
+  @Environment(AppStore.self) private var store
+  let site: Site
+
+  private var onSiteNow: [ClockRecord] {
+    store.clockRecords.filter {
+      $0.siteId == site.id && $0.isOpen && Calendar.current.isDateInToday($0.date)
+    }
+  }
+
+  private var todaysJobs: [WorkAllocation] {
+    store.allocations
+      .filter {
+        $0.siteId == site.id && Calendar.current.isDateInToday($0.date) && $0.status != .cancelled
+      }
+      .sorted { $0.startTime < $1.startTime }
+  }
+
+  private var photosToday: Int {
+    store.photos.filter { $0.siteId == site.id && Calendar.current.isDateInToday($0.timestamp) }
+      .count
+  }
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      HStack(alignment: .top) {
+        VStack(alignment: .leading, spacing: 2) {
+          Text(site.name).font(.headline).foregroundStyle(Brand.ink)
+          Text(site.client.isEmpty ? site.address : site.client)
+            .font(.caption).foregroundStyle(Brand.inkSoft).lineLimit(1)
+        }
+        Spacer()
+        StatusChip(
+          text: onSiteNow.isEmpty ? "Nobody on site" : "\(onSiteNow.count) on site",
+          color: onSiteNow.isEmpty ? Brand.inkSoft : Brand.olive,
+          filled: !onSiteNow.isEmpty)
+      }
+
+      if !onSiteNow.isEmpty {
+        VStack(alignment: .leading, spacing: 4) {
+          ForEach(onSiteNow) { c in
+            Label(
+              "\(c.tradesmanName) · since \(Fmt.time(c.clockInTime))",
+              systemImage: "clock.fill"
+            )
+            .font(.caption).foregroundStyle(Brand.ink)
+          }
+        }
+      }
+
+      Divider().overlay(Brand.hairline)
+
+      if todaysJobs.isEmpty {
+        Text("No jobs allocated today.")
+          .font(.footnote).foregroundStyle(Brand.inkSoft)
+      } else {
+        VStack(spacing: 8) {
+          ForEach(todaysJobs) { job in
+            NavigationLink(value: job) {
+              HStack(alignment: .top, spacing: 10) {
+                VStack(alignment: .leading, spacing: 3) {
+                  Text(job.taskDescription)
+                    .font(.footnote.weight(.medium)).foregroundStyle(Brand.ink)
+                    .lineLimit(2).multilineTextAlignment(.leading)
+                  Text(
+                    "\(store.user(job.tradesmanId)?.name ?? "Unassigned") · "
+                      + "\(job.startTime)–\(job.expectedFinish)"
+                  )
+                  .font(.caption2).foregroundStyle(Brand.inkSoft)
+                  ProgressView(value: Double(job.percentComplete), total: 100)
+                    .tint(job.status == .completed ? Brand.paidGreen : Brand.olive)
+                }
+                Spacer(minLength: 0)
+                VStack(alignment: .trailing, spacing: 3) {
+                  Text("\(job.percentComplete)%")
+                    .font(.footnote.weight(.semibold)).monospacedDigit().foregroundStyle(Brand.ink)
+                  StatusChip(text: job.status.rawValue, color: job.status.color)
+                }
+              }
+              .padding(10)
+              .background(
+                Brand.lightGreen, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+            .buttonStyle(.plain)
+          }
+        }
+      }
+
+      HStack(spacing: 14) {
+        Label("\(photosToday) photo\(photosToday == 1 ? "" : "s") today", systemImage: "camera.fill")
+        Label("\(site.defaultStart)–\(site.defaultFinish)", systemImage: "clock")
+      }
+      .font(.caption).foregroundStyle(Brand.inkSoft)
+    }
+    .mpgCard()
+  }
 }

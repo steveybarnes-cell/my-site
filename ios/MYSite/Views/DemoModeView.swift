@@ -55,7 +55,6 @@ struct DemoModeView: View {
               .multilineTextAlignment(.center)
           }
           .padding(16)
-          .frame(maxWidth: 520)
           .frame(maxWidth: .infinity)
         }
       }
@@ -94,10 +93,10 @@ struct DemoModeView: View {
         Image(systemName: "arrow.right").font(.caption2).foregroundStyle(Brand.inkSoft)
         Text("AI reads it").font(.caption2.weight(.medium)).foregroundStyle(Brand.ink)
         Image(systemName: "arrow.right").font(.caption2).foregroundStyle(Brand.inkSoft)
-        Text("Hubdoc / Xero").font(.caption2.weight(.bold)).foregroundStyle(Brand.olive)
+        Text("Hubdoc").font(.caption2.weight(.bold)).foregroundStyle(Brand.olive)
       }
       Text(
-        "Approved receipts upload to Hubdoc and Xero automatically — no lost paperwork or manual entry."
+        "Approved receipts go straight through to Hubdoc — no lost paperwork or manual entry."
       )
       .font(.caption2)
       .foregroundStyle(Brand.inkSoft)

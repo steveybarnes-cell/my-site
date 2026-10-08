@@ -169,15 +169,16 @@ struct DailyRecordFormView: View {
       }
       .pickerStyle(.menu).tint(Brand.olive)
       .frame(maxWidth: .infinity, alignment: .leading)
-      ZStack(alignment: .topLeading) {
-        if description.isEmpty {
-          Text("Describe the work you completed today…")
-            .font(.subheadline).foregroundStyle(Brand.inkSoft).padding(10)
-        }
-        TextEditor(text: $description)
-          .font(.subheadline).frame(minHeight: 100).scrollContentBackground(.hidden).padding(4)
-      }
-      .background(.white, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+      // A plain text field with a tidy-up beside it, rather than the old
+      // TextEditor. What goes in here ends up in a handover file and can be
+      // read back in a dispute, so it is worth it reading properly — but the
+      // tidy is always a suggestion the tradesman accepts or rejects, never
+      // something applied behind his back.
+      DictationField(
+        placeholder: "Describe the work you completed today…",
+        text: $description, lines: 3...8, tidyable: true)
+        .padding(10)
+        .background(.white, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
     .mpgFormSection()
   }

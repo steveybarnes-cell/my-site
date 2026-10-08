@@ -11,6 +11,7 @@ struct TradesmanSubmissionsView: View {
           MPGBackground()
           ScrollView {
             VStack(spacing: 16) {
+              if store.isOffline || store.pendingSyncCount > 0 { syncBanner }
               deadlineBanner
               thisWeekCard
               let subs = me.map { store.submissions(for: $0.id) } ?? []
@@ -129,6 +130,25 @@ struct TradesmanSubmissionsView: View {
     }
   }
 
+  /// Offline is not an error: work carries on and uploads itself the moment
+  /// there is signal. This just says so, so nobody retypes a day.
+  private var syncBanner: some View {
+    let n = store.pendingSyncCount
+    let message: String
+    if store.isOffline {
+      message =
+        n > 0
+        ? "No signal \u{2014} \(n) change\(n == 1 ? "" : "s") saved on this phone and will upload as soon as you're back online."
+        : "No signal \u{2014} keep going. Everything saves on this phone and uploads as soon as you're back online."
+    } else {
+      message = "\(n) change\(n == 1 ? "" : "s") uploading now\u{2026}"
+    }
+    return WarningBanner(
+      message: message,
+      symbol: store.isOffline ? "wifi.slash" : "arrow.triangle.2.circlepath",
+      tint: store.isOffline ? Brand.amber : Brand.blue)
+  }
+
   private var deadlineBanner: some View {
     WarningBanner(
       message:
@@ -172,8 +192,23 @@ struct SubmissionDetailView: View {
   @Environment(AppStore.self) private var store
   let submission: WeeklySubmission
 
+  @State private var editingLine: WorkLogEntry?
+  @State private var photoTarget: WorkAllocation?
+
   private var live: WeeklySubmission {
     store.submissions.first { $0.id == submission.id } ?? submission
+  }
+
+  /// Job details can be corrected until the office has approved or paid.
+  private var canAmend: Bool { store.canAmend(live) }
+
+  private var days: [DailyRecord] {
+    store.dayRecords(for: live.userId, weekEnding: live.weekEnding)
+  }
+
+  private var weekMaterials: [MaterialItem] {
+    store.materials(for: live.userId, weekEnding: live.weekEnding)
+      .sorted { $0.date < $1.date }
   }
 
   var body: some View {
@@ -181,7 +216,10 @@ struct SubmissionDetailView: View {
       MPGBackground()
       ScrollView {
         VStack(spacing: 16) {
+          if store.isOffline || store.pendingSyncCount > 0 { offlineNote }
           breakdownCard
+          workCard
+          if !weekMaterials.isEmpty { materialsCard }
           let queries = store.comments(for: live.id)
           if !queries.isEmpty { queriesCard(queries) }
           if live.status == .draft {
@@ -195,7 +233,24 @@ struct SubmissionDetailView: View {
     }
     .navigationTitle(live.invoiceNumber)
     .navigationBarTitleDisplayMode(.inline)
+    .sheet(item: $editingLine) { entry in
+      WorkLineSheet(existing: entry, site: store.site(entry.siteId), date: entry.date)
+    }
+    .sheet(item: $photoTarget) { allocation in
+      PhotoCaptureView(allocation: allocation)
+    }
   }
+
+  private var offlineNote: some View {
+    WarningBanner(
+      message: store.isOffline
+        ? "No signal \u{2014} changes save on this phone and upload as soon as you're back online."
+        : "\(store.pendingSyncCount) change\(store.pendingSyncCount == 1 ? "" : "s") uploading now\u{2026}",
+      symbol: store.isOffline ? "wifi.slash" : "arrow.triangle.2.circlepath",
+      tint: store.isOffline ? Brand.amber : Brand.blue)
+  }
+
+  // MARK: - Totals
 
   private var breakdownCard: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -215,7 +270,7 @@ struct SubmissionDetailView: View {
         InfoRow(label: "Gross", value: Fmt.gbp(live.gross))
         InfoRow(
           label: "CIS deduction (\(Int(live.cisRate * 100))%)",
-          value: "−\(Fmt.gbp(live.cisDeduction))")
+          value: "\u{2212}\(Fmt.gbp(live.cisDeduction))")
         if live.vatRegistered { InfoRow(label: "VAT (20%)", value: Fmt.gbp(live.vat)) }
         Divider().overlay(Brand.hairline)
         InfoRow(label: "Net due", value: Fmt.gbp(live.netDue))
@@ -230,9 +285,208 @@ struct SubmissionDetailView: View {
     .mpgCard()
   }
 
+  // MARK: - Work, day by day
+
+  /// Every task on the invoice, under the day it was done, with what it is
+  /// worth. The clock and the site are shown but locked; the job details and
+  /// photos are the tradesman's to correct, and the office hears about it.
+  private var workCard: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      SectionHeader(
+        title: "Work on this invoice",
+        subtitle: canAmend
+          ? "Tap a job to correct what was done. Times and sites are locked."
+          : "Approved \u{2014} locked.")
+
+      if days.isEmpty {
+        Text("No day sheets in this week yet.")
+          .font(.subheadline).foregroundStyle(Brand.inkSoft)
+      }
+
+      ForEach(days) { day in
+        dayBlock(day)
+      }
+    }
+    .mpgCard()
+  }
+
+  private func dayBlock(_ day: DailyRecord) -> some View {
+    let lines = store.workLog(for: live.userId, on: day.date)
+    let clocks = store.clockRecords(for: live.userId, on: day.date)
+    let dayPhotos = store.photos(for: live.userId, on: day.date)
+    let dayValue = day.totalHours * live.labourRate
+
+    return VStack(alignment: .leading, spacing: 10) {
+      // Day header: locked facts.
+      HStack(alignment: .top) {
+        VStack(alignment: .leading, spacing: 3) {
+          Text(day.date.formatted(.dateTime.weekday(.wide).day().month(.abbreviated)))
+            .font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
+          Label(store.site(day.siteId)?.name ?? "Site", systemImage: "mappin.and.ellipse")
+            .font(.caption).foregroundStyle(Brand.inkSoft)
+          if let first = clocks.first {
+            Label(
+              "Clocked \(Fmt.time(first.clockInTime))"
+                + (clocks.compactMap(\.clockOutTime).last.map { " \u{2013} \(Fmt.time($0))" } ?? " (still on)"),
+              systemImage: "lock.fill"
+            )
+            .font(.caption).foregroundStyle(Brand.inkSoft)
+          } else if !day.startTime.isEmpty {
+            Label("\(day.startTime) \u{2013} \(day.finishTime)", systemImage: "lock.fill")
+              .font(.caption).foregroundStyle(Brand.inkSoft)
+          }
+        }
+        Spacer()
+        VStack(alignment: .trailing, spacing: 3) {
+          Text(Fmt.hours(day.totalHours))
+            .font(.subheadline.weight(.semibold)).monospacedDigit().foregroundStyle(Brand.oliveDark)
+          Text(Fmt.gbp(dayValue))
+            .font(.caption).monospacedDigit().foregroundStyle(Brand.inkSoft)
+        }
+      }
+
+      // Tasks.
+      if lines.isEmpty {
+        Text(day.description)
+          .font(.footnote).foregroundStyle(Brand.ink)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .padding(10)
+          .background(Brand.lightGreen, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+      } else {
+        VStack(spacing: 6) {
+          ForEach(lines) { line in
+            taskRow(line)
+          }
+        }
+      }
+
+      // Photos for the day.
+      HStack(spacing: 8) {
+        if dayPhotos.isEmpty {
+          Label("No photos", systemImage: "photo")
+            .font(.caption).foregroundStyle(Brand.inkSoft)
+        } else {
+          ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+              ForEach(dayPhotos) { p in photoThumb(p) }
+            }
+          }
+        }
+        Spacer(minLength: 0)
+        if canAmend,
+          let target = store.allocationForPhotos(
+            userId: live.userId, on: day.date, preferring: lines.first?.allocationId)
+        {
+          Button { photoTarget = target } label: {
+            Label("Add photo", systemImage: "camera.fill")
+              .font(.caption.weight(.semibold))
+              .padding(.horizontal, 10).padding(.vertical, 7)
+              .background(Brand.lightGreen, in: Capsule())
+              .foregroundStyle(Brand.oliveDark)
+          }
+          .buttonStyle(.plain)
+        }
+      }
+    }
+    .padding(12)
+    .background(
+      RoundedRectangle(cornerRadius: 14, style: .continuous)
+        .stroke(Brand.hairline, lineWidth: 1))
+  }
+
+  private func taskRow(_ line: WorkLogEntry) -> some View {
+    let value = line.hours * live.labourRate
+    return Button {
+      if canAmend { editingLine = line }
+    } label: {
+      HStack(alignment: .top, spacing: 10) {
+        VStack(alignment: .leading, spacing: 3) {
+          Text(line.description)
+            .font(.footnote.weight(.medium)).foregroundStyle(Brand.ink)
+            .multilineTextAlignment(.leading)
+          Text("\(line.category.rawValue) \u{00B7} \(line.durationLabel)")
+            .font(.caption2).foregroundStyle(Brand.inkSoft)
+        }
+        Spacer()
+        Text(Fmt.gbp(value))
+          .font(.footnote.weight(.semibold)).monospacedDigit().foregroundStyle(Brand.ink)
+        if canAmend {
+          Image(systemName: "pencil.circle")
+            .font(.footnote).foregroundStyle(Brand.olive)
+        }
+      }
+      .padding(10)
+      .background(Brand.lightGreen, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+    .buttonStyle(.plain)
+    .disabled(!canAmend)
+  }
+
+  private func photoThumb(_ p: SitePhoto) -> some View {
+    Group {
+      if let url = URL(string: p.driveURL), p.driveURL.hasPrefix("http") {
+        AsyncImage(url: url) { phase in
+          if let image = phase.image {
+            image.resizable().scaledToFill()
+          } else {
+            Image(systemName: p.symbol).foregroundStyle(Brand.olive)
+          }
+        }
+      } else {
+        Image(systemName: p.symbol).foregroundStyle(Brand.olive)
+      }
+    }
+    .frame(width: 44, height: 44)
+    .background(Brand.lightGreen)
+    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+  }
+
+  // MARK: - Materials
+
+  private var materialsCard: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      SectionHeader(
+        title: "Materials",
+        subtitle: "Chargeable items are added to the invoice. Correct a receipt from Today \u{2192} Evidence.")
+      VStack(spacing: 0) {
+        ForEach(weekMaterials) { m in
+          HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 2) {
+              Text(m.description.isEmpty ? m.supplier : m.description)
+                .font(.subheadline.weight(.medium)).foregroundStyle(Brand.ink)
+              Text("\(m.supplier.isEmpty ? "" : m.supplier + " \u{00B7} ")\(Fmt.date(m.date))")
+                .font(.caption).foregroundStyle(Brand.inkSoft)
+              HStack(spacing: 6) {
+                StatusChip(
+                  text: m.chargeable == .yes ? "Chargeable" : (m.chargeable == .no ? "Not charged" : "Chargeable TBC"),
+                  color: m.chargeable == .no ? Brand.inkSoft : Brand.olive)
+                if m.receiptUploaded {
+                  Label("Receipt", systemImage: "doc.text").font(.caption2).foregroundStyle(Brand.inkSoft)
+                }
+              }
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: 2) {
+              Text(Fmt.gbp(m.costExVat)).font(.subheadline.weight(.semibold)).monospacedDigit()
+                .foregroundStyle(m.chargeable == .no ? Brand.inkSoft : Brand.ink)
+              if m.vatAmount > 0 {
+                Text("+ VAT \(Fmt.gbp(m.vatAmount))").font(.caption2).foregroundStyle(Brand.inkSoft)
+              }
+            }
+          }
+          .padding(.vertical, 9)
+          if m.id != weekMaterials.last?.id { Divider().overlay(Brand.hairline) }
+        }
+      }
+    }
+    .mpgCard()
+  }
+
+  // MARK: - Queries and edits
+
   private func queriesCard(_ queries: [QueryComment]) -> some View {
     VStack(alignment: .leading, spacing: 12) {
-      SectionHeader(title: "Queries")
+      SectionHeader(title: "Queries & edits")
       ForEach(queries) { q in
         VStack(alignment: .leading, spacing: 4) {
           HStack {

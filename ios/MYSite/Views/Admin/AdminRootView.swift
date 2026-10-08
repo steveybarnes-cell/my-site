@@ -12,18 +12,41 @@ struct AdminRootView: View {
         Tab("Dashboard", systemImage: "square.grid.2x2.fill") {
           DashboardView()
         }
+        Tab("Today", systemImage: "sun.max.fill") {
+          TodayView()
+        }
         Tab("Invoices", systemImage: "doc.text.fill") {
           AdminSubmissionsView()
         }
         .badge(store.invoiceActionCount)
-        Tab("Alerts", systemImage: "bell.fill") {
-          NotificationsView()
-        }
-        .badge(store.unreadCount)
         Tab("More", systemImage: "ellipsis.circle.fill") {
           AdminMoreView()
         }
+        // iPad only: the sidebar carries the whole office. On the phone these
+        // stay behind More.
+        TabSection("Office") {
+          Tab("Site Board", systemImage: "rectangle.3.group.fill") { SiteBoardView() }
+          Tab("Alerts", systemImage: "bell.fill") { NotificationsView() }
+            .badge(store.unreadCount)
+          Tab("Manage", systemImage: "slider.horizontal.3") { ManageView() }
+          Tab("Attendance", systemImage: "person.badge.clock.fill") { AttendanceView() }
+          Tab("Files", systemImage: "folder.fill") { FilesView() }
+        }
+        .defaultVisibility(.hidden, for: .tabBar)
+        TabSection("Tools") {
+          Tab("Scan Receipt", systemImage: "doc.text.viewfinder") {
+            ScanReceiptView(presentedModally: false)
+          }
+          Tab("Weekly Spend", systemImage: "chart.bar.doc.horizontal.fill") {
+            WeeklySpendSummaryView()
+          }
+          Tab("Ask MY Site", systemImage: "sparkles") { AskMPGView() }
+          Tab("Work by Trade", systemImage: "hammer.fill") { TradeWorkFeedView() }
+          Tab("Profile", systemImage: "person.crop.circle.fill") { AdminProfileView() }
+        }
+        .defaultVisibility(.hidden, for: .tabBar)
       }
+      .tabViewStyle(.sidebarAdaptable)
     }
     .onAppear { store.notifyPendingReviews() }
     .__tenxTrackView("AdminRootView")
@@ -40,6 +63,13 @@ struct AdminMoreView: View {
       roleTitle: "Office / Admin",
       roleSymbol: "shield.lefthalf.filled",
       items: [
+        MoreHubItem(
+          title: "Alerts",
+          subtitle: "Notifications and things needing a look",
+          symbol: "bell.fill",
+          tint: Brand.amber,
+          badge: store.unreadCount
+        ) { NotificationsView() },
         MoreHubItem(
           title: "Scan Invoice / Receipt",
           subtitle: "Photograph it — details read for you",
@@ -116,6 +146,7 @@ struct AdminDashboardView: View {
                 message: "\(late.count) invoice(s) submitted after the Monday 13:00 deadline.",
                 symbol: "clock.badge.exclamationmark", tint: Brand.amber)
             }
+            MyWorkSection()
             sitesSection
             variationSection
           }
@@ -123,6 +154,9 @@ struct AdminDashboardView: View {
         }
       }
       .navigationTitle("Office Dashboard")
+      // An admin who is also on the tools can now open their own job and move
+      // it, instead of swapping their role in the database to do it.
+      .navigationDestination(for: WorkAllocation.self) { AllocationDetailView(allocation: $0) }
     }
   }
 
@@ -378,6 +412,7 @@ struct AdminProfileView: View {
               // into the tradesman app instead of signing them out.
               Task { await auth.signOut() }
             }
+            DeleteAccountSection()
           }
           .padding(16)
         }

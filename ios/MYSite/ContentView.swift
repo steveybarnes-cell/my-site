@@ -36,6 +36,7 @@ struct ContentView: View {
         }
       }
     }
+    .mpgConfirmations()
     .task { await auth.restore() }
     .__tenxTrackView("ContentView")
   }

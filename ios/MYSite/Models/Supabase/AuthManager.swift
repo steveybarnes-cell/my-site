@@ -38,6 +38,30 @@ final class AuthManager {
 
   private(set) var session: SupabaseSession?
 
+  /// Completes Sign in with Apple. Apple only hands over the name on the very
+  /// first authorisation, so when it is present it is written to the profile
+  /// row straight away — the next sign-in will not have it.
+  func signInWithApple(idToken: String, nonce: String, fullName: PersonNameComponents?) async {
+    await run {
+      let s = try await SupabaseClient.shared.signInWithIdToken(
+        provider: "apple", idToken: idToken, nonce: nonce)
+      if let fullName {
+        let name = PersonNameComponentsFormatter.localizedString(from: fullName, style: .default)
+          .trimmingCharacters(in: .whitespaces)
+        if !name.isEmpty, let body = try? JSONSerialization.data(withJSONObject: ["name": name]) {
+          // Only fills a blank; never overwrites a name the office has set.
+          try? await SupabaseClient.shared.patch(
+            table: "profiles", query: "id=eq.\(s.userId)&name=is.null", body: body,
+            accessToken: s.accessToken)
+          try? await SupabaseClient.shared.patch(
+            table: "profiles", query: "id=eq.\(s.userId)&name=eq.", body: body,
+            accessToken: s.accessToken)
+        }
+      }
+      try await self.adopt(s)
+    }
+  }
+
   // MARK: - Password reset
 
   /// True once a recovery link has been opened and verified. Drives the

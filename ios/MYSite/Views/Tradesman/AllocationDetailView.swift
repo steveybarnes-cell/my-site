@@ -7,6 +7,7 @@ struct AllocationDetailView: View {
   @State private var showRecord = false
   @State private var showMaterials = false
   @State private var showPhotos = false
+  @State private var showRequest = false
 
   private var live: WorkAllocation {
     store.allocations.first { $0.id == allocation.id } ?? allocation
@@ -19,6 +20,7 @@ struct AllocationDetailView: View {
         ScrollView {
           VStack(spacing: 16) {
             detailCard
+            JobProgressControl(allocation: live).mpgCard()
             if live.requiredPhotos {
               WarningBanner(
                 message: "Before and after photos are required for this task.",
@@ -34,6 +36,7 @@ struct AllocationDetailView: View {
       .sheet(isPresented: $showRecord) { DailyRecordFormView(allocation: live) }
       .sheet(isPresented: $showMaterials) { MaterialFormView(allocation: live) }
       .sheet(isPresented: $showPhotos) { PhotoCaptureView(allocation: live) }
+      .sheet(isPresented: $showRequest) { MaterialRequestForm(allocation: live) }
     }
     .__tenxTrackView("AllocationDetailView")
   }
@@ -95,6 +98,10 @@ struct AllocationDetailView: View {
       HStack(spacing: 10) {
         actionTile("Take Photo", "camera.fill") { showPhotos = true }
         actionTile("Add Materials", "shippingbox.fill") { showMaterials = true }
+      }
+      HStack(spacing: 10) {
+        actionTile("Ask for Materials", "cart.badge.plus") { showRequest = true }
+        actionTile("Log What I Did", "square.and.pencil") { showRecord = true }
       }
       PrimaryButton(
         title: "Add / Submit Daily Record", symbol: "square.and.pencil", tint: Brand.charcoal

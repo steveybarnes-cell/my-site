@@ -3,8 +3,6 @@ import SwiftUI
 struct ProfileView: View {
   @Environment(AppStore.self) private var store
   @Environment(AuthManager.self) private var auth
-  @State private var showDeleteConfirm = false
-  @State private var showDeleteError = false
   private var me: AppUser? { store.currentUser }
   private var profile: TradesmanProfile? { me.flatMap { store.profile(for: $0.id) } }
 
@@ -46,24 +44,6 @@ struct ProfileView: View {
           }
         }
         .navigationTitle("Profile")
-        .alert("Delete your account?", isPresented: $showDeleteConfirm) {
-          Button("Cancel", role: .cancel) {}
-          Button("Delete", role: .destructive) {
-            Task {
-              let ok = await auth.deleteAccount()
-              if !ok { showDeleteError = true }
-            }
-          }
-        } message: {
-          Text(
-            "This permanently deletes your MPG Site Records account and your personal data. This cannot be undone."
-          )
-        }
-        .alert("Couldn't delete account", isPresented: $showDeleteError) {
-          Button("OK", role: .cancel) {}
-        } message: {
-          Text(auth.errorMessage ?? "Something went wrong. Please try again or contact support.")
-        }
       }
     }
     .__tenxTrackView("ProfileView")
@@ -125,7 +105,39 @@ struct ProfileView: View {
     .mpgCard()
   }
 
-  private var deleteAccountSection: some View {
+  private var deleteAccountSection: some View { DeleteAccountSection() }
+
+  private var contactCard: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      SectionHeader(title: "Contact")
+      InfoRow(label: "Email", value: me?.email ?? "", symbol: "envelope")
+      InfoRow(label: "Phone", value: me?.phone ?? "", symbol: "phone")
+    }
+    .mpgCard()
+  }
+}
+
+#Preview {
+  ProfileView()
+    .environment(
+      {
+        let s = AppStore()
+        s.login(as: s.tradesmen().first!)
+        return s
+      }()
+    )
+    .environment(AuthManager(store: AppStore()))
+}
+
+/// "Delete my account" with its confirmation, shared by every role's profile
+/// screen. Apple requires in-app deletion to be reachable for every account
+/// type, and the reviewer signs in as an admin.
+struct DeleteAccountSection: View {
+  @Environment(AuthManager.self) private var auth
+  @State private var showDeleteConfirm = false
+  @State private var showDeleteError = false
+
+  var body: some View {
     VStack(spacing: 8) {
       Button {
         showDeleteConfirm = true
@@ -150,29 +162,27 @@ struct ProfileView: View {
       .disabled(auth.isWorking)
       Text("Permanently removes your account and personal data.")
         .font(.caption)
-        .foregroundStyle(.white.opacity(0.6))
+        .foregroundStyle(Brand.inkSoft)
     }
     .padding(.top, 4)
-  }
-
-  private var contactCard: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      SectionHeader(title: "Contact")
-      InfoRow(label: "Email", value: me?.email ?? "", symbol: "envelope")
-      InfoRow(label: "Phone", value: me?.phone ?? "", symbol: "phone")
+    .alert("Delete your account?", isPresented: $showDeleteConfirm) {
+      Button("Cancel", role: .cancel) {}
+      Button("Delete", role: .destructive) {
+        Task {
+          let ok = await auth.deleteAccount()
+          if !ok { showDeleteError = true }
+        }
+      }
+    } message: {
+      Text(
+        "This permanently deletes your MY Site account and your personal data. "
+          + "Site records your company must keep for tax purposes are retained without your account. "
+          + "This cannot be undone.")
     }
-    .mpgCard()
+    .alert("Couldn't delete account", isPresented: $showDeleteError) {
+      Button("OK", role: .cancel) {}
+    } message: {
+      Text(auth.errorMessage ?? "Something went wrong. Please try again or contact support.")
+    }
   }
-}
-
-#Preview {
-  ProfileView()
-    .environment(
-      {
-        let s = AppStore()
-        s.login(as: s.tradesmen().first!)
-        return s
-      }()
-    )
-    .environment(AuthManager(store: AppStore()))
 }

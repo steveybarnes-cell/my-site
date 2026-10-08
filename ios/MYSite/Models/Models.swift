@@ -226,6 +226,80 @@ struct WorkAllocation: Identifiable, Hashable {
   var requiredMaterials: String
   var notes: String
   var status: AllocationStatus
+  /// How far along, 0–100. Written by inserting an `AllocationProgress` rather
+  /// than set directly — a database trigger moves this and the status together,
+  /// so the headline figure and the history behind it cannot disagree.
+  var percentComplete: Int = 0
+  var progressNote: String = ""
+  var progressUpdatedAt: Date? = nil
+}
+
+/// One movement of a job's progress bar, with who moved it and why.
+///
+/// Kept as a log rather than just a number because "it was 80% on Thursday and
+/// 50% on Friday" is a conversation worth being able to have.
+struct AllocationProgress: Identifiable, Hashable {
+  let id: UUID
+  var allocationId: UUID
+  var userId: UUID
+  var percent: Int
+  var note: String
+  var createdAt: Date
+
+  init(
+    id: UUID = UUID(), allocationId: UUID, userId: UUID, percent: Int,
+    note: String = "", createdAt: Date = Date()
+  ) {
+    self.id = id
+    self.allocationId = allocationId
+    self.userId = userId
+    self.percent = max(0, min(100, percent))
+    self.note = note
+    self.createdAt = createdAt
+  }
+}
+
+enum MaterialRequestStatus: String, Codable, CaseIterable, Identifiable {
+  case requested = "Requested"
+  case ordered = "Ordered"
+  case delivered = "Delivered"
+  case declined = "Declined"
+  var id: String { rawValue }
+}
+
+/// "I need twelve sheets of 12.5mm by Thursday."
+///
+/// Deliberately not an order — it is a tradesman telling the office what he is
+/// short of, in one place, instead of in a text message at ten at night.
+struct MaterialRequest: Identifiable, Hashable {
+  let id: UUID
+  var userId: UUID
+  var siteId: UUID
+  var allocationId: UUID?
+  var description: String
+  var quantity: String
+  var neededBy: Date?
+  var status: MaterialRequestStatus
+  var officeNote: String
+  var createdAt: Date
+
+  init(
+    id: UUID = UUID(), userId: UUID, siteId: UUID, allocationId: UUID? = nil,
+    description: String, quantity: String = "", neededBy: Date? = nil,
+    status: MaterialRequestStatus = .requested, officeNote: String = "",
+    createdAt: Date = Date()
+  ) {
+    self.id = id
+    self.userId = userId
+    self.siteId = siteId
+    self.allocationId = allocationId
+    self.description = description
+    self.quantity = quantity
+    self.neededBy = neededBy
+    self.status = status
+    self.officeNote = officeNote
+    self.createdAt = createdAt
+  }
 }
 
 struct DailyRecord: Identifiable, Hashable {

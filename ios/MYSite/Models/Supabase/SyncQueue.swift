@@ -1,4 +1,5 @@
 import Foundation
+import Network
 
 /// The write verb a queued operation replays against PostgREST.
 enum SyncMethod: String, Codable {
@@ -122,5 +123,44 @@ extension SupabaseClient {
     case .patch:
       try await patch(table: op.table, query: op.query, body: op.bodyData, accessToken: accessToken)
     }
+  }
+}
+
+/// Watches the network path so queued writes go the moment signal comes back,
+/// rather than waiting for the next thing the user happens to do.
+///
+/// The queue already survived being offline; what it lacked was a trigger. A
+/// tradesman who logs a day in a basement and then drives home should have it
+/// on the office's screen before he has parked, not the next time he opens the
+/// app.
+final class ConnectivityMonitor {
+  static let shared = ConnectivityMonitor()
+
+  private let monitor = NWPathMonitor()
+  private let queue = DispatchQueue(label: "mysite.connectivity")
+  private var started = false
+
+  /// True when the path is usable. Starts optimistic so nothing is blocked
+  /// before the first path update lands.
+  private(set) var isOnline = true
+
+  /// Called on the main queue whenever the path changes, with the new state.
+  var onChange: ((Bool) -> Void)?
+
+  private init() {}
+
+  func start() {
+    guard !started else { return }
+    started = true
+    monitor.pathUpdateHandler = { [weak self] path in
+      let online = path.status == .satisfied
+      DispatchQueue.main.async {
+        guard let self else { return }
+        let changed = online != self.isOnline
+        self.isOnline = online
+        if changed { self.onChange?(online) }
+      }
+    }
+    monitor.start(queue: queue)
   }
 }
